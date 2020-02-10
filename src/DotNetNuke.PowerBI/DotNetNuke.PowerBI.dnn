@@ -1,0 +1,183 @@
+<dotnetnuke type="Package" version="5.0">
+  <packages>
+    <package name="PowerBIEmbeddedList" type="Module" version="01.00.03">
+      <friendlyName>PowerBI Embedded Content List</friendlyName>
+      <description>A set of modules to embed PowerBI Embedded dashboards and reports into a DNN Platform installation.</description>
+      <iconFile>~/DesktopModules/MVC/PowerBIEmbedded/images/powerbi.png</iconFile>
+      <owner>
+        <name>Intelequia</name>
+        <organization>Intelequia</organization>
+        <url>https://intelequia.com</url>
+        <email>support@intelequia.com</email>
+      </owner>
+      <license src="License.txt"></license>
+      <releaseNotes src="ReleaseNotes.txt"></releaseNotes>
+      <azureCompatible>true</azureCompatible>
+      <dependencies>
+        <dependency type="CoreVersion">09.03.02</dependency>
+      </dependencies>
+      
+      <components>
+        <component type="Script">
+          <scripts>
+            <basePath>DesktopModules\MVC\PowerBIEmbedded</basePath>
+            <script type="Install">
+              <path>Providers\DataProviders\SqlDataProvider</path>
+              <name>01.00.00.SqlDataProvider</name>
+              <version>01.00.00</version>
+            </script>
+            <script type="Install">
+              <path>Providers\DataProviders\SqlDataProvider</path>
+              <name>01.00.02.SqlDataProvider</name>
+              <version>01.00.02</version>
+            </script>
+            <script type="UnInstall">
+              <path>Providers\DataProviders\SqlDataProvider</path>
+              <name>Uninstall.SqlDataProvider</name>
+              <version>01.00.00</version>
+            </script>
+          </scripts>
+        </component>
+
+        <component type="ResourceFile">
+          <resourceFiles>
+            <basePath>DesktopModules/MVC/PowerBIEmbedded</basePath>
+            <resourceFile>
+              <name>Resources.zip</name>
+            </resourceFile>
+          </resourceFiles>
+        </component>
+
+        <component type="Module">
+          <desktopModule>
+            <moduleName>DotNetNuke.PowerBI.ListView</moduleName>
+            <foldername>PowerBIEmbedded</foldername>
+            <businessControllerClass>DotNetNuke.PowerBI.FeatureController, DotNetNuke.PowerBI</businessControllerClass>
+            <supportedFeatures>
+              <supportedFeature>IPortable</supportedFeature>
+              <supportedFeature>ISearchable</supportedFeature>
+              <supportedFeature>IUpgradeable</supportedFeature>
+            </supportedFeatures>
+            <moduleDefinitions>
+              <moduleDefinition>
+                <friendlyName>PowerBI Embedded Content List</friendlyName>
+                <defaultCacheTime>0</defaultCacheTime>
+                <moduleControls>
+                  <moduleControl>
+                    <controlKey />
+                    <controlSrc>DotNetNuke.PowerBI.Controllers/ListView/Index.mvc</controlSrc>
+                    <supportsPartialRendering>False</supportsPartialRendering>
+                    <controlTitle>PowerBI Item List</controlTitle>
+                    <controlType>View</controlType>
+                    <iconFile />
+                    <helpUrl />
+                    <viewOrder>0</viewOrder>
+                  </moduleControl>
+                  <moduleControl>
+                    <controlKey>Settings</controlKey>
+                    <controlSrc>DotNetNuke.PowerBI.Controllers/Settings/Index.mvc</controlSrc>
+                    <supportsPartialRendering>False</supportsPartialRendering>
+                    <controlTitle>PowerBI Embedded Settings</controlTitle>
+                    <controlType>Edit</controlType>
+                    <iconFile />
+                    <helpUrl />
+                    <viewOrder>0</viewOrder>
+                  </moduleControl>
+                </moduleControls>
+              </moduleDefinition>
+            </moduleDefinitions>
+          </desktopModule>
+          <eventMessage>
+            <processorType>DotNetNuke.Entities.Modules.EventMessageProcessor, DotNetNuke</processorType>
+            <processorCommand>UpgradeModule</processorCommand>
+            <attributes>
+              <businessControllerClass>DotNetNuke.PowerBI.FeatureController, DotNetNuke.PowerBI</businessControllerClass>
+              <desktopModuleID>[DESKTOPMODULEID]</desktopModuleID>
+              <upgradeVersionsList>01.00.00</upgradeVersionsList>
+            </attributes>
+          </eventMessage>
+        </component>
+        <component type="Assembly">
+          <assemblies>
+            <assembly>
+              <name>DotNetNuke.PowerBI.dll</name>
+              <path>bin</path>
+            </assembly>
+            <assembly>
+              <name>Microsoft.PowerBI.Api.dll</name>
+              <path>bin</path>
+            </assembly>
+            <assembly>
+              <name>netstandard.dll</name>
+              <path>bin</path>
+            </assembly>
+            <assembly>
+              <name>Microsoft.IdentityModel.Clients.ActiveDirectory.dll</name>
+              <path>bin</path>
+            </assembly>
+            <assembly>
+              <name>Microsoft.Rest.ClientRuntime.dll</name>
+              <path>bin</path>
+            </assembly>
+            
+          </assemblies>
+        </component>
+      </components>
+    </package>
+    <package name="PowerBIEmbeddedContent" type="Module" version="01.00.03">
+      <friendlyName>PowerBI Embedded Content View</friendlyName>
+      <description>A set of modules to embed PowerBI Embedded dashboards and reports into a DNN Platform installation.</description>
+      <iconFile>~/DesktopModules/MVC/PowerBIEmbedded/images/powerbi.png</iconFile>
+      <owner>
+        <name>Intelequia</name>
+        <organization>Intelequia</organization>
+        <url>https://intelequia.com</url>
+        <email>support@intelequia.com</email>
+      </owner>
+      <license src="License.txt"></license>
+      <releaseNotes src="ReleaseNotes.txt"></releaseNotes>
+      <azureCompatible>true</azureCompatible>
+      <dependencies>
+        <dependency type="CoreVersion">09.03.02</dependency>
+      </dependencies>
+
+      <components>
+        <component type="Module">
+          <desktopModule>
+            <moduleName>DotNetNuke.PowerBI.ContentView</moduleName>
+            <foldername>PowerBIEmbedded</foldername>
+            <businessControllerClass></businessControllerClass>
+            <moduleDefinitions>
+              <moduleDefinition>
+                <friendlyName>PowerBI Embedded Content View</friendlyName>
+                <defaultCacheTime>0</defaultCacheTime>
+                <moduleControls>
+                  <moduleControl>
+                    <controlKey />
+                    <controlSrc>DotNetNuke.PowerBI.Controllers/ContentView/Index.mvc</controlSrc>
+                    <supportsPartialRendering>False</supportsPartialRendering>
+                    <controlTitle>PowerBI Content View</controlTitle>
+                    <controlType>View</controlType>
+                    <iconFile />
+                    <helpUrl />
+                    <viewOrder>0</viewOrder>
+                  </moduleControl>
+                  <moduleControl>
+                    <controlKey>Settings</controlKey>
+                    <controlSrc>DotNetNuke.PowerBI.Controllers/Settings/Index.mvc</controlSrc>
+                    <supportsPartialRendering>False</supportsPartialRendering>
+                    <controlTitle>PowerBI Embedded Settings</controlTitle>
+                    <controlType>Edit</controlType>
+                    <iconFile />
+                    <helpUrl />
+                    <viewOrder>0</viewOrder>
+                  </moduleControl>
+                </moduleControls>
+              </moduleDefinition>
+            </moduleDefinitions>
+          </desktopModule>
+        </component>
+      </components>
+    </package>
+  </packages>
+</dotnetnuke>

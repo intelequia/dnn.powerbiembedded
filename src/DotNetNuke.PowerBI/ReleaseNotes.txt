@@ -1,0 +1,25 @@
+﻿<h3>DNN PowerBI Embedded module</h3>
+<p class="Contributor">
+	Intelequia <br />
+	<a href="mailto:support@intelequia.com">support@intelequia.com</a><br />
+	<a href=https://intelequia.com>https://intelequia.com</a><br />
+	A set of modules to embed PowerBI Embedded dashboards and reports into a DNN Platform installation.
+</p>
+<hr/>
+<div class="License">
+	<h3>About the DNN PowerBI Embedded module</h3>
+	<p class="Owner">
+		<b>Version 1.0.0</b>
+	</p>
+	<p>Initial realease.<br /><br /></p>	
+	
+	<p class="Owner">
+		<b>Version 1.0.1</b>
+	</p>
+	<p>Added localizations for german and spanish<br /><br /></p>	
+
+	<p class="Owner">
+		<b>Version 1.0.2</b>
+	</p>
+	<p>Added a settings section for reports security<br /><br /></p>
+</div>

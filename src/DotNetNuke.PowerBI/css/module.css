@@ -1,0 +1,117 @@
+.mini-navbar #dnn_Side_Menu {
+    display: none;
+}
+
+#dnn_Side_Menu .dnnModule {
+    font-weight: 400;
+    font-size: 13px;
+    z-index: 902;
+}
+#dnn_Side_Menu .powerbiListView {
+    padding: 0px 20px 0px 25px;
+}
+    #dnn_Side_Menu .powerbiListView li {
+        list-style: none;
+    }
+    #dnn_Side_Menu .powerbiListView li a {
+        color: #323130;
+    }
+
+
+.powerbiListView h4 {
+    text-transform: uppercase;
+}
+
+.powerbiListView li.normal {
+    font-style: normal;
+    cursor: pointer;
+    padding: 5px 20px 5px 10px;
+    border-left: 4px solid transparent;
+}
+    .powerbiListView li.normal.active {
+        border-left: 4px solid #f2c811;
+        transition: all 0.4s;
+        background-color: #FFFFFF;
+    }
+
+.powerbiListView li.empty {
+    font-style: italic;
+    cursor: auto;
+    padding: 5px 20px 5px 10px;
+}
+
+.permission {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
+}
+.permission-allow {
+    background-image: url(/icons/Sigma/Grant_16X16_Standard.png);
+}
+.permission-deny {
+    background-image: url(/icons/Sigma/Deny_16X16_Standard.png);
+}
+.permission-delete {
+    background-image: url(/icons/Sigma/Delete_16x16_PermissionGrid.png);
+}
+
+#ListViewSettings {
+    margin: auto;
+    width: 750px;
+}
+
+.settings-reportlist {
+    float: left;
+    width: 40%;
+    height: 400px;
+    overflow: auto;
+}
+
+.settings-reportsecurity {
+    float: left;
+    width: 60%;
+    height: 400px;
+    overflow: auto;
+    margin-bottom: 10px;
+}
+
+.settings-reportlist h3 {
+    font-size: 18px;
+    letter-spacing: normal;
+    font-weight: normal;
+}
+
+.settings-reportlist ul {
+    margin-left: 0;
+}
+
+.select2-selection.select2-selection--single {
+    width: 275px;
+}
+
+#add-user {
+    min-width: 50px;
+}
+
+.settings-reportsecurity .dnnPermissionsGrid {
+    width: 400px;
+    border-collapse: collapse;
+}
+
+.settings-reportsecurity .permissionHeader:first-child {
+    width: 150px;
+}
+
+.settings-reportsecurity .dnnPermissionsGrid .dnnGridItem:nth-child(even) {
+    background-color: #F2F2F2;
+}
+
+#permissions-footer {
+    float: right;
+    margin-right: 45px;
+}
+
+.roles-grid {
+    margin-top: 10px;
+}

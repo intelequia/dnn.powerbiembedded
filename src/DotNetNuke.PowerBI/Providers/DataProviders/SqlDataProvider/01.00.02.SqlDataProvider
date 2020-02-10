@@ -1,0 +1,42 @@
+﻿IF (NOT EXISTS(SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'PBI_ObjectPermission'))
+BEGIN
+	CREATE TABLE [dbo].[PBI_ObjectPermission](
+		[ID] [uniqueidentifier] NOT NULL,
+		[PowerBiObjectID] [varchar](50) NOT NULL,
+		[PermissionID] [int] NOT NULL,
+		[AllowAccess] [bit] NOT NULL,
+		[PortalID] [int] NOT NULL,
+		[RoleID] [int] NULL,
+		[UserID] [int] NULL,
+		[CreatedByUserID] [int] NULL,
+		[CreatedOnDate] [datetime] NULL,
+		[LastModifiedByUserID] [int] NULL,
+		[LastModifiedOnDate] [datetime] NULL,
+	 CONSTRAINT [PK_PBI_ObjectPermission] PRIMARY KEY CLUSTERED 
+	(
+		[ID] ASC
+	) ON [PRIMARY]
+	) ON [PRIMARY]
+
+	ALTER TABLE [dbo].[PBI_ObjectPermission] ADD  CONSTRAINT [DF_PBI_ObjectPermission_AllowAccess]  DEFAULT ((0)) FOR [AllowAccess]
+
+	ALTER TABLE [dbo].[PBI_ObjectPermission]  WITH CHECK ADD  CONSTRAINT [FK_PBI_ObjectPermission_Permission] FOREIGN KEY([PermissionID])
+	REFERENCES [dbo].[Permission] ([PermissionID])
+
+	ALTER TABLE [dbo].[PBI_ObjectPermission] CHECK CONSTRAINT [FK_PBI_ObjectPermission_Permission]
+
+	ALTER TABLE [dbo].[PBI_ObjectPermission]  WITH CHECK ADD  CONSTRAINT [FK_PBI_ObjectPermission_Portals] FOREIGN KEY([PortalID])
+	REFERENCES [dbo].[Portals] ([PortalID])
+
+	ALTER TABLE [dbo].[PBI_ObjectPermission] CHECK CONSTRAINT [FK_PBI_ObjectPermission_Portals]
+
+	ALTER TABLE [dbo].[PBI_ObjectPermission]  WITH CHECK ADD  CONSTRAINT [FK_PBI_ObjectPermission_Roles] FOREIGN KEY([RoleID])
+	REFERENCES [dbo].[Roles] ([RoleID])
+
+	ALTER TABLE [dbo].[PBI_ObjectPermission] CHECK CONSTRAINT [FK_PBI_ObjectPermission_Roles]
+
+	ALTER TABLE [dbo].[PBI_ObjectPermission]  WITH CHECK ADD  CONSTRAINT [FK_PBI_ObjectPermission_Users] FOREIGN KEY([UserID])
+	REFERENCES [dbo].[Users] ([UserID])
+
+	ALTER TABLE [dbo].[PBI_ObjectPermission] CHECK CONSTRAINT [FK_PBI_ObjectPermission_Users]
+END

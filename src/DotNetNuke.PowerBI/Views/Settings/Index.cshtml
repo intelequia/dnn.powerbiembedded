@@ -1,0 +1,174 @@
+﻿@inherits DotNetNuke.Web.Mvc.Framework.DnnWebViewPage<DotNetNuke.PowerBI.Models.PowerBISettings>
+@using DotNetNuke.Web.Mvc.Helpers
+@using DotNetNuke.Web.Client.ClientResourceManagement
+@{
+    ClientResourceManager.RegisterScript(Dnn.DnnPage, "~/DesktopModules/MVC/PowerBIEmbedded/scripts/Common.js", 10);
+    ClientResourceManager.RegisterScript(Dnn.DnnPage, "~/Resources/Shared/scripts/knockout.js", 20);
+    ClientResourceManager.RegisterScript(Dnn.DnnPage, "~/DesktopModules/MVC/PowerBIEmbedded/scripts/settings.js", 20);
+    ClientResourceManager.RegisterStyleSheet(Dnn.DnnPage, "~/DesktopModules/MVC/PowerBIEmbedded/Css/module.css", 9, "DnnPageHeaderProvider");
+    ClientResourceManager.RegisterStyleSheet(Dnn.DnnPage, "/DesktopModules/MVC/PowerBIEmbedded/css/vendors/select2.min.css", 10, "DnnPageHeaderProvider");
+    ClientResourceManager.RegisterScript(Dnn.DnnPage, "~/DesktopModules/MVC/PowerBIEmbedded/scripts/vendors/select2.min.js", 20);
+}
+@using DotNetNuke.UI.Utilities
+@using DotNetNuke.Common.Utilities
+@{
+    var context = new
+    {
+        Dnn.ModuleContext.PortalId,
+        Dnn.ModuleContext.TabId,
+        Dnn.ModuleContext.ModuleId
+    };
+
+    ClientAPI.RegisterClientVariable(Dnn.DnnPage, "PowerBISettings_Context", context.ToJson(), true);
+}
+
+    <div id="PowerBISettings" class="dnnForm">
+        <div class="dnnFormExpandContent"><a href="">@Dnn.LocalizeString("ExpandAll")</a></div>
+        <h2 id="SharedSettings" class="dnnFormSectionHead"><a href="#">@Dnn.LocalizeString("SharedSettings")</a></h2>
+        <fieldset class="dnnClear">
+            <p>@Dnn.LocalizeString("lblSharedSettings")</p>
+            <div class="dnnFormItem">
+                @Dnn.LabelFor(m => Model.AuthenticationType, Dnn.LocalizeString("lblAuthenticationType.Text"), Dnn.LocalizeString("lblAuthenticationType.Help"))
+                @Html.DropDownListFor(x => x.AuthenticationType, (IEnumerable<System.Web.Mvc.SelectListItem>)ViewBag.AuthTypes, new { onchange = @"onAuthChange();" })
+            </div>
+
+            <div id="pnlMasterUser" style="display: @(Model.AuthenticationType == "MasterUser" ? "block" : "none")">
+                <div class="dnnFormItem">
+                    @Dnn.LabelFor(m => Model.Username, Dnn.LocalizeString("lblUsername.Text"), Dnn.LocalizeString("lblUsername.Help"))
+                    @Html.TextBoxFor(m => Model.Username, new { @class = "dnnFormRequired" })
+                </div>
+                <div class="dnnFormItem">
+                    @Dnn.LabelFor(m => Model.Password, Dnn.LocalizeString("lblPassword.Text"), Dnn.LocalizeString("lblPassword.Help"))
+                    @Html.TextBoxFor(m => Model.Password, new { @class = "dnnFormRequired", type = "Password" })
+                </div>
+            </div>
+
+            <div id="pnlServicePrincipal" style="display: @(Model.AuthenticationType == "ServicePrincipal" ? "block" : "none")">
+                <div class="dnnFormItem">
+                    @Dnn.LabelFor(m => Model.ApplicationSecret, Dnn.LocalizeString("lblApplicationSecret.Text"), Dnn.LocalizeString("lblApplicationSecret.Help"))
+                    @Html.TextBoxFor(m => Model.ApplicationSecret, new { @class = "dnnFormRequired", type = "Password" })
+                </div>
+                <div class="dnnFormItem">
+                    @Dnn.LabelFor(m => Model.Tenant, Dnn.LocalizeString("lblTenant.Text"), Dnn.LocalizeString("lblTenant.Help"))
+                    @Html.TextBoxFor(m => Model.Tenant)
+                </div>
+            </div> 
+
+            <div class="dnnFormItem">
+                @Dnn.LabelFor(m => Model.ApplicationId, Dnn.LocalizeString("lblApplicationId.Text"), Dnn.LocalizeString("lblApplicationId.Help"))
+                @Html.TextBoxFor(m => Model.ApplicationId)
+            </div>
+
+
+            <div class="dnnFormItem">
+                @Dnn.LabelFor(m => Model.WorkspaceId, Dnn.LocalizeString("lblWorkspaceId.Text"), Dnn.LocalizeString("lblWorkspaceId.Help"))
+                @Html.TextBoxFor(m => Model.WorkspaceId)
+            </div>
+            <div class="dnnFormItem">
+                @Dnn.LabelFor(m => Model.ContentPageUrl, Dnn.LocalizeString("lblContentPageUrl.Text"), Dnn.LocalizeString("lblContentPageUrl.Help"))
+                @Html.TextBoxFor(m => Model.ContentPageUrl)
+            </div>
+        </fieldset>
+
+        <h2 class="dnnFormSectionHead"><a href="#">@Dnn.LocalizeString("PermissionSettings")</a></h2>
+        <fieldset id="ListViewSettings" class="dnnClear">
+            <div class="settings-reportlist">
+                <h3>@Dnn.LocalizeString("SettingsPermissionsReportsHeader")</h3>
+                <ul data-bind="foreach: reports">
+                    <li>
+                        <input class="normalRadioButton" type="radio" data-bind="attr: { 'id': Id }, click:selectPowerBiObject" name="report" />
+                        <label data-bind="attr: { 'for': Id }, text: Name"></label>
+                    </li>
+                </ul>
+
+                <h3>@Dnn.LocalizeString("SettingsPermissionsDashboardsHeader")</h3>
+                <ul data-bind="foreach: dashboards">
+                    <li>
+                        <input class="normalRadioButton" type="radio" data-bind="attr: { 'id': Id }, click:selectPowerBiObject" name="report" />
+                        <label data-bind="attr: { 'for': Id }, text: Name"></label>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="settings-reportsecurity dnnGrid dnnPermissionsGrid" data-bind="visible: shouldShowGridPermissions">
+                <label for="UserGroupSelector">
+                    @Dnn.LocalizeString("SettingsPermissionsUserSearchLabel")
+                    <select id="UserGroupSelector" class="js-example-data-ajax" ">
+                        <optgroup label="@Dnn.LocalizeString("SettingsPermissionsRolesDropdownLabel")" data-bind="foreach: roles">
+                            <option class="option-role" data-bind="value: Id, text:DisplayName"></option>
+                        </optgroup>
+                        <optgroup label="@Dnn.LocalizeString("SettingsPermissionsUsersDropdownLabel")" data-bind="foreach: users">
+                            <option class="option-user" data-bind="value: Id, text:DisplayName"></option>
+                        </optgroup>
+                    </select>
+                </label>
+
+                <a id="add-user" class="dnnSecondaryAction" data-bind="click:$root.AddUser">@Dnn.LocalizeString("SettingsPermissionsAddUserLabel")</a>
+
+                <table class="dnnPermissionsGrid roles-grid">
+                    <thead>
+                        <tr class="dnnGridHeader">
+                            <th class="permissionHeader">@Dnn.LocalizeString("SettingsPermissionsTableRole")</th>
+                            <th class="permissionHeader">@Dnn.LocalizeString("SettingsPermissionsTableView")</th>
+                            <th class="permissionHeader">@Dnn.LocalizeString("SettingsPermissionsTableActions")</th>
+                        </tr>
+                    </thead>
+                    <tbody data-bind="foreach: pbiRolesPermissions">
+                        <tr class="dnnGridItem">
+                            <td class="permissionHeader" data-bind="text: RoleName"></td>
+                            <td>
+                                <div data-bind="attr: { 'class': AllowAccess() ? 'permission permission-allow' : 'permission permission-deny' }, click: onClickAllowDeny"></div>
+                            </td>
+                            <td>
+                                <div data-bind="attr: { 'class': 'permission permission-delete' }, click: onClickDelete"></div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+                <table class="dnnPermissionsGrid">
+                    <thead>
+                        <tr class="dnnGridHeader">
+                            <th class="permissionHeader">@Dnn.LocalizeString("SettingsPermissionsTableUser")</th>
+                            <th class="permissionHeader">@Dnn.LocalizeString("SettingsPermissionsTableView")</th>
+                            <th class="permissionHeader">@Dnn.LocalizeString("SettingsPermissionsTableActions")</th>
+                        </tr>
+                    </thead>
+                    <tbody data-bind="foreach: pbiUsersPermissions">
+                        <tr class="dnnGridItem">
+                            <td class="permissionHeader" data-bind="text: UserDisplayName"></td>
+                            <td>
+                                <div data-bind="attr: { 'class': AllowAccess() ? 'permission permission-allow' : 'permission permission-deny' }, click: onClickAllowDeny"></div>
+                            </td>
+                            <td>
+                                <div data-bind="attr: { 'class': 'permission permission-delete' }, click: onClickDelete"></div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div id="permissions-footer">
+                <a class="dnnPrimaryAction" data-bind="click:$root.SavePermissions">@Dnn.LocalizeString("SettingsPermissionsSaveButton")</a>
+            </div>
+        </fieldset>
+    </div>
+
+<script type="text/javascript">
+    function onAuthChange() {
+        $('#pnlMasterUser').css('display', $('#AuthenticationType').val() == 'MasterUser' ? 'block' : 'none');
+        $('#pnlServicePrincipal').css('display', $('#AuthenticationType').val() == 'ServicePrincipal' ? 'block' : 'none');
+    }
+    jQuery(function ($) {
+        var setupModule = function () {
+            $('#PowerBISettings').dnnPanels();
+            $('#PowerBISettings .dnnFormExpandContent a').dnnExpandAll({
+                targetArea: '#PowerBISettings'
+            });
+        };
+        setupModule();
+        Sys.WebForms.PageRequestManager.getInstance().add_endRequest(function () {
+            setupModule();
+        });
+    });
+
+</script>
+

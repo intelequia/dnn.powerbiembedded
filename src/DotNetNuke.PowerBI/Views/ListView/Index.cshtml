@@ -1,0 +1,49 @@
+﻿@inherits DotNetNuke.Web.Mvc.Framework.DnnWebViewPage<DotNetNuke.PowerBI.Models.PowerBIListView>
+@using DotNetNuke.Web.Mvc.Helpers
+@using DotNetNuke.Web.Client.ClientResourceManagement
+@{
+    ClientResourceManager.RegisterStyleSheet(Dnn.DnnPage, "~/DesktopModules/MVC/PowerBIEmbedded/Css/module.css", 10, "DnnPageHeaderProvider");
+}
+<div class="powerbiListView">
+    @if (Model == null)
+    {
+        <p>@Dnn.LocalizeString("Error")</p>
+    }
+    else
+    {
+        <div class="dashboardsSection">
+            <h4>@Dnn.LocalizeString("Dashboards")</h4>
+            <ul>
+                @if (Model.Dashboards.Count == 0)
+                {
+                    <li class='empty'>@Dnn.LocalizeString("DashboardsEmpty")</li>
+                }
+                else
+                {
+                    foreach (var d in Model.Dashboards)
+                    {
+                        <li class='normal@(d.Id == Request["dashboardId"] ? " active" : "")'><a href='@ViewBag.ReportsPage?dashboardId=@d.Id'>@d.DisplayName</a></li>
+                    }
+                }
+            </ul>
+        </div>
+
+        <div class="reportsSection">
+            <h4>@Dnn.LocalizeString("Reports")</h4>
+            <ul>
+                @if (Model.Reports.Count == 0)
+                {
+                    <li class='empty'>@Dnn.LocalizeString("ReportsEmpty")</li>
+                }
+                else
+                {
+                    foreach (var r in Model.Reports)
+                    {
+                        <li class='normal@(r.Id == Request["reportId"] ? " active" : "")'><a href='@ViewBag.ReportsPage?reportId=@r.Id'>@r.Name</a></li>
+                    }
+                }
+            </ul>
+        </div>
+    }
+
+</div>

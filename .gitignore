@@ -1,0 +1,7 @@
+/bin
+/src/.vs
+/src/bin
+/src/packages
+/src/DotNetNuke.PowerBI/obj
+/src/DotNetNuke.PowerBI/install
+/src/DotNetNuke.PowerBI/*.user
