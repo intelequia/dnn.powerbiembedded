@@ -296,13 +296,18 @@ namespace DotNetNuke.PowerBI.Services
             }
             else
             {
-                if (string.IsNullOrWhiteSpace(Settings.ApplicationSecret))
+                if (string.IsNullOrWhiteSpace(Settings.ServicePrincipalApplicationId))
+                {
+                    return "Service Principal ApplicationId is empty. please register your application as Web app and fill appSecret in web.config.";
+                }
+
+                if (string.IsNullOrWhiteSpace(Settings.ServicePrincipalApplicationSecret))
                 {
                     return "ApplicationSecret is empty. please register your application as Web app and fill appSecret in web.config.";
                 }
 
                 // Must fill tenant Id
-                if (string.IsNullOrWhiteSpace(Settings.Tenant))
+                if (string.IsNullOrWhiteSpace(Settings.ServicePrincipalTenant))
                 {
                     return "Invalid Tenant. Please fill Tenant ID in Tenant under web.config";
                 }
@@ -324,11 +329,11 @@ namespace DotNetNuke.PowerBI.Services
             else
             {
                 // For app only authentication, we need the specific tenant id in the authority url
-                var tenantSpecificURL = Settings.AuthorityUrl.Replace("common", Settings.Tenant);
+                var tenantSpecificURL = Settings.AuthorityUrl.Replace("common", Settings.ServicePrincipalTenant);
                 var authenticationContext = new AuthenticationContext(tenantSpecificURL);
 
                 // Authentication using app credentials
-                var credential = new ClientCredential(Settings.ApplicationId, Settings.ApplicationSecret);
+                var credential = new ClientCredential(Settings.ServicePrincipalApplicationId, Settings.ServicePrincipalApplicationSecret);
                 authenticationResult = await authenticationContext.AcquireTokenAsync(Settings.ResourceUrl, credential);
             }
 

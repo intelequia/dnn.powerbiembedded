@@ -48,8 +48,9 @@ namespace DotNetNuke.PowerBI.Controllers
             portal.UpdatePortalSetting(ModuleContext.PortalId, "PowerBIEmbedded_WorkspaceId", settings.WorkspaceId, true, null, false);
             portal.UpdatePortalSetting(ModuleContext.PortalId, "PowerBIEmbedded_ContentPageUrl", settings.ContentPageUrl, true, null, false);
             portal.UpdatePortalSetting(ModuleContext.PortalId, "PowerBIEmbedded_AuthorizationType", settings.AuthenticationType, true, null, false);
-            portal.UpdatePortalSetting(ModuleContext.PortalId, "PowerBIEmbedded_ApplicationSecret", settings.ApplicationSecret, true, null, false);
-            portal.UpdatePortalSetting(ModuleContext.PortalId, "PowerBIEmbedded_Tenant", settings.Tenant, true, null, false);
+            portal.UpdatePortalSetting(ModuleContext.PortalId, "PowerBIEmbedded_ServicePrincipalApplicationId", settings.ServicePrincipalApplicationId, true, null, false);
+            portal.UpdatePortalSetting(ModuleContext.PortalId, "PowerBIEmbedded_ServicePrincipalApplicationSecret", settings.ServicePrincipalApplicationSecret, true, null, false);
+            portal.UpdatePortalSetting(ModuleContext.PortalId, "PowerBIEmbedded_ServicePrincipalTenant", settings.ServicePrincipalTenant, true, null, false);
 
             CachingProvider.Instance().Clear("Prefix", $"PBI_{ModuleContext.PortalId}_{PortalSettings.UserId}_");
 

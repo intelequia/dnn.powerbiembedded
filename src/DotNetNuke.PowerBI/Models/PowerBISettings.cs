@@ -20,8 +20,9 @@ namespace DotNetNuke.PowerBI.Models
         public string AuthorityUrl { get; set; }
         public string ResourceUrl { get; set; }
         public string ApplicationId { get; set; }
-        public string ApplicationSecret { get; set; }
-        public string Tenant { get; set; }
+        public string ServicePrincipalApplicationId { get; set; }
+        public string ServicePrincipalApplicationSecret { get; set; }
+        public string ServicePrincipalTenant { get; set; }
         public string ApiUrl { get; set; }
         public string EmbedUrl { get; set; }
         public string WorkspaceId { get; set; }
@@ -61,7 +62,14 @@ namespace DotNetNuke.PowerBI.Models
                 settings.WorkspaceId = portalSettings["PowerBIEmbedded_WorkspaceId"];
             if (portalSettings.ContainsKey("PowerBIEmbedded_ContentPageUrl"))
                 settings.ContentPageUrl = portalSettings["PowerBIEmbedded_ContentPageUrl"];
-
+            if (portalSettings.ContainsKey("PowerBIEmbedded_AuthorizationType"))
+                settings.AuthenticationType = portalSettings["PowerBIEmbedded_AuthorizationType"];
+            if (portalSettings.ContainsKey("PowerBIEmbedded_ServicePrincipalTenant"))
+                settings.ServicePrincipalTenant = portalSettings["PowerBIEmbedded_ServicePrincipalTenant"];
+            if (portalSettings.ContainsKey("PowerBIEmbedded_ServicePrincipalApplicationId"))
+                settings.ServicePrincipalApplicationId = portalSettings["PowerBIEmbedded_ServicePrincipalApplicationId"];
+            if (portalSettings.ContainsKey("PowerBIEmbedded_ServicePrincipalApplicationSecret"))
+                settings.ServicePrincipalApplicationSecret = portalSettings["PowerBIEmbedded_ServicePrincipalApplicationSecret"];
 
             return settings;
         }

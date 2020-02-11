@@ -165,11 +165,11 @@
   <data name="SharedSettings.Text" xml:space="preserve">
     <value>Shared Settings</value>
   </data>
-  <data name="lblApplicationSecret.Help" xml:space="preserve">
+  <data name="lblServicePrincipalApplicationSecret.Help" xml:space="preserve">
     <value>The application secret of the Service Principal</value>
   </data>
-  <data name="lblApplicationSecret.Text" xml:space="preserve">
-    <value>Application Secret</value>
+  <data name="lblServicePrincipalApplicationSecret.Text" xml:space="preserve">
+    <value>Service Principal Application Secret</value>
   </data>
   <data name="lblAuthenticationType.Help" xml:space="preserve">
     <value>Set the authorization type by Master User or by Service Principal</value>
@@ -177,11 +177,11 @@
   <data name="lblAuthenticationType.Text" xml:space="preserve">
     <value>Authorization Type</value>
   </data>
-  <data name="lblTenant.Help" xml:space="preserve">
+  <data name="lblServicePrincipalTenant.Help" xml:space="preserve">
     <value>The tenant Id</value>
   </data>
-  <data name="lblTenant.Text" xml:space="preserve">
-    <value>Tenant</value>
+  <data name="lblServicePrincipalTenant.Text" xml:space="preserve">
+    <value>Service Principal Tenant Id</value>
   </data>
   <data name="MasterUser.Text" xml:space="preserve">
     <value>Master User</value>
@@ -221,5 +221,11 @@
   </data>
   <data name="SettingsPermissionsSaveButton.Text" xml:space="preserve">
     <value>Speichern</value>
+  </data>
+  <data name="lblServicePrincipalApplicationId.Help" xml:space="preserve">
+    <value>The service principal Application Id</value>
+  </data>
+  <data name="lblServicePrincipalApplicationId.Text" xml:space="preserve">
+    <value>Service Principal Application Id</value>
   </data>
 </root>

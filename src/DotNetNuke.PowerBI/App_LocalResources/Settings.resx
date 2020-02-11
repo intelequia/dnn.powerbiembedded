@@ -132,12 +132,6 @@
   <data name="lblApplicationId.Text" xml:space="preserve">
     <value>Application Id</value>
   </data>
-  <data name="lblApplicationSecret.Help" xml:space="preserve">
-    <value>The application secret of the Service Principal</value>
-  </data>
-  <data name="lblApplicationSecret.Text" xml:space="preserve">
-    <value>Application Secret</value>
-  </data>
   <data name="lblAuthenticationType.Help" xml:space="preserve">
     <value>Set the authorization type by Master User or by Service Principal</value>
   </data>
@@ -156,14 +150,26 @@
   <data name="lblPassword.Text" xml:space="preserve">
     <value>Password</value>
   </data>
-  <data name="lblSharedSettings.Text" xml:space="preserve">
-    <value>These settings are stored at portal level, shared between all the PowerBI Embedded modules on this portal.</value>
+  <data name="lblServicePrincipalApplicationId.Help" xml:space="preserve">
+    <value>The service principal Application Id</value>
   </data>
-  <data name="lblTenant.Help" xml:space="preserve">
+  <data name="lblServicePrincipalApplicationId.Text" xml:space="preserve">
+    <value>Service Principal Application Id</value>
+  </data>
+  <data name="lblServicePrincipalApplicationSecret.Help" xml:space="preserve">
+    <value>The application secret of the Service Principal</value>
+  </data>
+  <data name="lblServicePrincipalApplicationSecret.Text" xml:space="preserve">
+    <value>Service Principal Application Secret</value>
+  </data>
+  <data name="lblServicePrincipalTenant.Help" xml:space="preserve">
     <value>The tenant Id</value>
   </data>
-  <data name="lblTenant.Text" xml:space="preserve">
-    <value>Tenant</value>
+  <data name="lblServicePrincipalTenant.Text" xml:space="preserve">
+    <value>Service Principal Tenant</value>
+  </data>
+  <data name="lblSharedSettings.Text" xml:space="preserve">
+    <value>These settings are stored at portal level, shared between all the PowerBI Embedded modules on this portal.</value>
   </data>
   <data name="lblUsername.Help" xml:space="preserve">
     <value>Username to connect to PowerBI Embedded</value>

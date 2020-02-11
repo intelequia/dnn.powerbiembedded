@@ -45,12 +45,16 @@
 
             <div id="pnlServicePrincipal" style="display: @(Model.AuthenticationType == "ServicePrincipal" ? "block" : "none")">
                 <div class="dnnFormItem">
-                    @Dnn.LabelFor(m => Model.ApplicationSecret, Dnn.LocalizeString("lblApplicationSecret.Text"), Dnn.LocalizeString("lblApplicationSecret.Help"))
-                    @Html.TextBoxFor(m => Model.ApplicationSecret, new { @class = "dnnFormRequired", type = "Password" })
+                    @Dnn.LabelFor(m => Model.ServicePrincipalApplicationId, Dnn.LocalizeString("lblServicePrincipalApplicationId.Text"), Dnn.LocalizeString("lblServicePrincipalApplicationId.Help"))
+                    @Html.TextBoxFor(m => Model.ServicePrincipalApplicationId, new { @class = "dnnFormRequired" })
                 </div>
                 <div class="dnnFormItem">
-                    @Dnn.LabelFor(m => Model.Tenant, Dnn.LocalizeString("lblTenant.Text"), Dnn.LocalizeString("lblTenant.Help"))
-                    @Html.TextBoxFor(m => Model.Tenant)
+                    @Dnn.LabelFor(m => Model.ServicePrincipalApplicationSecret, Dnn.LocalizeString("lblServicePrincipalApplicationSecret.Text"), Dnn.LocalizeString("lblServicePrincipalApplicationSecret.Help"))
+                    @Html.TextBoxFor(m => Model.ServicePrincipalApplicationSecret, new { @class = "dnnFormRequired", type = "Password" })
+                </div>
+                <div class="dnnFormItem">
+                    @Dnn.LabelFor(m => Model.ServicePrincipalTenant, Dnn.LocalizeString("lblServicePrincipalTenant.Text"), Dnn.LocalizeString("lblServicePrincipalTenant.Help"))
+                    @Html.TextBoxFor(m => Model.ServicePrincipalTenant, new { @class = "dnnFormRequired" })
                 </div>
             </div> 
 
