@@ -27,7 +27,7 @@
                 }
             </ul>
         </div>
-
+     
         <div class="reportsSection">
             <h4>@Dnn.LocalizeString("Reports")</h4>
             <ul>
@@ -39,7 +39,7 @@
                 {
                     foreach (var r in Model.Reports)
                     {
-                        <li class='normal@(r.Id == Request["reportId"] ? " active" : "")'><a href='@ViewBag.ReportsPage?reportId=@r.Id'>@r.Name</a></li>
+                        <li class='normal@(r.Id == Request["reportId"] ? " active" : "")'><a href='@ViewBag.ReportsPage?reportId=@r.Id&settingsId=@ViewBag.SettingsId'>@r.Name</a></li>
                     }
                 }
             </ul>

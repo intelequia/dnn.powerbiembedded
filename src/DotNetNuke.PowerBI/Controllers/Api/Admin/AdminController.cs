@@ -34,13 +34,13 @@ namespace DotNetNuke.PowerBI.Controllers.Api.Admin
 
         [HttpGet]
         [ValidateAntiForgeryToken]
-        public HttpResponseMessage GetPowerBiObjectList()
+        public HttpResponseMessage GetPowerBiObjectList(int moduleId, int tabModuleId)
         {
             try
             {
                 var result = new List<GetPowerBiObjectListResponse>();
                 
-                var embedService = new EmbedService(PortalSettings.PortalId);
+                var embedService = new EmbedService(PortalSettings.PortalId, tabModuleId);
                 
                 var model = embedService.GetContentListAsync(PortalSettings.UserInfo.UserID).Result;
 

@@ -228,4 +228,10 @@
   <data name="lblServicePrincipalApplicationId.Text" xml:space="preserve">
     <value>Service Principal Application Id</value>
   </data>
+  <data name="lblSettingsGroupName.Help" xml:space="preserve">
+    <value>Name der Einstellungen</value>
+  </data>
+  <data name="lblSettingsGroupName.Text" xml:space="preserve">
+    <value>Name der Einstellungen zur Identifizierung des Arbeitsbereichs</value>
+  </data>
 </root>

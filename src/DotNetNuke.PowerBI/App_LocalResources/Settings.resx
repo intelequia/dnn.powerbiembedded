@@ -168,6 +168,12 @@
   <data name="lblServicePrincipalTenant.Text" xml:space="preserve">
     <value>Service Principal Tenant</value>
   </data>
+  <data name="lblSettingsGroupName.Help" xml:space="preserve">
+    <value>Settings name to identify workspace</value>
+  </data>
+  <data name="lblSettingsGroupName.Text" xml:space="preserve">
+    <value>Settings name </value>
+  </data>
   <data name="lblSharedSettings.Text" xml:space="preserve">
     <value>These settings are stored at portal level, shared between all the PowerBI Embedded modules on this portal.</value>
   </data>

@@ -12,6 +12,8 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Web;
+using DotNetNuke.PowerBI.Data.Models;
+using DotNetNuke.PowerBI.Data.SharedSettings;
 
 namespace DotNetNuke.PowerBI.Services
 {
@@ -37,19 +39,27 @@ namespace DotNetNuke.PowerBI.Services
         }
 
 
-        public EmbedService(int portalId)
+        public EmbedService(int portalId, int tabModuleId)
         {
             tokenCredentials = null;
             embedConfig = new EmbedConfig();
             tileEmbedConfig = new TileEmbedConfig();
-            powerBISettings = PowerBISettings.GetPortalPowerBISettings(portalId);
+            powerBISettings = PowerBISettings.GetPortalPowerBISettings(portalId, tabModuleId);
+        }
+
+        public EmbedService(int portalId, int tabModuleId, int settingsId)
+        {
+            tokenCredentials = null;
+            embedConfig = new EmbedConfig();
+            tileEmbedConfig = new TileEmbedConfig();
+            powerBISettings = SharedSettingsRepository.Instance.GetSettingsById(settingsId,portalId);
         }
 
         public async Task<PowerBIListView> GetContentListAsync(int userId)
         {            
-            var model = (PowerBIListView)CachingProvider.Instance().GetItem($"PBI_{Settings.PortalId}_{userId}_{Thread.CurrentThread.CurrentUICulture.Name}_PowerBIListView");
-            if (model != null)
-                return model;
+            //var model = (PowerBIListView)CachingProvider.Instance().GetItem($"PBI_{Settings.PortalId}_{userId}_{Thread.CurrentThread.CurrentUICulture.Name}_PowerBIListView");
+            //if (model != null)
+            //    return model;
 
             // Get token credentials for user
             var getCredentialsResult = await GetTokenCredentials();
@@ -58,7 +68,7 @@ namespace DotNetNuke.PowerBI.Services
                 // The error message set in GetTokenCredentials
                 return null;
             }
-            model = new PowerBIListView();
+            var model = new PowerBIListView();
 
             // Create a Power BI Client object. It will be used to call Power BI APIs.
             using (var client = new PowerBIClient(new Uri(Settings.ApiUrl), tokenCredentials))

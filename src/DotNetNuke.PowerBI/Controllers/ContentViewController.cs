@@ -28,11 +28,16 @@ namespace DotNetNuke.PowerBI.Controllers
         public ActionResult Index()
         {
             var model = new EmbedConfig();
+            EmbedService embedService = null;
             try
             {
                 // Remove the objects without permissions
                 var permissionsRepo = ObjectPermissionsRepository.Instance;
-                var embedService = new EmbedService(ModuleContext.PortalId);
+                if (!string.IsNullOrEmpty(Request["settingsId"]))
+                {
+                    embedService = new EmbedService(ModuleContext.PortalId, ModuleContext.TabModuleId, Convert.ToInt32(Request["settingsId"]));  //TODO CREO QUE ESTO ESTA MAL habra que buscar por lo que venga en la request settingsId
+                }
+
                 if (!string.IsNullOrEmpty(Request["dashboardId"]))
                 {
                     model = embedService.GetDashboardEmbedConfigAsync(ModuleContext.PortalSettings.UserId, Request["dashboardId"]).Result;
@@ -48,12 +53,15 @@ namespace DotNetNuke.PowerBI.Controllers
 
                 ViewBag.Locale = System.Threading.Thread.CurrentThread.CurrentUICulture.Name.Substring(0, 2);
                 // Sets the reports page on the viewbag
-                var reportsPage = embedService.Settings.ContentPageUrl;
-                if (!reportsPage.StartsWith("http"))
+                if (embedService != null)
                 {
-                    reportsPage = Globals.AddHTTP(PortalSettings.PortalAlias.HTTPAlias) + reportsPage;
+                    var reportsPage = embedService.Settings.ContentPageUrl;
+                    if (reportsPage != null && !reportsPage.StartsWith("http"))
+                    {
+                        reportsPage = Globals.AddHTTP(PortalSettings.PortalAlias.HTTPAlias) + reportsPage;
+                    }
+                    ViewBag.ReportsPage = reportsPage;
                 }
-                ViewBag.ReportsPage = reportsPage;
 
                 return View(model);
             }
@@ -63,7 +71,6 @@ namespace DotNetNuke.PowerBI.Controllers
                 model.ErrorMessage = LocalizeString("Error");
                 return View(model);
             }
-
         }
     }
 }

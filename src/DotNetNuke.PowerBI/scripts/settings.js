@@ -1,14 +1,11 @@
 ﻿jQuery(function ($) {
     var app = app || {};
-    var constants = constants || {
-        REPORT_TYPE: 0,
-        DASHBOARD_TYPE: 1
-    };
+    
     var context = JSON.parse(dnn.getVar("PowerBISettings_Context"));
 
     app.View = function (model) {
         var that = this;
-
+         
         var service = {
             path: "PowerBI/UI",
             framework: $.ServicesFramework(context.ModuleId),
@@ -20,7 +17,7 @@
         this.reports = ko.computed(function () {
             return ko.utils.arrayFilter(that.powerBiObjects(), function(obj) {
                 return obj.Type() == constants.REPORT_TYPE;
-            });
+            }); 
         });
         this.dashboards = ko.computed(function () {
             return ko.utils.arrayFilter(that.powerBiObjects(), function(obj) {
@@ -209,7 +206,7 @@
             if (selectedValue && !alreadyInTheList) {
                 var data = {
                     PbiObjectId: that.selectedPowerBiObject().Id(),
-                    PermissionId: 1,
+                    PermissionId: 1, 
                     AllowAccess: true,
                 };
                 if (isUser) {
@@ -254,9 +251,12 @@
                     //that.isBusy(false);
                 });
         }
-        this.GetAvailableReports = function (parent) {
-            var params = {}
-
+        this.GetAvailableReports = function (id) {
+            var params = {
+                moduleId: context.ModuleId, 
+                tabModuleId: context.TabModuleId
+            }; 
+             
             Common.Call("GET", "GetPowerBiObjectList", service, params,
                 function (response) {
                     if (response.Success) {

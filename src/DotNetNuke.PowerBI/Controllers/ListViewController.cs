@@ -5,8 +5,10 @@ using DotNetNuke.PowerBI.Services;
 using DotNetNuke.Web.Mvc.Framework.ActionFilters;
 using DotNetNuke.Web.Mvc.Framework.Controllers;
 using System;
+using System.Reflection;
 using System.Text.RegularExpressions;
 using System.Web.Mvc;
+using DotNetNuke.Entities.Modules;
 
 namespace DotNetNuke.PowerBI.Controllers
 {
@@ -20,31 +22,53 @@ namespace DotNetNuke.PowerBI.Controllers
         {
             try
             {
-                var embedService = new EmbedService(ModuleContext.PortalId);
+                var embedService = new EmbedService(ModuleContext.PortalId,ModuleContext.TabModuleId);
                 var model = embedService.GetContentListAsync(ModuleContext.PortalSettings.UserId).Result;
 
                 // Remove other culture contents
-                model.Reports.RemoveAll(x => Regex.Match(x.Name, LanguageRegularExpression, RegexOptions.IgnoreCase).Success
-                    && !x.Name.ToLowerInvariant().Contains($"({System.Threading.Thread.CurrentThread.CurrentUICulture.Name.ToLowerInvariant()})"));
-                model.Dashboards.RemoveAll(x => Regex.Match(x.DisplayName, LanguageRegularExpression, RegexOptions.IgnoreCase).Success
-                    && !x.DisplayName.ToLowerInvariant().Contains($"({System.Threading.Thread.CurrentThread.CurrentUICulture.Name.ToLowerInvariant()})"));
-                model.Reports.ForEach(r => r.Name = Regex.Replace(r.Name, LanguageRegularExpression, "", RegexOptions.IgnoreCase));
-                model.Dashboards.ForEach(r => r.DisplayName = Regex.Replace(r.DisplayName, LanguageRegularExpression, "", RegexOptions.IgnoreCase));
-
-                // Remove the objects without permissions
-                var permissionsRepo = ObjectPermissionsRepository.Instance;
-                model.Reports.RemoveAll(x => !permissionsRepo.HasPermissions(x.Id, ModuleContext.PortalId, 1, User));
-                model.Dashboards.RemoveAll(x => !permissionsRepo.HasPermissions(x.Id, ModuleContext.PortalId, 1, User));
-
-                // Sets the reports page on the viewbag
-                var reportsPage = embedService.Settings.ContentPageUrl;
-                if (!reportsPage.StartsWith("http"))
+                if (model != null)
                 {
-                    reportsPage = Globals.AddHTTP(PortalSettings.PortalAlias.HTTPAlias) + reportsPage;
-                }
-                ViewBag.ReportsPage = reportsPage;
+                    model.Reports.RemoveAll(x =>
+                        Regex.Match(x.Name, LanguageRegularExpression, RegexOptions.IgnoreCase).Success
+                        && !x.Name.ToLowerInvariant()
+                            .Contains(
+                                $"({System.Threading.Thread.CurrentThread.CurrentUICulture.Name.ToLowerInvariant()})"));
+                    model.Dashboards.RemoveAll(x =>
+                        Regex.Match(x.DisplayName, LanguageRegularExpression, RegexOptions.IgnoreCase).Success
+                        && !x.DisplayName.ToLowerInvariant()
+                            .Contains(
+                                $"({System.Threading.Thread.CurrentThread.CurrentUICulture.Name.ToLowerInvariant()})"));
+                    model.Reports.ForEach(r =>
+                        r.Name = Regex.Replace(r.Name, LanguageRegularExpression, "", RegexOptions.IgnoreCase));
+                    model.Dashboards.ForEach(r =>
+                        r.DisplayName = Regex.Replace(r.DisplayName, LanguageRegularExpression, "",
+                            RegexOptions.IgnoreCase));
 
-                return View(model);
+                    // Remove the objects without permissions
+                    var permissionsRepo = ObjectPermissionsRepository.Instance;
+                    model.Reports.RemoveAll(x =>
+                        !permissionsRepo.HasPermissions(x.Id, ModuleContext.PortalId, 1, User));
+                    model.Dashboards.RemoveAll(x =>
+                        !permissionsRepo.HasPermissions(x.Id, ModuleContext.PortalId, 1, User));
+
+                    // Sets the reports page on the viewbag
+                    var reportsPage = embedService.Settings.ContentPageUrl;
+                    if (!reportsPage.StartsWith("http"))
+                    {
+                        reportsPage = Globals.AddHTTP(PortalSettings.PortalAlias.HTTPAlias) + reportsPage;
+                    }
+
+                    ViewBag.ReportsPage = reportsPage;
+
+                    //Get SettingsId
+                    var tabModuleSettings = ModuleController.Instance.GetTabModule(ModuleContext.TabModuleId)
+                        .TabModuleSettings;
+                    ViewBag.SettingsId = tabModuleSettings["PowerBIEmbedded_SettingsId"];
+
+                    return View(model);
+                }
+
+                return View();
             }
             catch (Exception ex)
             {
@@ -52,6 +76,5 @@ namespace DotNetNuke.PowerBI.Controllers
                 return View();
             }
         }
-
     }
 }
