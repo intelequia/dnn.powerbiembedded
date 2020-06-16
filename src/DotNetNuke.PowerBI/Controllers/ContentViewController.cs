@@ -39,7 +39,9 @@ namespace DotNetNuke.PowerBI.Controllers
                 }
                 else if (!string.IsNullOrEmpty(Request["reportId"]))
                 {
-                    model = embedService.GetReportEmbedConfigAsync(ModuleContext.PortalSettings.UserId, "", "", Request["reportId"]).Result;
+                    var user = ModuleContext.PortalSettings.UserInfo.Username;
+                    var roles = string.Join(",", ModuleContext.PortalSettings.UserInfo.Roles);
+                    model = embedService.GetReportEmbedConfigAsync(ModuleContext.PortalSettings.UserId, user, roles, Request["reportId"]).Result;
                 }
                 if (!string.IsNullOrEmpty(model.Id) && !permissionsRepo.HasPermissions(model.Id, ModuleContext.PortalId, 1, User))
                 {

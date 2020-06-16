@@ -15,7 +15,7 @@ namespace DotNetNuke.PowerBI.Services
 
         Task<PowerBIListView> GetContentListAsync(int userId);
         Task<EmbedConfig> GetReportEmbedConfigAsync(int userId, string userName, string roles, string reportId);
-        Task<EmbedConfig> GetDashboardEmbedConfigAsync(int userId, string dashboardId);
+        Task<EmbedConfig> GetDashboardEmbedConfigAsync(int userId, string userName, string roles, string dashboardId);
         Task<TileEmbedConfig> GetTileEmbedConfigAsync(int userId, string tileId, string dashboardId);
     }
 }
