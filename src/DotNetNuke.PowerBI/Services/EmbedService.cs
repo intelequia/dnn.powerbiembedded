@@ -1,4 +1,5 @@
-﻿using DotNetNuke.PowerBI.Models;
+﻿using DotNetNuke.Instrumentation;
+using DotNetNuke.PowerBI.Models;
 using DotNetNuke.Services.Cache;
 using Microsoft.IdentityModel.Clients.ActiveDirectory;
 using Microsoft.PowerBI.Api.V2;
@@ -19,6 +20,7 @@ namespace DotNetNuke.PowerBI.Services
 {
     public class EmbedService : IEmbedService
     {
+        private static readonly ILog Logger = LoggerSource.Instance.GetLogger(typeof(EmbedService));
         private EmbedConfig embedConfig;
         private PowerBISettings powerBISettings;
         private TileEmbedConfig tileEmbedConfig;
@@ -154,7 +156,7 @@ namespace DotNetNuke.PowerBI.Services
             return model;
         }
 
-        public async Task<EmbedConfig> GetDashboardEmbedConfigAsync(int userId, string dashboardId)
+        public async Task<EmbedConfig> GetDashboardEmbedConfigAsync(int userId, string username, string roles, string dashboardId)
         {
             var model = (EmbedConfig)CachingProvider.Instance().GetItem($"PBI_{Settings.PortalId}_{userId}_{Thread.CurrentThread.CurrentUICulture.Name}_Dashboard_{dashboardId}");
             if (model != null)
@@ -187,7 +189,25 @@ namespace DotNetNuke.PowerBI.Services
                     model.ErrorMessage = "No dashboard with the given ID was found in the workspace. Make sure ReportId is valid.";
                 }
                 // Generate Embed Token for reports without effective identities.
-                var generateTokenRequestParameters = new GenerateTokenRequest(accessLevel: "view");
+                GenerateTokenRequest generateTokenRequestParameters;
+                // This is how you create embed token with effective identities
+                if (!string.IsNullOrWhiteSpace(username))
+                {
+                    var rls = new EffectiveIdentity(username, new List<string> { dashboardId });
+                    if (!string.IsNullOrWhiteSpace(roles))
+                    {
+                        var rolesList = new List<string>();
+                        rolesList.AddRange(roles.Split(','));
+                        rls.Roles = rolesList;
+                    }
+                    // Generate Embed Token with effective identities.
+                    generateTokenRequestParameters = new GenerateTokenRequest(accessLevel: "view", identities: new List<EffectiveIdentity> { rls });
+                }
+                else
+                {
+                    // Generate Embed Token for reports without effective identities.
+                    generateTokenRequestParameters = new GenerateTokenRequest(accessLevel: "view");
+                }
                 var tokenResponse = await client.Dashboards.GenerateTokenInGroupAsync(Settings.WorkspaceId, dashboard.Id, generateTokenRequestParameters).ConfigureAwait(false);
                 if (tokenResponse == null)
                 {
@@ -373,6 +393,7 @@ namespace DotNetNuke.PowerBI.Services
             catch (AggregateException exc)
             {
                 embedConfig.ErrorMessage = exc.InnerException.Message;
+                Logger.Error(embedConfig.ErrorMessage);
                 return false;
             }
 

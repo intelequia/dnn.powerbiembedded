@@ -35,16 +35,20 @@ namespace DotNetNuke.PowerBI.Controllers
                 var permissionsRepo = ObjectPermissionsRepository.Instance;
                 if (!string.IsNullOrEmpty(Request["settingsId"]))
                 {
-                    embedService = new EmbedService(ModuleContext.PortalId, ModuleContext.TabModuleId, Convert.ToInt32(Request["settingsId"]));  //TODO CREO QUE ESTO ESTA MAL habra que buscar por lo que venga en la request settingsId
+                    embedService = new EmbedService(ModuleContext.PortalId, ModuleContext.TabModuleId, Convert.ToInt32(Request["settingsId"]));
                 }
 
                 if (!string.IsNullOrEmpty(Request["dashboardId"]))
                 {
-                    model = embedService.GetDashboardEmbedConfigAsync(ModuleContext.PortalSettings.UserId, Request["dashboardId"]).Result;
+                    var user = ModuleContext.PortalSettings.UserInfo.Username;
+                    var roles = string.Join(",", ModuleContext.PortalSettings.UserInfo.Roles);
+                    model = embedService.GetDashboardEmbedConfigAsync(ModuleContext.PortalSettings.UserId, user,roles, Request["dashboardId"]).Result;
                 }
                 else if (!string.IsNullOrEmpty(Request["reportId"]))
                 {
-                    model = embedService.GetReportEmbedConfigAsync(ModuleContext.PortalSettings.UserId, "", "", Request["reportId"]).Result;
+                    var user = ModuleContext.PortalSettings.UserInfo.Username;
+                    var roles = string.Join(",", ModuleContext.PortalSettings.UserInfo.Roles);
+                    model = embedService.GetReportEmbedConfigAsync(ModuleContext.PortalSettings.UserId, user, roles, Request["reportId"]).Result;
                 }
                 if (!string.IsNullOrEmpty(model.Id) && !permissionsRepo.HasPermissions(model.Id, ModuleContext.PortalId, 1, User))
                 {
