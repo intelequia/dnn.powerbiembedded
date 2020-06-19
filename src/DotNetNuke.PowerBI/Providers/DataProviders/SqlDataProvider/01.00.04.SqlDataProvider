@@ -1,0 +1,31 @@
+﻿IF (NOT EXISTS(SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'PBI_Settings'))
+BEGIN
+	CREATE TABLE [dbo].[PBI_Settings](
+	[SettingsId] [int] IDENTITY(1,1) NOT NULL,
+	[SettingsGroupId] [nvarchar](250) NULL,
+	[SettingsGroupName] [nvarchar](250) NOT NULL,
+	[PortalId] [int] NOT NULL,
+	[AuthenticationType] [nvarchar](250) NOT NULL,
+	[Username] [nvarchar](250) NULL,
+	[Password] [nvarchar](250) NULL,
+	[AuthorityUrl] [nvarchar](250) NOT NULL,
+	[ResourceUrl] [nvarchar](250) NOT NULL,
+	[ApplicationId] [nvarchar](250) NOT NULL,
+	[ServicePrincipalApplicationId] [nvarchar](250) NULL,
+	[ServicePrincipalApplicationSecret] [nvarchar](250) NULL,
+	[ServicePrincipalTenant] [nvarchar](250) NULL,
+	[ApiUrl] [nvarchar](250) NOT NULL,
+	[EmbedUrl] [nvarchar](250) NOT NULL,
+	[WorkspaceId] [nvarchar](250) NOT NULL,
+	[ContentPageUrl] [nvarchar](250) NOT NULL,
+	[CreatedOn] [datetime] NOT NULL,
+	[CreatedBy] [int] NOT NULL,
+	[ModifiedBy] [int] NOT NULL,
+	[ModifiedOn] [datetime] NOT NULL,
+ CONSTRAINT [PK_PBI_Settings] PRIMARY KEY CLUSTERED 
+(
+	[SettingsId] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
+) ON [PRIMARY]
+
+END
