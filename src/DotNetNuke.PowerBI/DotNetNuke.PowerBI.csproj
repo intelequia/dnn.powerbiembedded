@@ -173,13 +173,11 @@
     <Compile Include="Data\IObjectPermissionsRepository.cs" />
     <Compile Include="Data\Models\ObjectPermission.cs" />
     <Compile Include="Data\SharedSettings\ISharedSettingsRepository.cs" />
-    <Compile Include="Data\SharedSettings\Models\SettingsModule.cs" />
     <Compile Include="Data\SharedSettings\Models\SharedSettings.cs" />
     <Compile Include="Data\ObjectPermissionsRepository.cs" />
     <Compile Include="Data\SharedSettings\SharedSettingsRepository.cs" />
     <Compile Include="Models\EmbedConfig.cs" />
     <Compile Include="Models\PowerBIListView.cs" />
-    <Compile Include="Models\PowerBISettings.cs" />
     <Compile Include="Models\TileEmbedConfig.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Services\EmbedService.cs" />
@@ -296,6 +294,6 @@
   <Target Name="AfterBuild" DependsOnTargets="PackageModule">
   </Target>
   <PropertyGroup>
-    <PostBuildEvent>IF $(ConfigurationName)==Debug copy $(TargetDir)$(TargetName).* C:\Websites\ullportal3.dnndev.me\bin /Y</PostBuildEvent>
+    <PostBuildEvent>IF $(ConfigurationName)==Debug copy $(TargetDir)$(TargetName).* C:\Websites\userportal.dnndev.me\bin /Y</PostBuildEvent>
   </PropertyGroup>
 </Project>

@@ -22,7 +22,7 @@
                 {
                     foreach (var d in Model.Dashboards)
                     {
-                        <li class='normal@(d.Id == Request["dashboardId"] ? " active" : "")'><a href='@ViewBag.ReportsPage?dashboardId=@d.Id'>@d.DisplayName</a></li>
+                        <li class='normal@(d.Id == Request["dashboardId"] ? " active" : "")'><a href='@ViewBag.ReportsPage?dashboardId=@d.Id&settingsId=@ViewBag.SettingsId'>@d.DisplayName</a></li>
                     }
                 }
             </ul>

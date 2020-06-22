@@ -22,4 +22,10 @@
 		<b>Version 1.0.2</b>
 	</p>
 	<p>Added a settings section for reports security<br /><br /></p>
+
+	<p class="Owner">
+		<b>Version 1.0.4</b>
+	</p>
+	<p>Added settings to support multiple workspaces on the same portal<br /><br /></p>
+
 </div>

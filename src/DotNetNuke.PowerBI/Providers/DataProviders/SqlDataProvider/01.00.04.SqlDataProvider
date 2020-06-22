@@ -1,6 +1,6 @@
-﻿IF (NOT EXISTS(SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'PBI_Settings'))
+﻿IF (NOT EXISTS(SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = '{objectQualifier}PBI_Settings'))
 BEGIN
-	CREATE TABLE [dbo].[PBI_Settings](
+	CREATE TABLE {databaseOwner}[{objectQualifier}PBI_Settings](
 	[SettingsId] [int] IDENTITY(1,1) NOT NULL,
 	[SettingsGroupId] [nvarchar](250) NULL,
 	[SettingsGroupName] [nvarchar](250) NOT NULL,
@@ -22,10 +22,104 @@ BEGIN
 	[CreatedBy] [int] NOT NULL,
 	[ModifiedBy] [int] NOT NULL,
 	[ModifiedOn] [datetime] NOT NULL,
- CONSTRAINT [PK_PBI_Settings] PRIMARY KEY CLUSTERED 
-(
-	[SettingsId] ASC
-)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
-) ON [PRIMARY]
+		 CONSTRAINT [PK_{objectQualifier}PBI_Settings] PRIMARY KEY CLUSTERED 
+		(
+			[SettingsId] ASC
+		)
+	)
+END
+
+IF (NOT EXISTS(SELECT TOP 1 * FROM {databaseOwner}[{objectQualifier}PBI_Settings]))
+BEGIN
+	INSERT INTO {databaseOwner}[{objectQualifier}PBI_Settings]
+				([SettingsGroupId]
+				,[SettingsGroupName]
+				,[PortalId]
+				,[AuthenticationType]
+				,[Username]
+				,[Password]
+				,[AuthorityUrl]
+				,[ResourceUrl]
+				,[ApplicationId]
+				,[ServicePrincipalApplicationId]
+				,[ServicePrincipalApplicationSecret]
+				,[ServicePrincipalTenant]
+				,[ApiUrl]
+				,[EmbedUrl]
+				,[WorkspaceId]
+				,[ContentPageUrl]
+				,[CreatedOn]
+				,[CreatedBy]
+				,[ModifiedBy]
+				,[ModifiedOn])
+	SELECT DISTINCT 
+		(SELECT SettingValue FROM {databaseOwner}[{objectQualifier}PortalSettings] PS2 WHERE PS2.PortalId=PS.PortalId AND SettingName='PowerBIEmbedded_WorkspaceId') as SettingsGroupId,
+		(SELECT TOP 1 PortalName FROM {databaseOwner}[{objectQualifier}PortalLocalization] PL WHERE PL.PortalId=PS.PortalId AND (CultureCode='en-US' OR CultureCode is null)) as SettingsGroupName,
+		PS.PortalId, 
+		(SELECT SettingValue FROM {databaseOwner}[{objectQualifier}PortalSettings] PS2 WHERE PS2.PortalId=PS.PortalId AND SettingName='PowerBIEmbedded_AuthorizationType') as AuthenticationType,
+		(SELECT SettingValue FROM {databaseOwner}[{objectQualifier}PortalSettings] PS2 WHERE PS2.PortalId=PS.PortalId AND SettingName='PowerBIEmbedded_Username') as Username,
+		(SELECT SettingValue FROM {databaseOwner}[{objectQualifier}PortalSettings] PS2 WHERE PS2.PortalId=PS.PortalId AND SettingName='PowerBIEmbedded_Password') as [Password],
+		'https://login.microsoftonline.com/common' AS AuthorityUrl,
+		'https://analysis.windows.net/powerbi/api' AS ResourceUrl,
+		(SELECT SettingValue FROM {databaseOwner}[{objectQualifier}PortalSettings] PS2 WHERE PS2.PortalId=PS.PortalId AND SettingName='PowerBIEmbedded_ApplicationId') as ApplicationId,
+		(SELECT SettingValue FROM {databaseOwner}[{objectQualifier}PortalSettings] PS2 WHERE PS2.PortalId=PS.PortalId AND SettingName='PowerBIEmbedded_ServicePrincipalApplicationId') as ServicePrincipalApplicationId,
+		(SELECT SettingValue FROM {databaseOwner}[{objectQualifier}PortalSettings] PS2 WHERE PS2.PortalId=PS.PortalId AND SettingName='PowerBIEmbedded_ServicePrincipalApplicationSecret') as ServicePrincipalApplicationSecret,
+		(SELECT SettingValue FROM {databaseOwner}[{objectQualifier}PortalSettings] PS2 WHERE PS2.PortalId=PS.PortalId AND SettingName='PowerBIEmbedded_ServicePrincipalTenant') as ServicePrincipalTenant,	
+		'https://api.powerbi.com' AS ApiUrl,
+		'https://app.powerbi.com' AS EmbedUrl,
+		(SELECT SettingValue FROM {databaseOwner}[{objectQualifier}PortalSettings] PS2 WHERE PS2.PortalId=PS.PortalId AND SettingName='PowerBIEmbedded_WorkspaceId') as WorkspaceId,
+		(SELECT SettingValue FROM {databaseOwner}[{objectQualifier}PortalSettings] PS2 WHERE PS2.PortalId=PS.PortalId AND SettingName='PowerBIEmbedded_ContentPageUrl') as ContentPageUrl,
+		GETUTCDATE() AS CreatedOn,
+		-1 AS CreatedBy,
+		-1 AS ModifiedBy,
+		GETUTCDATE() AS ModifiedOn
+	FROM {databaseOwner}[{objectQualifier}PortalSettings] PS
+	WHERE PortalId IN (SELECT DISTINCT PortalId FROM {databaseOwner}[{objectQualifier}PortalSettings] WHERE settingname like 'PowerBIEmbedded%') 
+		AND SettingName like 'PowerBIEmbedded%'
+
+	DELETE FROM {databaseOwner}[{objectQualifier}TabModuleSettings]
+	WHERE SettingName='PowerBIEmbedded_SettingsId' and TabModuleId IN (
+		SELECT TabModuleId
+		FROM {databaseOwner}[{objectQualifier}TabModules] TM
+		WHERE ModuleId IN (
+			SELECT ModuleID
+			FROM {databaseOwner}[{objectQualifier}Modules]
+			WHERE ModuleDefID IN (
+				SELECT [ModuleDefID]
+				FROM {databaseOwner}[{objectQualifier}ModuleDefinitions]
+				where DefinitionName = 'PowerBI Embedded Content List' or DefinitionName = 'PowerBI Embedded Content View'
+			  )
+		)
+	)
+
+	INSERT INTO {databaseOwner}[{objectQualifier}TabModuleSettings]
+           ([TabModuleID]
+           ,[SettingName]
+           ,[SettingValue]
+           ,[CreatedByUserID]
+           ,[CreatedOnDate]
+           ,[LastModifiedByUserID]
+           ,[LastModifiedOnDate])
+	SELECT TM.TabModuleID,
+		'PowerBIEmbedded_SettingsId' as SettingName,
+		ISNULL((SELECT TOP 1 SettingsId FROM {databaseOwner}[{objectQualifier}PBI_Settings] PS WHERE PS.PortalId=
+			(SELECT PortalId FROM {databaseOwner}[{objectQualifier}Tabs] T WHERE T.TabID=TM.TabID)), -1) as SettingValue,
+		-1 as CreatedByUserID,
+		GETUTCDATE() as CreatedOnDate,
+		-1 as LastModifiedByUserID,
+		GETUTCDATE() as LastModifiedOnDate
+	FROM {databaseOwner}[{objectQualifier}TabModules] TM
+	WHERE ModuleId IN (
+		SELECT ModuleID
+		FROM {databaseOwner}[{objectQualifier}Modules]
+		WHERE ModuleDefID IN (
+			SELECT [ModuleDefID]
+			FROM {databaseOwner}[{objectQualifier}ModuleDefinitions]
+			where DefinitionName = 'PowerBI Embedded Content List' or DefinitionName = 'PowerBI Embedded Content View'
+		  )
+	)
+
+GO
+
 
 END

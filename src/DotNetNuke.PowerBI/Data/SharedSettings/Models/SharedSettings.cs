@@ -57,7 +57,7 @@ namespace DotNetNuke.PowerBI.Data.Models
             AuthenticationType = DefaultAuthenticationType;
         }
 
-        public PowerBISettings(int portalId)
+        private PowerBISettings(int portalId)
         {
             PortalId = portalId;
             AuthorityUrl = DefaultAuthorityUrl;
@@ -71,30 +71,22 @@ namespace DotNetNuke.PowerBI.Data.Models
         {
             var tabModuleSettings = ModuleController.Instance.GetTabModule(tabModuleId).TabModuleSettings;
             var settings = new PowerBISettings(portalId);
-            if (tabModuleSettings.ContainsKey("PowerBIEmbedded_Username"))
-                settings.Username = tabModuleSettings["PowerBIEmbedded_Username"].ToString();
-            if (tabModuleSettings.ContainsKey("PowerBIEmbedded_Password"))
-                settings.Password = tabModuleSettings["PowerBIEmbedded_Password"].ToString();
-            if (tabModuleSettings.ContainsKey("PowerBIEmbedded_ApplicationId"))
-                settings.ApplicationId = tabModuleSettings["PowerBIEmbedded_ApplicationId"].ToString();
-            if (tabModuleSettings.ContainsKey("PowerBIEmbedded_WorkspaceId"))
-                settings.WorkspaceId = tabModuleSettings["PowerBIEmbedded_WorkspaceId"].ToString();
-            if (tabModuleSettings.ContainsKey("PowerBIEmbedded_ContentPageUrl"))
-                settings.ContentPageUrl = tabModuleSettings["PowerBIEmbedded_ContentPageUrl"].ToString();
-            if (tabModuleSettings.ContainsKey("PowerBIEmbedded_AuthorizationType"))
-                settings.AuthenticationType = tabModuleSettings["PowerBIEmbedded_AuthorizationType"].ToString();
-            if (tabModuleSettings.ContainsKey("PowerBIEmbedded_ServicePrincipalTenant"))
-                settings.ServicePrincipalTenant = tabModuleSettings["PowerBIEmbedded_ServicePrincipalTenant"].ToString();
-            if (tabModuleSettings.ContainsKey("PowerBIEmbedded_ServicePrincipalApplicationId"))
-                settings.ServicePrincipalApplicationId = tabModuleSettings["PowerBIEmbedded_ServicePrincipalApplicationId"].ToString();
-            if (tabModuleSettings.ContainsKey("PowerBIEmbedded_ServicePrincipalApplicationSecret"))
-                settings.ServicePrincipalApplicationSecret = tabModuleSettings["PowerBIEmbedded_ServicePrincipalApplicationSecret"].ToString();
-            if (tabModuleSettings.ContainsKey("PowerBIEmbedded_SettingsGroupName"))
-                settings.SettingsGroupName = tabModuleSettings["PowerBIEmbedded_SettingsGroupName"].ToString();
-            if (tabModuleSettings.ContainsKey("PowerBIEmbedded_SettingsGroupId"))
-                settings.SettingsGroupId = tabModuleSettings["PowerBIEmbedded_SettingsGroupId"].ToString();
             if (tabModuleSettings.ContainsKey("PowerBIEmbedded_SettingsId"))
+            {
                 settings.SettingsId = Convert.ToInt32(tabModuleSettings["PowerBIEmbedded_SettingsId"]);
+                var sharedSettings = SharedSettings.SharedSettingsRepository.Instance.GetSettingsById(settings.SettingsId, portalId);
+                settings.Username = sharedSettings.Username;
+                settings.Password = sharedSettings.Password;
+                settings.ApplicationId = sharedSettings.ApplicationId;
+                settings.WorkspaceId = sharedSettings.WorkspaceId;
+                settings.ContentPageUrl = sharedSettings.ContentPageUrl;
+                settings.AuthenticationType = sharedSettings.AuthenticationType;
+                settings.ServicePrincipalTenant = sharedSettings.ServicePrincipalTenant;
+                settings.ServicePrincipalApplicationId = sharedSettings.ServicePrincipalApplicationId;
+                settings.ServicePrincipalApplicationSecret = sharedSettings.ServicePrincipalApplicationSecret;
+                settings.SettingsGroupId = sharedSettings.SettingsGroupId;
+                settings.SettingsGroupName = sharedSettings.SettingsGroupName;
+            }
             return settings;
         }
     }

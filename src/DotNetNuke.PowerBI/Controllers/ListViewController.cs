@@ -63,7 +63,10 @@ namespace DotNetNuke.PowerBI.Controllers
                     //Get SettingsId
                     var tabModuleSettings = ModuleController.Instance.GetTabModule(ModuleContext.TabModuleId)
                         .TabModuleSettings;
-                    ViewBag.SettingsId = tabModuleSettings["PowerBIEmbedded_SettingsId"];
+                    if (tabModuleSettings.ContainsKey("PowerBIEmbedded_SettingsId"))
+                        ViewBag.SettingsId = tabModuleSettings["PowerBIEmbedded_SettingsId"];
+                    else
+                        ViewBag.SettingsId = "";
 
                     return View(model);
                 }

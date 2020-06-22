@@ -1,5 +1,10 @@
 ﻿jQuery(function ($) {
     var app = app || {};
+
+    var constants = constants || {
+        REPORT_TYPE: 0,
+        DASHBOARD_TYPE: 1
+    };
     
     var context = JSON.parse(dnn.getVar("PowerBISettings_Context"));
 

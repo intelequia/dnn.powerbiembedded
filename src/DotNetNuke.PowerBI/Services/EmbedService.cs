@@ -54,14 +54,21 @@ namespace DotNetNuke.PowerBI.Services
             tokenCredentials = null;
             embedConfig = new EmbedConfig();
             tileEmbedConfig = new TileEmbedConfig();
-            powerBISettings = SharedSettingsRepository.Instance.GetSettingsById(settingsId,portalId);
+            if (settingsId == 0)
+            {
+                powerBISettings = PowerBISettings.GetPortalPowerBISettings(portalId, tabModuleId);
+            }
+            else
+            {
+                powerBISettings = SharedSettingsRepository.Instance.GetSettingsById(settingsId, portalId);
+            }
         }
 
         public async Task<PowerBIListView> GetContentListAsync(int userId)
         {            
-            //var model = (PowerBIListView)CachingProvider.Instance().GetItem($"PBI_{Settings.PortalId}_{userId}_{Thread.CurrentThread.CurrentUICulture.Name}_PowerBIListView");
-            //if (model != null)
-            //    return model;
+            var model = (PowerBIListView)CachingProvider.Instance().GetItem($"PBI_{Settings.PortalId}_{userId}_{Thread.CurrentThread.CurrentUICulture.Name}_PowerBIListView");
+            if (model != null)
+                return model;
 
             // Get token credentials for user
             var getCredentialsResult = await GetTokenCredentials();
@@ -70,7 +77,7 @@ namespace DotNetNuke.PowerBI.Services
                 // The error message set in GetTokenCredentials
                 return null;
             }
-            var model = new PowerBIListView();
+            model = new PowerBIListView();
 
             // Create a Power BI Client object. It will be used to call Power BI APIs.
             using (var client = new PowerBIClient(new Uri(Settings.ApiUrl), tokenCredentials))
@@ -140,7 +147,23 @@ namespace DotNetNuke.PowerBI.Services
                     // Generate Embed Token for reports without effective identities.
                     generateTokenRequestParameters = new GenerateTokenRequest(accessLevel: "view");
                 }
-                var tokenResponse = await client.Reports.GenerateTokenInGroupAsync(Settings.WorkspaceId, report.Id, generateTokenRequestParameters).ConfigureAwait(false);
+                EmbedToken tokenResponse;
+                try
+                {
+                    tokenResponse = await client.Reports.GenerateTokenInGroupAsync(Settings.WorkspaceId, report.Id, generateTokenRequestParameters).ConfigureAwait(false);
+                }
+                catch (HttpOperationException ex)
+                {
+                    if (ex.Response.Content.Contains("shouldn't have effective identity"))
+                    {
+                        // HACK: Creating embed token for accessing dataset shouldn't have effective identity"
+                        // See https://community.powerbi.com/t5/Developer/quot-shouldn-t-have-effective-identity-quot-error-when-passing/m-p/437177
+                        generateTokenRequestParameters = new GenerateTokenRequest(accessLevel: "view");
+                        tokenResponse = await client.Reports.GenerateTokenInGroupAsync(Settings.WorkspaceId, report.Id, generateTokenRequestParameters).ConfigureAwait(false);
+                    }
+                    else
+                        throw;
+                }
                 if (tokenResponse == null)
                 {
                     model.ErrorMessage = "Failed to generate embed token.";
@@ -208,7 +231,23 @@ namespace DotNetNuke.PowerBI.Services
                     // Generate Embed Token for reports without effective identities.
                     generateTokenRequestParameters = new GenerateTokenRequest(accessLevel: "view");
                 }
-                var tokenResponse = await client.Dashboards.GenerateTokenInGroupAsync(Settings.WorkspaceId, dashboard.Id, generateTokenRequestParameters).ConfigureAwait(false);
+                EmbedToken tokenResponse;
+                try
+                {
+                    tokenResponse = await client.Dashboards.GenerateTokenInGroupAsync(Settings.WorkspaceId, dashboard.Id, generateTokenRequestParameters).ConfigureAwait(false);                    
+                }
+                catch (HttpOperationException ex)
+                {
+                    if (ex.Response.Content.Contains("shouldn't have effective identity"))
+                    {
+                        // HACK: Creating embed token for accessing dataset shouldn't have effective identity"
+                        // See https://community.powerbi.com/t5/Developer/quot-shouldn-t-have-effective-identity-quot-error-when-passing/m-p/437177
+                        generateTokenRequestParameters = new GenerateTokenRequest(accessLevel: "view");
+                        tokenResponse = await client.Dashboards.GenerateTokenInGroupAsync(Settings.WorkspaceId, dashboard.Id, generateTokenRequestParameters).ConfigureAwait(false);
+                    }
+                    else
+                        throw;
+                }
                 if (tokenResponse == null)
                 {
                     model.ErrorMessage = "Failed to generate embed token.";
