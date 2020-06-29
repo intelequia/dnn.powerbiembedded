@@ -54,7 +54,7 @@ BEGIN
 				,[ModifiedOn])
 	SELECT DISTINCT 
 		(SELECT SettingValue FROM {databaseOwner}[{objectQualifier}PortalSettings] PS2 WHERE PS2.PortalId=PS.PortalId AND SettingName='PowerBIEmbedded_WorkspaceId') as SettingsGroupId,
-		(SELECT TOP 1 PortalName FROM {databaseOwner}[{objectQualifier}PortalLocalization] PL WHERE PL.PortalId=PS.PortalId AND (CultureCode='en-US' OR CultureCode is null)) as SettingsGroupName,
+		(SELECT TOP 1 PortalName FROM {databaseOwner}[{objectQualifier}PortalLocalization] PL WHERE PL.PortalId=PS.PortalId) as SettingsGroupName,
 		PS.PortalId, 
 		(SELECT SettingValue FROM {databaseOwner}[{objectQualifier}PortalSettings] PS2 WHERE PS2.PortalId=PS.PortalId AND SettingName='PowerBIEmbedded_AuthorizationType') as AuthenticationType,
 		(SELECT SettingValue FROM {databaseOwner}[{objectQualifier}PortalSettings] PS2 WHERE PS2.PortalId=PS.PortalId AND SettingName='PowerBIEmbedded_Username') as Username,
