@@ -5,3 +5,6 @@
 /src/DotNetNuke.PowerBI/obj
 /src/DotNetNuke.PowerBI/install
 /src/DotNetNuke.PowerBI/*.user
+/src/DotNetNuke.PowerBI/PBIEmbedded.Web/node_modules
+/src/Releases
+/src/DotNetNuke.PowerBI/PBIEmbedded.Web/package-lock.json

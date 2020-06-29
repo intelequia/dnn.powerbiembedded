@@ -25,6 +25,19 @@ namespace DotNetNuke.PowerBI.Data.SharedSettings
             return result;
         }
 
+        public PowerBISettings GetSettingsByGroupId(string settingsGroupId, int portalId)
+        {
+            Requires.NotNullOrEmpty("settingsGroupId", settingsGroupId);
+
+            PowerBISettings result;
+            using (IDataContext ctx = DataContext.Instance())
+            {
+                var rep = ctx.GetRepository<PowerBISettings>();
+                result = rep.Get(portalId).Where(x => x.SettingsGroupId == settingsGroupId).FirstOrDefault();
+            }
+            return result;
+        }
+
         public List<PowerBISettings> GetSettings(int portalId)
         {
             List<PowerBISettings> result;
@@ -36,10 +49,10 @@ namespace DotNetNuke.PowerBI.Data.SharedSettings
             return result;
         }
 
-        public bool SaveSettings(PowerBISettings setting, int portalId, int? userId)
+        public bool AddSettings(PowerBISettings setting, int portalId, int? userId)
         {
             Requires.NotNull(setting);
-            Requires.PropertyNotNegative(setting, "PortalId");
+            Requires.NotNegative("PortalId", portalId);
 
             setting.PortalId = portalId;
             setting.CreatedOn = DateTime.Now;
@@ -66,13 +79,24 @@ namespace DotNetNuke.PowerBI.Data.SharedSettings
                 var repo = ctx.GetRepository<PowerBISettings>();
 
                 var current = repo.GetById(settings.SettingsId, portalId);
-                if (current.PortalId != settings.PortalId)
+                if (current == null)
                 {
                     throw new SecurityException("Can't update this Settings - Different PortalId");
                 }
-                settings.ModifiedOn = DateTime.Now;
-                settings.ModifiedBy = Components.Common.CurrentUser.UserID;
-                repo.Update(settings);
+                current.SettingsGroupId = settings.SettingsGroupId;
+                current.SettingsGroupName = settings.SettingsGroupName;
+                current.AuthenticationType = settings.AuthenticationType;
+                current.Username = settings.Username;
+                current.Password = settings.Password;
+                current.ServicePrincipalApplicationId = settings.ServicePrincipalApplicationId;
+                current.ServicePrincipalApplicationSecret = settings.ServicePrincipalApplicationSecret;
+                current.ServicePrincipalTenant = settings.ServicePrincipalTenant;
+                current.ApplicationId = settings.ApplicationId;
+                current.WorkspaceId = settings.WorkspaceId;
+                current.ContentPageUrl = settings.ContentPageUrl;
+                current.ModifiedOn = DateTime.Now;
+                current.ModifiedBy = Components.Common.CurrentUser.UserID;
+                repo.Update(current);
             }
 
             return true;

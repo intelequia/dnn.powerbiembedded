@@ -1,0 +1,110 @@
+@import "~@dnnsoftware/dnn-react-common/styles/index";
+.dnn-pbiembedded-objectlist {
+    border: 1px solid #ccc;
+    width: 100%;
+    margin-top: 5px; 
+    padding: 15px;   
+    display: inline-flex;
+
+    .listview {
+        width: 250px;
+
+        label {
+            font-weight: bold;
+            text-transform: uppercase;
+            padding-bottom: 10px;
+            display: block;
+        }    
+
+        .none {
+            font-style: italic;
+            cursor: default;
+        }
+
+        .dashboards {
+            margin-bottom: 15px;
+        }
+
+        .reports {            
+        }
+
+        li {
+            display: block;
+            padding-left: 15px;
+
+            .pbiObject:hover {
+                color: @curiousBlue;
+            }
+            .pbiObject.selected {
+                font-weight: bold;
+                color: @curiousBlue;
+            }
+        }
+
+        
+
+    }
+
+    .permissions {
+        width: 450px;
+
+        .permissions-grid .grid-caption>.dnn-label {
+            line-height:inherit;
+            margin-top: 0px;
+        }
+
+        .user-permissions-grid {
+            margin-top: 30px;
+
+        }
+        .dnn-suggestion span .rw-combobox {
+            width: 175px;
+        }
+        .dnn-suggestion span .add-button {
+            padding-top: 7px;
+        }        
+
+        .permissions-grid .grid-caption {
+            border-bottom: none;
+
+            .dnn-grid-cell {
+                width: 50%!important;
+            }                    
+        }
+        .permissions-grid {
+            .grid-header,
+            .grid-row {
+                min-height: 30px!important;
+            }
+            .grid-header > div,
+            .grid-row > div {
+                width: 50%!important;
+                min-height: 30px!important;
+                height: 30px!important;
+            }
+            .grid-header > div+div,
+            .grid-row > div+div {
+                width: 20%!important;
+                min-height: 30px!important;                
+                height: 30px!important;                
+            }
+            .grid-header > div+div+div,
+            .grid-row > div+div+div {
+                width: 30%!important;
+                min-height: 30px!important;                
+                height: 30px!important;                
+            }
+
+        }
+        
+
+        .permissions-grid .grid-header {
+            margin-top: 0px;
+        }
+        .dnn-grid-cell .left,
+        .dnn-grid-cell .right {
+            width: 50%!important;
+        }
+    }
+
+}

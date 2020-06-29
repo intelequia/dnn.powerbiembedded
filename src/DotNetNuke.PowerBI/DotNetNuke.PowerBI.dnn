@@ -15,8 +15,9 @@
       <azureCompatible>true</azureCompatible>
       <dependencies>
         <dependency type="CoreVersion">09.03.02</dependency>
+        <dependency type="ManagedPackage" version="01.00.00">Dnn.PersonaBar.UI</dependency>
       </dependencies>
-      
+                 
       <components>
         <component type="Script">
           <scripts>
@@ -51,6 +52,27 @@
               <name>Resources.zip</name>
             </resourceFile>
           </resourceFiles>
+        </component>
+        <component type="ResourceFile">
+          <resourceFiles>
+            <basePath>DesktopModules/admin/Dnn.PersonaBar/Modules/Dnn.PowerBI</basePath>
+            <resourceFile>
+              <name>PersonaBarResources.zip</name>
+            </resourceFile>
+          </resourceFiles>
+        </component>
+
+        <component type="PersonaBarMenu">
+          <menu>
+            <identifier>Dnn.PowerBI</identifier>
+            <moduleName>PBIEmbedded</moduleName>
+            <controller>DotNetNuke.PowerBI.Components.MenuController, DotNetNuke.PowerBI</controller>
+            <resourceKey>nav_PBIEmbedded</resourceKey>
+            <path>PBIEmbedded</path>
+            <parent>Settings</parent>
+            <mobileSupport>true</mobileSupport>
+            <order>10</order>
+          </menu>
         </component>
 
         <component type="Module">

@@ -30,6 +30,13 @@
     </ItemGroup>
 
     <ItemGroup>
+      <PersonaBarInclude Include=".\admin\personaBar\**\*.html" Exclude="PBIEmbedded.Web\**" />
+      <PersonaBarInclude Include=".\admin\personaBar\**\*.js" Exclude="PBIEmbedded.Web\**" />
+      <PersonaBarInclude Include=".\admin\personaBar\**\*.css" Exclude="PBIEmbedded.Web\**" />
+      <PersonaBarInclude Include=".\admin\personaBar\**\*.resx" Exclude="PBIEmbedded.Web\**" />
+    </ItemGroup>
+
+    <ItemGroup>
       <SourceInclude Include="**\*.ascx" />
       <SourceInclude Include="**\*.asmx" />
       <SourceInclude Include="**\*.css" />
@@ -79,56 +86,37 @@
     
     <!-- create the INSTALL RESOURCES.ZIP file -->
     <Copy SourceFiles="@(InstallInclude)" DestinationFolder="$(MSBuildProjectDirectory)\ResourcesZip\%(RecursiveDir)" />
+    <Copy SourceFiles="@(PersonaBarInclude)" DestinationFolder="$(MSBuildProjectDirectory)\PersonaBarResourcesZip\%(RecursiveDir)" />
 
     <CreateItem Include="$(MSBuildProjectDirectory)\ResourcesZip\**\*.*">
       <Output TaskParameter="Include" ItemName="ResourcesContent" />
     </CreateItem>
-    
-    <Zip Files="@(ResourcesContent)" WorkingDirectory="$(MSBuildProjectDirectory)\ResourcesZip" ZipFileName="Resources.$(Extension)" />
-    <Copy SourceFiles="$(MSBuildProjectDirectory)\Resources.$(Extension)" DestinationFolder="package/" />
+    <CreateItem Include="$(MSBuildProjectDirectory)\PersonaBarResourcesZip\**\*.*">
+      <Output TaskParameter="Include" ItemName="PersonaBarResourcesContent" />
+    </CreateItem>
 
+
+    <Zip Files="@(ResourcesContent)" WorkingDirectory="$(MSBuildProjectDirectory)\ResourcesZip" ZipFileName="Resources.$(Extension)" />
+    <Zip Files="@(PersonaBarResourcesContent)" WorkingDirectory="$(MSBuildProjectDirectory)\PersonaBarResourcesZip" ZipFileName="PersonabarResources.$(Extension)" />
+    <Copy SourceFiles="$(MSBuildProjectDirectory)\Resources.$(Extension)" DestinationFolder="package/" />
+    <Copy SourceFiles="$(MSBuildProjectDirectory)\PersonaBarResources.$(Extension)" DestinationFolder="package/" />
+    
     <CreateItem Include="$(MSBuildProjectDirectory)\Package\**\*.*">
       <Output TaskParameter="Include" ItemName="OutputContent" />
     </CreateItem>
     <!-- Create the Install package -->    
     <Zip Files="@(OutputContent)" WorkingDirectory="$(MSBuildProjectDirectory)\Package" ZipFileName="$(PackageName)_$(Version)_Install.$(Extension)" />
     <!-- Copy the Install package to the Packages folder -->
-    <Copy SourceFiles="$(MSBuildProjectDirectory)\$(PackageName)_$(Version)_Install.$(Extension)" DestinationFolder="install/" />
+    <Copy SourceFiles="$(MSBuildProjectDirectory)\$(PackageName)_$(Version)_Install.$(Extension)" DestinationFolder="../Releases/" />
     
-    <RemoveDir Directories ="$(MSBuildProjectDirectory)\Package" />
-    <RemoveDir Directories ="$(MSBuildProjectDirectory)\ResourcesZip" />
-
-    
-    <Copy SourceFiles="$(MSBuildDnnBinPath)\$(AssemblyName).dll" DestinationFolder="$(MSBuildProjectDirectory)\Package\bin"/>
-    <Copy SourceFiles="@(SqlDataProviderFiles)" DestinationFolder="$(MSBuildProjectDirectory)\Package\%(RecursiveDir)" />
-    <Copy SourceFiles="@(PackageManifestFiles)" DestinationFolder="$(MSBuildProjectDirectory)\Package" />
-    <Copy SourceFiles="@(PackageTxtFiles)" DestinationFolder="$(MSBuildProjectDirectory)\Package" />
-
-    <!-- create the SOURCE RESOURCES.ZIP file -->
-    <Copy SourceFiles="@(SourceInclude)" DestinationFolder="$(MSBuildProjectDirectory)\ResourcesZip\%(RecursiveDir)" />
-
-    <CreateItem Include="$(MSBuildProjectDirectory)\ResourcesZip\**\*.*">
-      <Output TaskParameter="Include" ItemName="SourceContent" />
-    </CreateItem>
-
-    <Zip Files="@(SourceContent)" WorkingDirectory="$(MSBuildProjectDirectory)\ResourcesZip" ZipFileName="Resources.$(Extension)" />
-    <Copy SourceFiles="$(MSBuildProjectDirectory)\Resources.$(Extension)" DestinationFolder="package/" />
-
-    <CreateItem Include="$(MSBuildProjectDirectory)\Package\**\*.*">
-      <Output TaskParameter="Include" ItemName="OutputSource" />
-    </CreateItem>
-
-    <Zip Files="@(OutputSource)" WorkingDirectory="$(MSBuildProjectDirectory)\Package" ZipFileName="$(PackageName)_$(Version)_Source.$(Extension)" />
-    <Copy SourceFiles="$(MSBuildProjectDirectory)\$(PackageName)_$(Version)_Source.$(Extension)" DestinationFolder="install/" />
 
     <Delete Files="$(MSBuildProjectDirectory)\$(PackageName)_$(Version)_Install.$(Extension)" />
-    <Delete Files="$(MSBuildProjectDirectory)\$(PackageName)_$(Version)_Source.$(Extension)" />
-
     <Delete Files="$(MSBuildProjectDirectory)\Resources.Zip" />
+    <Delete Files="$(MSBuildProjectDirectory)\PersonaBarResources.Zip" />
 
     <RemoveDir Directories ="$(MSBuildProjectDirectory)\Package" />
-
     <RemoveDir Directories ="$(MSBuildProjectDirectory)\ResourcesZip" />
-    
+    <RemoveDir Directories ="$(MSBuildProjectDirectory)\PersonaBarResourcesZip" />
+
   </Target>
 </Project>

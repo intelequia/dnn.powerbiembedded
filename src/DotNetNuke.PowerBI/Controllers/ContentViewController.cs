@@ -3,18 +3,10 @@ using DotNetNuke.Instrumentation;
 using DotNetNuke.PowerBI.Data;
 using DotNetNuke.PowerBI.Models;
 using DotNetNuke.PowerBI.Services;
-using DotNetNuke.Services.Cache;
 using DotNetNuke.Web.Mvc.Framework.ActionFilters;
 using DotNetNuke.Web.Mvc.Framework.Controllers;
-using Microsoft.IdentityModel.Clients.ActiveDirectory;
-using Microsoft.PowerBI.Api.V2;
-using Microsoft.PowerBI.Api.V2.Models;
-using Microsoft.Rest;
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Net;
-using System.Web;
 using System.Web.Mvc;
 
 namespace DotNetNuke.PowerBI.Controllers
@@ -28,15 +20,15 @@ namespace DotNetNuke.PowerBI.Controllers
         public ActionResult Index()
         {
             var model = new EmbedConfig();
-            EmbedService embedService = null;
+            EmbedService embedService;
             try
             {
                 // Remove the objects without permissions
                 var permissionsRepo = ObjectPermissionsRepository.Instance;
-                if (!string.IsNullOrEmpty(Request["settingsId"]))
-                {
-                    embedService = new EmbedService(ModuleContext.PortalId, ModuleContext.TabModuleId, Convert.ToInt32(Request["settingsId"]));
-                }
+                if (!string.IsNullOrEmpty((string) Request["sid"]))
+                    embedService = new EmbedService(ModuleContext.PortalId, ModuleContext.TabModuleId, (string) Request["sid"]);
+                else
+                    embedService = new EmbedService(ModuleContext.PortalId, ModuleContext.TabModuleId, (string)ModuleContext.Settings["PowerBIEmbedded_SettingsGroupId"]);
 
                 if (!string.IsNullOrEmpty(Request["dashboardId"]))
                 {
@@ -50,6 +42,22 @@ namespace DotNetNuke.PowerBI.Controllers
                     var roles = string.Join(",", ModuleContext.PortalSettings.UserInfo.Roles);
                     model = embedService.GetReportEmbedConfigAsync(ModuleContext.PortalSettings.UserId, user, roles, Request["reportId"]).Result;
                 }
+                else if (ModuleContext.Settings.ContainsKey("PowerBIEmbedded_ContentItemId") 
+                    && !string.IsNullOrEmpty((string) ModuleContext.Settings["PowerBIEmbedded_ContentItemId"]))
+                {
+                    var user = ModuleContext.PortalSettings.UserInfo.Username;
+                    var roles = string.Join(",", ModuleContext.PortalSettings.UserInfo.Roles);
+                    var contentItemId = (string)ModuleContext.Settings["PowerBIEmbedded_ContentItemId"];
+                    if (contentItemId.Substring(0, 2) == "D_")
+                    {
+                        model = embedService.GetDashboardEmbedConfigAsync(ModuleContext.PortalSettings.UserId, user, roles, contentItemId.Substring(2)).Result;
+                    }
+                    else
+                    {
+                        model = embedService.GetReportEmbedConfigAsync(ModuleContext.PortalSettings.UserId, user, roles, contentItemId.Substring(2)).Result;
+                    }
+                }
+
                 if (!string.IsNullOrEmpty(model.Id) && !permissionsRepo.HasPermissions(model.Id, ModuleContext.PortalId, 1, User))
                 {
                     return new HttpStatusCodeResult(HttpStatusCode.Forbidden, "User doesn't have permissions for this resource");

@@ -22,7 +22,8 @@
                 {
                     foreach (var d in Model.Dashboards)
                     {
-                        <li class='normal@(d.Id == Request["dashboardId"] ? " active" : "")'><a href='@ViewBag.ReportsPage?dashboardId=@d.Id&settingsId=@ViewBag.SettingsId'>@d.DisplayName</a></li>
+                        var sid = !string.IsNullOrEmpty(ViewBag.SettingsGroupId) ? "&sid=" + ViewBag.SettingsGroupId : "";
+                        <li class='normal@(d.Id == Request["dashboardId"] ? " active" : "")'><a href='@ViewBag.ReportsPage?dashboardId=@d.Id@sid'>@d.DisplayName</a></li>
                     }
                 }
             </ul>
@@ -39,7 +40,8 @@
                 {
                     foreach (var r in Model.Reports)
                     {
-                        <li class='normal@(r.Id == Request["reportId"] ? " active" : "")'><a href='@ViewBag.ReportsPage?reportId=@r.Id&settingsId=@ViewBag.SettingsId'>@r.Name</a></li>
+                        var sid = !string.IsNullOrEmpty(ViewBag.SettingsGroupId) ? "&sid=" + ViewBag.SettingsGroupId : "";
+                        <li class='normal@(r.Id == Request["reportId"] ? " active" : "")'><a href='@ViewBag.ReportsPage?reportId=@r.Id@sid'>@r.Name</a></li>
                     }
                 }
             </ul>

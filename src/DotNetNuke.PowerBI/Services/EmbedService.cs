@@ -64,6 +64,21 @@ namespace DotNetNuke.PowerBI.Services
             }
         }
 
+        public EmbedService(int portalId, int tabModuleId, string settingsGroupId)
+        {
+            tokenCredentials = null;
+            embedConfig = new EmbedConfig();
+            tileEmbedConfig = new TileEmbedConfig();
+            if (string.IsNullOrEmpty(settingsGroupId))
+            {
+                powerBISettings = PowerBISettings.GetPortalPowerBISettings(portalId, tabModuleId);
+            }
+            else
+            {
+                powerBISettings = SharedSettingsRepository.Instance.GetSettingsByGroupId(settingsGroupId, portalId);
+            }
+        }
+
         public async Task<PowerBIListView> GetContentListAsync(int userId)
         {            
             var model = (PowerBIListView)CachingProvider.Instance().GetItem($"PBI_{Settings.PortalId}_{userId}_{Thread.CurrentThread.CurrentUICulture.Name}_PowerBIListView");

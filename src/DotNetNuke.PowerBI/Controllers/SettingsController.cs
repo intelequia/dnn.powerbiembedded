@@ -1,14 +1,13 @@
-﻿using DotNetNuke.Entities.Portals;
+﻿using DotNetNuke.Entities.Modules;
+using DotNetNuke.Instrumentation;
+using DotNetNuke.PowerBI.Data.SharedSettings;
 using DotNetNuke.PowerBI.Models;
+using DotNetNuke.PowerBI.Services;
 using DotNetNuke.Security;
-using DotNetNuke.Services.Cache;
 using DotNetNuke.Web.Mvc.Framework.ActionFilters;
 using DotNetNuke.Web.Mvc.Framework.Controllers;
-using System.Collections.Generic;
+using System;
 using System.Web.Mvc;
-using DotNetNuke.Entities.Modules;
-using DotNetNuke.PowerBI.Data.Models;
-using DotNetNuke.PowerBI.Data.SharedSettings;
 
 namespace DotNetNuke.PowerBI.Controllers
 {
@@ -16,43 +15,67 @@ namespace DotNetNuke.PowerBI.Controllers
     [DnnHandleError]
     public class SettingsController : DnnController
     {
+        public class SettingsModel
+        {
+            public string SettingsGroupId { get; set; }
+            public string ContentItemId { get; set; }
+        }
+        private static readonly ILog Logger = LoggerSource.Instance.GetLogger(typeof(SettingsController));
         // GET: Settings
         [HttpGet]
         public ActionResult Index()
         {
-            var settings = SharedSettingsRepository.Instance.GetSettings(ModuleContext.PortalId);
-            //settings de la base de datos <== voy por aqui
+            try
+            {
+                var settings = SharedSettingsRepository.Instance.GetSettings(ModuleContext.PortalId);
+                ViewBag.Settings = settings;
+                
+                var tabModule = ModuleController.Instance.GetTabModule(this.ModuleContext.TabModuleId);
+                var model = new SettingsModel
+                {
+                    SettingsGroupId = (string) tabModule.TabModuleSettings["PowerBIEmbedded_SettingsGroupId"],
+                    ContentItemId = (string)tabModule.TabModuleSettings["PowerBIEmbedded_ContentItemId"]
+                };
 
-            return View(settings);
+                if (ModuleContext.Configuration.ModuleDefinition.DefinitionName == "PowerBI Embedded Content View")
+                {
+                    var embedService = new EmbedService(ModuleContext.PortalId, ModuleContext.TabModuleId, model.SettingsGroupId);
+                    var contentItems = embedService.GetContentListAsync(ModuleContext.PortalSettings.UserId).Result;
+                    if (contentItems != null)
+                    {
+                        // Remove other culture contents
+                        contentItems = contentItems.RemoveOtherCultureItems();
+                        ViewBag.ContentItems = contentItems;
+                    }
+                }
+                return View(model);
+            }
+            catch (Exception ex)
+            {
+                Logger.Error(ex);
+                return View();
+            }
         }
 
-        //[HttpPost]
-        //[ValidateInput(false)]
-        //[DotNetNuke.Web.Mvc.Framework.ActionFilters.ValidateAntiForgeryToken]
-        //public ActionResult Index(PowerBISettings settings)
-        //{
 
-        //    //TODO CREO QUE AQUI SE GUARDA
-        //    var portal = PortalController.Instance;
+        [HttpPost]
+        [ValidateInput(false)]
+        [DotNetNuke.Web.Mvc.Framework.ActionFilters.ValidateAntiForgeryToken]
+        public ActionResult Index(SettingsModel settings)
+        {
+            try
+            {
+                ModuleController.Instance.UpdateTabModuleSetting(this.ModuleContext.TabModuleId, "PowerBIEmbedded_SettingsGroupId", settings.SettingsGroupId);
+                ModuleController.Instance.UpdateTabModuleSetting(this.ModuleContext.TabModuleId, "PowerBIEmbedded_ContentItemId", settings.ContentItemId);
 
-        //    portal.UpdatePortalSetting(ModuleContext.PortalId, "PowerBIEmbedded_Username", settings.Username, true, null, false);
-        //    portal.UpdatePortalSetting(ModuleContext.PortalId, "PowerBIEmbedded_Password", settings.Password, true, null, false);
-        //    portal.UpdatePortalSetting(ModuleContext.PortalId, "PowerBIEmbedded_ApplicationId", settings.ApplicationId, true, null, false);
-        //    portal.UpdatePortalSetting(ModuleContext.PortalId, "PowerBIEmbedded_WorkspaceId", settings.WorkspaceId, true, null, false);
-        //    portal.UpdatePortalSetting(ModuleContext.PortalId, "PowerBIEmbedded_ContentPageUrl", settings.ContentPageUrl, true, null, false);
-        //    portal.UpdatePortalSetting(ModuleContext.PortalId, "PowerBIEmbedded_AuthorizationType", settings.AuthenticationType, true, null, false);
-        //    portal.UpdatePortalSetting(ModuleContext.PortalId, "PowerBIEmbedded_ServicePrincipalApplicationId", settings.ServicePrincipalApplicationId, true, null, false);
-        //    portal.UpdatePortalSetting(ModuleContext.PortalId, "PowerBIEmbedded_ServicePrincipalApplicationSecret", settings.ServicePrincipalApplicationSecret, true, null, false);
-        //    portal.UpdatePortalSetting(ModuleContext.PortalId, "PowerBIEmbedded_ServicePrincipalTenant", settings.ServicePrincipalTenant, true, null, false);
-
-        //    CachingProvider.Instance().Clear("Prefix", $"PBI_{ModuleContext.PortalId}_{PortalSettings.UserId}_");
-        //    //var modules = new ModuleController();
-        //    //modules.UpdateModuleSetting(ModuleContext.ModuleId, "PowerBIEmbedded_ContentPageUrl", txtContentPageUrl.Text);
-        //    //ModuleContext.Configuration.ModuleSettings["DNNModule1_Setting1"] = settings.Setting1.ToString();
-        //    //ModuleContext.Configuration.ModuleSettings["DNNModule1_Setting2"] = settings.Setting2.ToUniversalTime().ToString("u");
-
-        //    return RedirectToDefaultRoute();
-        //}
+                return RedirectToDefaultRoute();
+            }
+            catch (Exception ex)
+            {
+                Logger.Error(ex);
+                return View();
+            }
+        }
 
     }
 }

@@ -1,0 +1,317 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- 
+    Microsoft ResX Schema 
+    
+    Version 2.0
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
+    associated with the data types.
+    
+    Example:
+    
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
+    </data>
+                
+    There are any number of "resheader" rows that contain simple 
+    name/value pairs.
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
+    mimetype set.
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
+    extensible. For a given mimetype the value must be set accordingly:
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
+    read any of the formats listed below.
+    
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+    
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array 
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="nav_PBIEmbedded.Text" xml:space="preserve">
+    <value>PowerBI Embedded</value>
+  </data>
+  <data name="No.Text" xml:space="preserve">
+    <value>No</value>
+  </data>
+  <data name="GeneralSettings.Text" xml:space="preserve">
+    <value>General Settings</value>
+  </data>
+  <data name="SettingsError.Text" xml:space="preserve">
+    <value>Could not update the settings. Please try later.</value>
+  </data>
+  <data name="SettingsRestoreWarning.Text" xml:space="preserve">
+    <value>Are you sure you want to cancel your changes?</value>
+  </data>
+  <data name="SettingsUpdateSuccess.Text" xml:space="preserve">
+    <value>The settings have been updated.</value>
+  </data>
+  <data name="Yes.Text" xml:space="preserve">
+    <value>Yes</value>
+  </data>
+  <data name="Cancel.Text" xml:space="preserve">
+    <value>Cancel</value>
+  </data>
+  <data name="SaveSettings.Text" xml:space="preserve">
+    <value>Save Settings</value>
+  </data>
+  <data name="cmdAddUserRole.Text" xml:space="preserve">
+    <value>Add</value>
+  </data>
+  <data name="cmdAddWorkspace.Text" xml:space="preserve">
+    <value>Add Workspace</value>
+  </data>
+  <data name="lblApplicationId.Error" xml:space="preserve">
+    <value>You must specify the Application Id</value>
+  </data>
+  <data name="lblApplicationId.Help" xml:space="preserve">
+    <value>The PowerBI Application Id. This is the guid of the PowerBI Application declared on your Azure Active Directory tenant.</value>
+  </data>
+  <data name="lblApplicationId.Text" xml:space="preserve">
+    <value>PowerBI Application Id</value>
+  </data>
+  <data name="lblAuthenticationType.Help" xml:space="preserve">
+    <value>The authentication type you want to use to connect to PowerBI: Master User = an Azure AD user with permissions to login to powerbi.com with access to the workspace; Service Principal = an Azure AD registered application with access to the PowerBI workspace</value>
+  </data>
+  <data name="lblAuthenticationType.Text" xml:space="preserve">
+    <value>Authentication Type</value>
+  </data>
+  <data name="lblContentPageUrl.Error" xml:space="preserve">
+    <value>You must specify the content page Url</value>
+  </data>
+  <data name="lblContentPageUrl.Help" xml:space="preserve">
+    <value>The URL where the contents will be shown on thise site. This is the default content page URL being used by all listview controls on this portal</value>
+  </data>
+  <data name="lblContentPageUrl.Text" xml:space="preserve">
+    <value>Default Content Page URL</value>
+  </data>
+  <data name="lblDashboards.Text" xml:space="preserve">
+    <value>Dashboards</value>
+  </data>
+  <data name="lblPassword.Error" xml:space="preserve">
+    <value>You must specify the master user password</value>
+  </data>
+  <data name="lblPassword.Help" xml:space="preserve">
+    <value>The master user password</value>
+  </data>
+  <data name="lblPassword.Text" xml:space="preserve">
+    <value>Password</value>
+  </data>
+  <data name="lblPermissionsDescription.Text" xml:space="preserve">
+    <value>After setting up a workspace you need to specify the user or role permissions to access these reports. By default, only superusers or portal administrators have access to the reports.</value>
+  </data>
+  <data name="lblReports.Text" xml:space="preserve">
+    <value>Reports</value>
+  </data>
+  <data name="lblSelectedWorkspace.Help" xml:space="preserve">
+    <value>Select a workspace to setup the permissions for the associated dashboards and reports</value>
+  </data>
+  <data name="lblSelectedWorkspace.Text" xml:space="preserve">
+    <value>Select a workspace</value>
+  </data>
+  <data name="lblServicePrincipalApplicationId.Error" xml:space="preserve">
+    <value>You must specify the service principal application Id</value>
+  </data>
+  <data name="lblServicePrincipalApplicationId.Help" xml:space="preserve">
+    <value>The service principal Id</value>
+  </data>
+  <data name="lblServicePrincipalApplicationId.Text" xml:space="preserve">
+    <value>Service Principal Id</value>
+  </data>
+  <data name="lblServicePrincipalApplicationSecret.Error" xml:space="preserve">
+    <value>You must specify the service principal application secret</value>
+  </data>
+  <data name="lblServicePrincipalApplicationSecret.Help" xml:space="preserve">
+    <value>The service principal secret</value>
+  </data>
+  <data name="lblServicePrincipalApplicationSecret.Text" xml:space="preserve">
+    <value>Secret</value>
+  </data>
+  <data name="lblServicePrincipalTenant.Error" xml:space="preserve">
+    <value>You must specify the service principal tenant</value>
+  </data>
+  <data name="lblServicePrincipalTenant.Help" xml:space="preserve">
+    <value>The service principal tenant</value>
+  </data>
+  <data name="lblServicePrincipalTenant.Text" xml:space="preserve">
+    <value>Tenant</value>
+  </data>
+  <data name="lblSettingsGroupName.Error" xml:space="preserve">
+    <value>The workspace name can't be empty or equal to another workspace name</value>
+  </data>
+  <data name="lblSettingsGroupName.Help" xml:space="preserve">
+    <value>Enter a workspace name to identify these configuration settings when linking a listview or contentview control later. (This is not the PowerBI workspace name, just a name for these settings)</value>
+  </data>
+  <data name="lblSettingsGroupName.Text" xml:space="preserve">
+    <value>Workspace Name</value>
+  </data>
+  <data name="lblTabDescription.Text" xml:space="preserve">
+    <value>The DNN PowerBI Embedded module allows to integrate PowerBI reports, dashboards and tiles into public or secured DNN pages by using DNN integrated security. Before integrating the reports, you need to setup PowerBI Embedded capacity in your tenant.
+
+To integrate a PowerBI workspace into DNN, you need to setup a set of properties first. Then you can drop listview or content controls directly to each page. </value>
+  </data>
+  <data name="lblUsername.Error" xml:space="preserve">
+    <value>You must specify the master user name</value>
+  </data>
+  <data name="lblUsername.Help" xml:space="preserve">
+    <value>The master user name</value>
+  </data>
+  <data name="lblUsername.Text" xml:space="preserve">
+    <value>Username</value>
+  </data>
+  <data name="lblUserRole.Help" xml:space="preserve">
+    <value>Select a user or role and then click on the Add button to continue giving it permissions</value>
+  </data>
+  <data name="lblUserRole.Text" xml:space="preserve">
+    <value>Select User or Role</value>
+  </data>
+  <data name="lblWorkspaceId.Error" xml:space="preserve">
+    <value>You must specify the Workspace Id</value>
+  </data>
+  <data name="lblWorkspaceId.Help" xml:space="preserve">
+    <value>The PowerBI workspace Id</value>
+  </data>
+  <data name="lblWorkspaceId.Text" xml:space="preserve">
+    <value>PowerBI Workspace Id</value>
+  </data>
+  <data name="lblWorkspacePermissions.Text" xml:space="preserve">
+    <value>Workspace Permissions</value>
+  </data>
+  <data name="lblWorkspaces.Text" xml:space="preserve">
+    <value>Workspaces</value>
+  </data>
+  <data name="lblWorkspaceSettings.Text" xml:space="preserve">
+    <value>Workspace Settings</value>
+  </data>
+  <data name="NoDashboards.Text" xml:space="preserve">
+    <value>No dashboards to show</value>
+  </data>
+  <data name="NoReports.Text" xml:space="preserve">
+    <value>No reports to show</value>
+  </data>
+  <data name="Permissions.Text" xml:space="preserve">
+    <value>Permissions</value>
+  </data>
+  <data name="PermissionsUpdateError.Text" xml:space="preserve">
+    <value>There was an error when saving the permissions</value>
+  </data>
+  <data name="PermissionsUpdateSuccess.Text" xml:space="preserve">
+    <value>Successfully updated permissions</value>
+  </data>
+  <data name="SavePermissions.Text" xml:space="preserve">
+    <value>Save Permissions</value>
+  </data>
+  <data name="WorkspaceDeleteSuccess.Text" xml:space="preserve">
+    <value>Workspace settings successfully deleted</value>
+  </data>
+  <data name="Workspaces.AuthenticationType.Header.Text" xml:space="preserve">
+    <value>Auth Type</value>
+  </data>
+  <data name="Workspaces.ContentPage.Header.Text" xml:space="preserve">
+    <value>Content Page URL</value>
+  </data>
+  <data name="Workspaces.GroupId.Header.Text" xml:space="preserve">
+    <value>Group Id</value>
+  </data>
+  <data name="Workspaces.GroupName.Header.Text" xml:space="preserve">
+    <value>Name</value>
+  </data>
+  <data name="Workspaces.Id.Header.Text" xml:space="preserve">
+    <value>Id</value>
+  </data>
+  <data name="WorkspaceSettingDeletedWarning.Text" xml:space="preserve">
+    <value>You are going to delete the PowerBI workspace settings. If there is any module setup with these settings, won't continue working</value>
+  </data>
+  <data name="WorkspaceUpdateSuccess.Text" xml:space="preserve">
+    <value>Workspace successfully udpated</value>
+  </data>
+</root>

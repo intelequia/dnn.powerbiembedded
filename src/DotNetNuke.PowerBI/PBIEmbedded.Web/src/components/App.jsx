@@ -1,0 +1,59 @@
+import React, {Component} from "react";
+import PropTypes from "prop-types";
+import { connect } from "react-redux";
+import {PersonaBarPage, PersonaBarPageHeader, PersonaBarPageBody, DnnTabs as Tabs} from "@dnnsoftware/dnn-react-common";
+import SettingsActions from "../actions/settings";
+import GeneralSettings from "./general";
+import Permissions from "./permissions";
+import resx from "../resources";
+
+import "./style.less";
+
+class App extends Component {
+
+    constructor() {
+        super();
+        this.onSelectTab = this.onSelectTab.bind(this);
+        this.onSelectSubTab = this.onSelectSubTab.bind(this);
+    }
+    onSelectTab(index) {
+        this.props.dispatch(SettingsActions.switchTab(index));
+    }
+    onSelectSubTab(index) {
+        this.props.dispatch(SettingsActions.switchMappingSubTab(index));
+    }
+
+    render() {
+        return (
+            <div id="PBIEmbeddedAppContainer">
+                <PersonaBarPage isOpen={true}>
+                    <PersonaBarPageHeader title="PowerBI Embedded" titleCharLimit={30}>
+                    </PersonaBarPageHeader>
+                    <PersonaBarPageBody>
+                        <Tabs
+                            onSelect={this.onSelectTab.bind(this)}
+                            selectedIndex={this.props.selectedTab}
+                            tabHeaders={[resx.get("GeneralSettings"),resx.get("Permissions")]}>
+                            <GeneralSettings />
+                            <Permissions />
+                        </Tabs>  
+                    </PersonaBarPageBody>
+                </PersonaBarPage>
+            </div>
+        );
+    }
+}
+
+App.propTypes = {
+    dispatch: PropTypes.func.isRequired,
+    selectedTab: PropTypes.number
+};
+
+
+function mapStateToProps(state) {
+    return {
+        selectedTab: state.settings.selectedTab
+    };
+}
+
+export default connect(mapStateToProps)(App);

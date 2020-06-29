@@ -43,6 +43,9 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Dnn.PersonaBar.Library, Version=1.5.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Dnn.PersonaBar.Library.1.5.0.193\lib\net45\Dnn.PersonaBar.Library.dll</HintPath>
+    </Reference>
     <Reference Include="DotNetNuke, Version=9.3.2.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\DotNetNuke.Core.9.3.2\lib\net45\DotNetNuke.dll</HintPath>
     </Reference>
@@ -129,8 +132,8 @@
     <Reference Include="System.Web.Http, Version=5.2.3.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.AspNet.WebApi.Core.5.2.3\lib\net45\System.Web.Http.dll</HintPath>
     </Reference>
-    <Reference Include="System.Web.Http.WebHost, Version=5.2.7.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\packages\Microsoft.AspNet.WebApi.WebHost.5.2.7\lib\net45\System.Web.Http.WebHost.dll</HintPath>
+    <Reference Include="System.Web.Http.WebHost, Version=5.2.3.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.AspNet.WebApi.WebHost.5.2.3\lib\net45\System.Web.Http.WebHost.dll</HintPath>
     </Reference>
     <Reference Include="System.Web.Mvc, Version=5.1.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.AspNet.Mvc.5.1.3\lib\net45\System.Web.Mvc.dll</HintPath>
@@ -160,16 +163,11 @@
   <ItemGroup>
     <Compile Include="Components\Common.cs" />
     <Compile Include="Components\FeatureController.cs" />
+    <Compile Include="Components\MenuController.cs" />
     <Compile Include="Components\RouteMapper.cs" />
-    <Compile Include="Controllers\Api\Admin\GroupSettingsController.cs" />
-    <Compile Include="Controllers\Api\Admin\Models\GetPortalUsersResponse.cs" />
-    <Compile Include="Controllers\Api\Admin\Models\GetPowerBiObjectListResult.cs" />
-    <Compile Include="Controllers\Api\Admin\Models\GetPowerBiPermissionsResponse.cs" />
-    <Compile Include="Controllers\Api\Admin\Models\SavePowerBiObjectsPermissionsInput.cs" />
     <Compile Include="Controllers\ContentViewController.cs" />
     <Compile Include="Controllers\ListViewController.cs" />
     <Compile Include="Controllers\SettingsController.cs" />
-    <Compile Include="Controllers\Api\Admin\AdminController.cs" />
     <Compile Include="Data\IObjectPermissionsRepository.cs" />
     <Compile Include="Data\Models\ObjectPermission.cs" />
     <Compile Include="Data\SharedSettings\ISharedSettingsRepository.cs" />
@@ -178,19 +176,27 @@
     <Compile Include="Data\SharedSettings\SharedSettingsRepository.cs" />
     <Compile Include="Models\EmbedConfig.cs" />
     <Compile Include="Models\PowerBIListView.cs" />
+    <Compile Include="Models\PowerBIListViewExtensions.cs" />
     <Compile Include="Models\TileEmbedConfig.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Services\EmbedService.cs" />
     <Compile Include="Services\IEmbedService.cs" />
+    <Compile Include="Services\Models\GetPowerBiObjectListResponse.cs" />
+    <Compile Include="Services\Models\PBIPermissions.cs" />
+    <Compile Include="Services\Models\SavePowerBiObjectsPermissionsInput.cs" />
+    <Compile Include="Services\PBIEmbeddedController.cs" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="admin\personaBar\css\PBIEmbedded.css" />
+    <Content Include="admin\personaBar\PBIEmbedded.html" />
+    <Content Include="admin\personaBar\scripts\bundles\bundle-en.js" />
+    <Content Include="admin\personaBar\scripts\PBIEmbedded.js" />
     <Content Include="css\vendors\select2.min.css" />
     <Content Include="images\powerbi.png" />
     <Content Include="License.txt" />
     <Content Include="css\module.css" />
     <Content Include="ReleaseNotes.txt" />
     <Content Include="scripts\Common.js" />
-    <Content Include="scripts\listViewSettings.js" />
     <Content Include="scripts\powerbi.js" />
     <Content Include="scripts\powerbi.min.js" />
   </ItemGroup>
@@ -212,8 +218,6 @@
     <Content Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="scripts\settingsModal.js" />
-    <Content Include="scripts\settings.js" />
     <Content Include="scripts\vendors\select2.min.js" />
     <Content Include="web.config" />
     <Content Include="scripts\powerbi.js.map" />
@@ -258,6 +262,9 @@
     <Content Include="App_LocalResources\ContentView.de-de.resx" />
   </ItemGroup>
   <ItemGroup />
+  <ItemGroup>
+    <Content Include="admin\personaBar\App_LocalResources\PBIEmbedded.resx" />
+  </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>
     <VSToolsPath Condition="'$(VSToolsPath)' == ''">$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)</VSToolsPath>
@@ -291,6 +298,22 @@
     <MSBuildCommunityTasksPath>$(SolutionDir)\BuildScripts</MSBuildCommunityTasksPath>
   </PropertyGroup>
   <Import Project="BuildScripts\ModulePackage.Targets" />
+  <UsingTask TaskName="SetEnvironmentVariableTask" TaskFactory="CodeTaskFactory" AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.Core.dll">
+    <ParameterGroup>
+      <Name ParameterType="System.String" Required="true" />
+      <Value ParameterType="System.String" Required="true" />
+    </ParameterGroup>
+    <Task>
+      <Using Namespace="System" />
+      <Code Type="Fragment" Language="cs"><![CDATA[
+        Environment.SetEnvironmentVariable(Name, Value);
+      ]]></Code>
+    </Task>
+  </UsingTask>
+  <Target Name="SampleTarget" BeforeTargets="PackageModule" Condition=" '$(Configuration)' == 'Release' ">
+    <SetEnvironmentVariableTask Name="NODE_ENV" Value="production" />
+    <Exec Command="webpack -p" WorkingDirectory="PBIEmbedded.Web" />
+  </Target>
   <Target Name="AfterBuild" DependsOnTargets="PackageModule">
   </Target>
   <PropertyGroup>
