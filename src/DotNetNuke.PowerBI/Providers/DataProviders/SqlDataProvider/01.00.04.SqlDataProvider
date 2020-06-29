@@ -118,8 +118,4 @@ BEGIN
 			where DefinitionName = 'PowerBI Embedded Content List' or DefinitionName = 'PowerBI Embedded Content View'
 		  )
 	)
-
-GO
-
-
 END
