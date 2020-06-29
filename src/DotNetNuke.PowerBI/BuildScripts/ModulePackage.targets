@@ -14,19 +14,10 @@
     </XmlRead>
 
     <!--in VS 2012 we exclude the packages folder -->
-    <ItemGroup>     
-      <InstallInclude Include="**\*.ascx" Exclude="packages\**" />
-      <InstallInclude Include="**\*.asmx" Exclude="packages\**" />
-      <InstallInclude Include="**\*.css" Exclude="packages\**" />
-      <InstallInclude Include="**\*.html" Exclude="packages\**" />
-      <InstallInclude Include="**\*.cshtml" Exclude="packages\**" />
-      <InstallInclude Include="**\*.htm" Exclude="packages\**" />
-      <InstallInclude Include="**\*.resx" Exclude="packages\**" />
-      <InstallInclude Include="**\*.aspx" Exclude="packages\**" />
-      <InstallInclude Include="**\*.js" Exclude="packages\**" />
-      <InstallInclude Include="**\*.txt"  Exclude="**\obj\**;**\_ReSharper*\**;packages\**;**\.git\**;" />
-      <InstallInclude Include="**\images\**" Exclude="packages\**" />
-      
+    <ItemGroup>
+      <InstallInclude Include="**\*.txt;**\*.ascx;**\*.css;**\*.js;**\*.cshtml"  Exclude="**\obj\**;**\_ReSharper*\**;packages\**;**\node_modules\**;**\admin\personaBar\**" />
+      <InstallInclude Include="**\images\*.png;**\images\*.svg" Exclude="**\admin\personaBar\**" />
+      <InstallInclude Include="**\App_LocalResources\*.resx" Exclude="**\admin\personaBar\**" />           
     </ItemGroup>
 
     <ItemGroup>
