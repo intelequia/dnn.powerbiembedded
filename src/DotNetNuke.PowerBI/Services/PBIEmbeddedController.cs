@@ -146,6 +146,17 @@ namespace DotNetNuke.PowerBI.Services
                 var embedService = new EmbedService(PortalSettings.PortalId, -1, settingsId);
                 var model = embedService.GetContentListAsync(PortalSettings.UserInfo.UserID).Result;
 
+                // Add workspace permissions
+                var workspaceSecurity = ObjectPermissionsRepository.Instance.GetObjectPermissions(embedService.Settings.SettingsGroupId, PortalSettings.PortalId);
+                result.Add(new GetPowerBiObjectListResponse
+                {
+                    Id = embedService.Settings.SettingsGroupId,
+                    Name = embedService.Settings.SettingsGroupName,
+                    PowerBiType = GetPowerBiObjectListResponse.ObjectType.Workspace,
+                    Permissions = GetPowerBiObjectListResponse.DataToPermissions(workspaceSecurity)
+                });
+
+                // Add report permissions
                 foreach (var report in model.Reports)
                 {
                     var reportSecurity = ObjectPermissionsRepository.Instance.GetObjectPermissions(report.Id, PortalSettings.PortalId);
@@ -159,6 +170,7 @@ namespace DotNetNuke.PowerBI.Services
                     });
                 }
 
+                // Add dashboard permissions
                 foreach (var dashboard in model.Dashboards)
                 {
                     var reportSecurity = ObjectPermissionsRepository.Instance.GetObjectPermissions(dashboard.Id, PortalSettings.PortalId);

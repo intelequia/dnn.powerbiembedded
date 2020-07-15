@@ -82,7 +82,18 @@ class PbiObjectsListView extends Component {
                 </ul>
             </div>
         );
-    }    
+    }  
+    
+    renderWorkspace() {
+        return (
+            <div className="workspace">
+                <label>{resx.get("DefaultWorkspacePermissions")}</label>                
+                <ul>
+                    {this.getObjects(-1, "NoWorkspaces")}
+                </ul>
+            </div>
+        );
+    }  
 
 
     renderReports() {
@@ -125,7 +136,7 @@ class PbiObjectsListView extends Component {
             userPermissions: []
         };
         let selectedObject = this.getSelectedObject();    
-        if (selectedObject !== null) {
+        if (selectedObject) {
             permissions = JSON.parse(JSON.stringify(selectedObject.Permissions));
         }
         return permissions;
@@ -139,6 +150,7 @@ class PbiObjectsListView extends Component {
         return (
             <div className="dnn-pbiembedded-objectlist">
                 <div className="listview">
+                    {this.renderWorkspace()}
                     {this.renderDashboards()}
                     {this.renderReports()}
                 </div>

@@ -314,4 +314,10 @@ To integrate a PowerBI workspace into DNN, you need to setup a set of properties
   <data name="WorkspaceUpdateSuccess.Text" xml:space="preserve">
     <value>Workspace successfully udpated</value>
   </data>
+  <data name="DefaultWorkspacePermissions.Text" xml:space="preserve">
+    <value>Default permissions</value>
+  </data>
+  <data name="NoWorkspaces.Text" xml:space="preserve">
+    <value>No workspaces to show</value>
+  </data>
 </root>

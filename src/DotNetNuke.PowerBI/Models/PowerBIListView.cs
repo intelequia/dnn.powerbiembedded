@@ -15,10 +15,13 @@ namespace DotNetNuke.PowerBI.Models
         {
             Reports = new List<Report>();
             Dashboards = new List<Dashboard>();
+            Workspaces = new List<Workspace>();
         }
         [DataMember]
         public List<Report> Reports { get; set; }
         [DataMember]
         public List<Dashboard> Dashboards { get; set; }
+        [DataMember]
+        public List<Workspace> Workspaces { get; set; }
     }
 }

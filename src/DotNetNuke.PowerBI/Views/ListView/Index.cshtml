@@ -4,48 +4,75 @@
 @{
     ClientResourceManager.RegisterStyleSheet(Dnn.DnnPage, "~/DesktopModules/MVC/PowerBIEmbedded/Css/module.css", 10, "DnnPageHeaderProvider");
 }
-<div class="powerbiListView">
-    @if (Model == null)
-    {
-        <p>@Dnn.LocalizeString("Error")</p>
+<script language="Javascript">
+    function changeWorkspace(e) {
+        var loc = document.location.href;
+        if (loc.includes("sid="))
+            loc = loc.replace(/(sid=)[^\&]+/, '$1' + $('.workspace')[0].value);
+        if (loc.includes("sid/"))
+            loc = loc.replace(/(sid\/)[^\/]+/, '$1' + $('.workspace')[0].value);
+        if (document.location.href == loc) {
+            if (!loc.includes("?"))
+                loc += "?";
+            loc += "sid=" + $('.workspace')[0].value;
+        }
+        document.location.replace(loc);
     }
-    else
-    {
-        <div class="dashboardsSection">
-            <h4>@Dnn.LocalizeString("Dashboards")</h4>
-            <ul>
-                @if (Model.Dashboards.Count == 0)
-                {
-                    <li class='empty'>@Dnn.LocalizeString("DashboardsEmpty")</li>
-                }
-                else
-                {
-                    foreach (var d in Model.Dashboards)
-                    {
-                        var sid = !string.IsNullOrEmpty(ViewBag.SettingsGroupId) ? "&sid=" + ViewBag.SettingsGroupId : "";
-                        <li class='normal@(d.Id == Request["dashboardId"] ? " active" : "")'><a href='@ViewBag.ReportsPage?dashboardId=@d.Id@sid'>@d.DisplayName</a></li>
-                    }
-                }
-            </ul>
-        </div>
-     
-        <div class="reportsSection">
-            <h4>@Dnn.LocalizeString("Reports")</h4>
-            <ul>
-                @if (Model.Reports.Count == 0)
-                {
-                    <li class='empty'>@Dnn.LocalizeString("ReportsEmpty")</li>
-                }
-                else
-                {
-                    foreach (var r in Model.Reports)
-                    {
-                        var sid = !string.IsNullOrEmpty(ViewBag.SettingsGroupId) ? "&sid=" + ViewBag.SettingsGroupId : "";
-                        <li class='normal@(r.Id == Request["reportId"] ? " active" : "")'><a href='@ViewBag.ReportsPage?reportId=@r.Id@sid'>@r.Name</a></li>
-                    }
-                }
-            </ul>
-        </div>
-    }
+</script>
 
-</div>
+    <div class="powerbiListView">
+        @if (Model == null)
+        {
+            <p>@Dnn.LocalizeString("Error")</p>
+        }
+        else
+        {
+            if (Model.Workspaces.Count > 1)
+            {
+                <div class="workspacesSection">
+                    <select class="workspace" onchange="return changeWorkspace();">
+                        @foreach (var w in Model.Workspaces)
+                        {
+                            <option value="@w.Id" @(Request.QueryString["sid"] == w.Id ? "selected": "")>@w.Name</option>
+                        }
+                    </select>
+                </div>
+            }
+            <div class="dashboardsSection @(Model.Workspaces.Count > 1 ? "workspace": "")">
+                <h4>@Dnn.LocalizeString("Dashboards")</h4>
+                <ul>
+                    @if (Model.Dashboards.Count == 0)
+                    {
+                        <li class='empty'>@Dnn.LocalizeString("DashboardsEmpty")</li>
+                    }
+                    else
+                    {
+                        foreach (var d in Model.Dashboards)
+                        {
+                            var sid = !string.IsNullOrEmpty(ViewBag.SettingsGroupId) ? "&sid=" + ViewBag.SettingsGroupId : "";
+                            <li class='normal@(d.Id == Request["dashboardId"] ? " active" : "")'><a href='@ViewBag.ReportsPage?dashboardId=@d.Id@sid'>@d.DisplayName</a></li>
+                        }
+                    }
+                </ul>
+            </div>
+
+            <div class="reportsSection @(Model.Workspaces.Count > 1 ? "workspace": "")">
+                <h4>@Dnn.LocalizeString("Reports")</h4>
+                <ul>
+                    @if (Model.Reports.Count == 0)
+                    {
+                        <li class='empty'>@Dnn.LocalizeString("ReportsEmpty")</li>
+                    }
+                    else
+                    {
+                        foreach (var r in Model.Reports)
+                        {
+                            var sid = !string.IsNullOrEmpty(ViewBag.SettingsGroupId) ? "&sid=" + ViewBag.SettingsGroupId : "";
+                            <li class='normal@(r.Id == Request["reportId"] ? " active" : "")'><a href='@ViewBag.ReportsPage?reportId=@r.Id@sid'>@r.Name</a></li>
+                        }
+                    }
+                </ul>
+            </div>
+        }
+
+    </div>

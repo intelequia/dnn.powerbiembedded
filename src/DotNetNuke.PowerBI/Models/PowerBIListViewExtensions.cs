@@ -44,6 +44,8 @@ namespace DotNetNuke.PowerBI.Models
                     !permissionsRepo.HasPermissions(x.Id, user.PortalID, 1, user));
                 model.Dashboards.RemoveAll(x =>
                     !permissionsRepo.HasPermissions(x.Id, user.PortalID, 1, user));
+                model.Workspaces.RemoveAll(x =>
+                    !permissionsRepo.HasPermissions(x.Id, user.PortalID, 1, user));
             }
             return model;
         }

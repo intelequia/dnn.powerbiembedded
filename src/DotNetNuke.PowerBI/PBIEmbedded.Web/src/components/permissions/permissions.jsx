@@ -46,6 +46,14 @@ class Permissions extends Component {
             state.selectedObjectId = nextProps.powerBiObjects[0].Id;
             props.dispatch(SettingsActions.selectObject(state.selectedObjectId));
         }
+        else {
+            if (state.selectedObjectId === "" && nextProps.powerBiObjects && nextProps.powerBiObjects.length > 0) {
+                if (!nextProps.powerBiObjects.find(x => x.Id === state.selectedObjectId)) {
+                    state.selectedObjectId = "";
+                    props.dispatch(SettingsActions.selectObject(state.selectedObjectId));        
+                }
+            }
+        }
         state.error["selectedWorkspace"] = (!state.selectedWorkspace || state.selectedWorkspace === "");
     }      
 

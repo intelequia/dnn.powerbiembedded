@@ -81,7 +81,7 @@ namespace DotNetNuke.PowerBI.Services
 
         public async Task<PowerBIListView> GetContentListAsync(int userId)
         {            
-            var model = (PowerBIListView)CachingProvider.Instance().GetItem($"PBI_{Settings.PortalId}_{userId}_{Thread.CurrentThread.CurrentUICulture.Name}_PowerBIListView");
+            var model = (PowerBIListView)CachingProvider.Instance().GetItem($"PBI_{Settings.PortalId}_{Settings.SettingsId}_{userId}_{Thread.CurrentThread.CurrentUICulture.Name}_PowerBIListView");
             if (model != null)
                 return model;
 
@@ -94,6 +94,17 @@ namespace DotNetNuke.PowerBI.Services
             }
             model = new PowerBIListView();
 
+            var pbiSettings = SharedSettingsRepository.Instance.GetSettings(Settings.PortalId);
+            foreach (var s in pbiSettings)
+            {
+                model.Workspaces.Add(new Workspace()
+                {
+                    Id = s.SettingsGroupId,
+                    Name = s.SettingsGroupName,
+                    SettingsId = s.SettingsId
+                });
+            }
+
             // Create a Power BI Client object. It will be used to call Power BI APIs.
             using (var client = new PowerBIClient(new Uri(Settings.ApiUrl), tokenCredentials))
             {
@@ -104,14 +115,14 @@ namespace DotNetNuke.PowerBI.Services
                 var reports = client.Reports.GetReportsInGroupAsync(Settings.WorkspaceId).GetAwaiter().GetResult();
                 model.Reports.AddRange(reports.Value);
             }
-            CachingProvider.Instance().Insert($"PBI_{Settings.PortalId}_{userId}_{Thread.CurrentThread.CurrentUICulture.Name}_PowerBIListView", model, null, DateTime.Now.AddSeconds(60), TimeSpan.Zero);
+            CachingProvider.Instance().Insert($"PBI_{Settings.PortalId}_{Settings.SettingsId}_{userId}_{Thread.CurrentThread.CurrentUICulture.Name}_PowerBIListView", model, null, DateTime.Now.AddSeconds(60), TimeSpan.Zero);
             return model;
         }
 
 
         public async Task<EmbedConfig> GetReportEmbedConfigAsync(int userId, string username, string roles, string reportId)
         {
-            var model = (EmbedConfig)CachingProvider.Instance().GetItem($"PBI_{Settings.PortalId}_{userId}_{Thread.CurrentThread.CurrentUICulture.Name}_Report_{reportId}");
+            var model = (EmbedConfig)CachingProvider.Instance().GetItem($"PBI_{Settings.PortalId}_{Settings.SettingsId}_{userId}_{Thread.CurrentThread.CurrentUICulture.Name}_Report_{reportId}");
             if (model != null)
                 return model;
 
@@ -189,14 +200,14 @@ namespace DotNetNuke.PowerBI.Services
                 model.Id = report.Id;
                 model.ContentType = "report";
 
-                CachingProvider.Instance().Insert($"PBI_{Settings.PortalId}_{userId}_{Thread.CurrentThread.CurrentUICulture.Name}_Report_{reportId}", model, null, DateTime.Now.AddSeconds(60), TimeSpan.Zero);
+                CachingProvider.Instance().Insert($"PBI_{Settings.PortalId}_{Settings.SettingsId}_{userId}_{Thread.CurrentThread.CurrentUICulture.Name}_Report_{reportId}", model, null, DateTime.Now.AddSeconds(60), TimeSpan.Zero);
             }
             return model;
         }
 
         public async Task<EmbedConfig> GetDashboardEmbedConfigAsync(int userId, string username, string roles, string dashboardId)
         {
-            var model = (EmbedConfig)CachingProvider.Instance().GetItem($"PBI_{Settings.PortalId}_{userId}_{Thread.CurrentThread.CurrentUICulture.Name}_Dashboard_{dashboardId}");
+            var model = (EmbedConfig)CachingProvider.Instance().GetItem($"PBI_{Settings.PortalId}_{Settings.SettingsId}_{userId}_{Thread.CurrentThread.CurrentUICulture.Name}_Dashboard_{dashboardId}");
             if (model != null)
                 return model;
 
@@ -273,7 +284,7 @@ namespace DotNetNuke.PowerBI.Services
                 model.Id = dashboard.Id;
                 model.ContentType = "dashboard";
 
-                CachingProvider.Instance().Insert($"PBI_{Settings.PortalId}_{userId}_{Thread.CurrentThread.CurrentUICulture.Name}_Dashboard_{dashboardId}", model, null, DateTime.Now.AddSeconds(60), TimeSpan.Zero);
+                CachingProvider.Instance().Insert($"PBI_{Settings.PortalId}_{Settings.SettingsId}_{userId}_{Thread.CurrentThread.CurrentUICulture.Name}_Dashboard_{dashboardId}", model, null, DateTime.Now.AddSeconds(60), TimeSpan.Zero);
             }
             return model;
 
@@ -281,7 +292,7 @@ namespace DotNetNuke.PowerBI.Services
 
         public async Task<TileEmbedConfig> GetTileEmbedConfigAsync(int userId, string tileId, string dashboardId)
         {
-            var model = (TileEmbedConfig)CachingProvider.Instance().GetItem($"PBI_{Settings.PortalId}_{userId}_{Thread.CurrentThread.CurrentUICulture.Name}_Dashboard_{dashboardId}_Tile_{tileId}");
+            var model = (TileEmbedConfig)CachingProvider.Instance().GetItem($"PBI_{Settings.PortalId}_{Settings.SettingsId}_{userId}_{Thread.CurrentThread.CurrentUICulture.Name}_Dashboard_{dashboardId}_Tile_{tileId}");
             if (model != null)
                 return model;
 
@@ -328,7 +339,7 @@ namespace DotNetNuke.PowerBI.Services
                     dashboardId = dashboard.Id,
                     ContentType = "tile"
                 };
-                CachingProvider.Instance().Insert($"PBI_{Settings.PortalId}_{userId}_{Thread.CurrentThread.CurrentUICulture.Name}_Dashboard_{dashboardId}_Tile_{tileId}", model, null, DateTime.Now.AddSeconds(60), TimeSpan.Zero);
+                CachingProvider.Instance().Insert($"PBI_{Settings.PortalId}_{Settings.SettingsId}_{userId}_{Thread.CurrentThread.CurrentUICulture.Name}_Dashboard_{dashboardId}_Tile_{tileId}", model, null, DateTime.Now.AddSeconds(60), TimeSpan.Zero);
             }
             return model;
         }
@@ -434,7 +445,7 @@ namespace DotNetNuke.PowerBI.Services
                 return false;
             }
 
-            tokenCredentials = (TokenCredentials)CachingProvider.Instance().GetItem($"PBI_{Settings.PortalId}_TokenCredentials");
+            tokenCredentials = (TokenCredentials)CachingProvider.Instance().GetItem($"PBI_{Settings.PortalId}_{Settings.SettingsId}_TokenCredentials");
             if (tokenCredentials != null)
                 return true;
 
@@ -458,7 +469,7 @@ namespace DotNetNuke.PowerBI.Services
             }
 
             tokenCredentials = new TokenCredentials(authenticationResult.AccessToken, "Bearer");
-            CachingProvider.Instance().Insert($"PBI_{Settings.PortalId}_TokenCredentials", tokenCredentials, null, DateTime.Now.AddMinutes(30), TimeSpan.Zero);
+            CachingProvider.Instance().Insert($"PBI_{Settings.PortalId}_{Settings.SettingsId}_TokenCredentials", tokenCredentials, null, DateTime.Now.AddMinutes(30), TimeSpan.Zero);
             return true;
         }
     }

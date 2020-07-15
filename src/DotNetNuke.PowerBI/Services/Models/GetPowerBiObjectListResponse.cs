@@ -12,7 +12,8 @@ namespace DotNetNuke.PowerBI.Services.Models
         public enum ObjectType
         {
             Report = 0,
-            Dashboard = 1
+            Dashboard = 1,
+            Workspace = -1
         }
         public enum PermissionType
         {

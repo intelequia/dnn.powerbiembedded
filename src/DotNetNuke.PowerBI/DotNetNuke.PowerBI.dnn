@@ -1,6 +1,6 @@
 <dotnetnuke type="Package" version="5.0">
   <packages>
-    <package name="PowerBIEmbeddedList" type="Module" version="01.00.04">
+    <package name="PowerBIEmbeddedList" type="Module" version="01.00.05">
       <friendlyName>PowerBI Embedded Content List</friendlyName>
       <description>A set of modules to embed PowerBI Embedded dashboards and reports into a DNN Platform installation.</description>
       <iconFile>~/DesktopModules/MVC/PowerBIEmbedded/images/powerbi.png</iconFile>
@@ -151,7 +151,7 @@
         </component>
       </components>
     </package>
-    <package name="PowerBIEmbeddedContent" type="Module" version="01.00.04">
+    <package name="PowerBIEmbeddedContent" type="Module" version="01.00.05">
       <friendlyName>PowerBI Embedded Content View</friendlyName>
       <description>A set of modules to embed PowerBI Embedded dashboards and reports into a DNN Platform installation.</description>
       <iconFile>~/DesktopModules/MVC/PowerBIEmbedded/images/powerbi.png</iconFile>

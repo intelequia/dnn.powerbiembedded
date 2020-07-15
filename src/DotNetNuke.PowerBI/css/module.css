@@ -39,6 +39,27 @@
     cursor: auto;
     padding: 5px 20px 5px 10px;
 }
+.powerbiListView .workspacesSection select.workspace {
+    font-weight: bold;
+    padding-top: 5px;
+    padding-bottom: 10px;
+    border: none;
+    padding-left: 0px;  
+    margin-left: -4px;
+    font-size: 14px;
+    outline: none;
+    background-color: transparent;
+    width: 100%;
+}
+
+.powerbiListView .workspacesSection select.workspace option {
+    outline: none;
+    border: none;
+}
+
+.powerbiListView .dashboardsSection.workspace, .powerbiListView .reportsSection.workspace {
+    margin-left: 10px;
+}
 
 .permission {
     display: inline-block;

@@ -21,7 +21,12 @@ namespace DotNetNuke.PowerBI.Controllers
         {
             try
             {
-                var embedService = new EmbedService(ModuleContext.PortalId, ModuleContext.TabModuleId);
+                EmbedService embedService;
+                if (!string.IsNullOrEmpty(Request.QueryString["sid"]))
+                    embedService = new EmbedService(ModuleContext.PortalId, ModuleContext.TabModuleId, Request.QueryString["sid"]);
+                else
+                    embedService = new EmbedService(ModuleContext.PortalId, ModuleContext.TabModuleId, (string)ModuleContext.Settings["PowerBIEmbedded_SettingsGroupId"]);
+
                 var model = embedService.GetContentListAsync(ModuleContext.PortalSettings.UserId).Result;                
                 if (model != null)
                 {
@@ -41,12 +46,19 @@ namespace DotNetNuke.PowerBI.Controllers
                     ViewBag.ReportsPage = reportsPage;
 
                     //Get SettingsId
-                    var tabModuleSettings = ModuleController.Instance.GetTabModule(ModuleContext.TabModuleId)
-                        .TabModuleSettings;
-                    if (tabModuleSettings.ContainsKey("PowerBIEmbedded_SettingsGroupId"))
-                        ViewBag.SettingsGroupId = tabModuleSettings["PowerBIEmbedded_SettingsGroupId"];
+                    if (!String.IsNullOrEmpty(Request.QueryString["sid"]))
+                    {
+                        ViewBag.SettingsGroupId = Request.QueryString["sid"];
+                    }
                     else
-                        ViewBag.SettingsGroupId = "";
+                    {
+                        var tabModuleSettings = ModuleController.Instance.GetTabModule(ModuleContext.TabModuleId)
+                            .TabModuleSettings;
+                        if (tabModuleSettings.ContainsKey("PowerBIEmbedded_SettingsGroupId"))
+                            ViewBag.SettingsGroupId = tabModuleSettings["PowerBIEmbedded_SettingsGroupId"];
+                        else
+                            ViewBag.SettingsGroupId = "";
+                    }
 
                     return View(model);
                 }

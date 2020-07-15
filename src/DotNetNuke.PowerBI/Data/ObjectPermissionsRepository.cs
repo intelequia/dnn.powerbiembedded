@@ -2,6 +2,7 @@
 using DotNetNuke.Data;
 using DotNetNuke.Entities.Users;
 using DotNetNuke.Framework;
+using DotNetNuke.Instrumentation;
 using DotNetNuke.PowerBI.Data.Models;
 using DotNetNuke.Security.Roles;
 using System;
@@ -12,6 +13,7 @@ namespace DotNetNuke.PowerBI.Data
 {
     public class ObjectPermissionsRepository : ServiceLocator<IObjectPermissionsRepository, ObjectPermissionsRepository>, IObjectPermissionsRepository
     {
+        private static readonly ILog Logger = LoggerSource.Instance.GetLogger(typeof(ObjectPermissionsRepository));
         protected override Func<IObjectPermissionsRepository> GetFactory()
         {
             return () => new ObjectPermissionsRepository();
@@ -201,24 +203,33 @@ namespace DotNetNuke.PowerBI.Data
 
         public bool HasPermissions(string powerBiObjectId, int portalId, int permissionId, UserInfo user)
         {
-            Requires.NotNullOrEmpty("PowerBiObjectId", powerBiObjectId);
-
-            if (user.IsSuperUser)
+            try
             {
-                return true;
-            }
+                Requires.NotNullOrEmpty("PowerBiObjectId", powerBiObjectId);
 
-            var roles = RoleController.Instance.GetRoles(portalId, x => user.Roles.Contains(x.RoleName));
-            var permissions = GetObjectPermissions(powerBiObjectId, portalId);
-            return permissions.Any(x =>
-                x.PermissionID == permissionId
-                && x.AllowAccess
-                && (
-                    (x.UserID.HasValue && x.UserID.Value == user.UserID)
-                    ||
-                    roles.Any(y => y.RoleID == x.RoleID)
-                    )
-            );
+                if (user.IsSuperUser)
+                {
+                    return true;
+                }
+
+                var roles = RoleController.Instance.GetRoles(portalId, x => user.Roles.Contains(x.RoleName));
+                var permissions = GetObjectPermissions(powerBiObjectId, portalId);
+                return permissions.Any(x =>
+                    x.PermissionID == permissionId
+                    && x.AllowAccess
+                    && (
+                        (x.UserID.HasValue && x.UserID.Value == user.UserID)
+                        ||
+                        roles.Any(y => y.RoleID == x.RoleID)
+                        )
+                );
+
+            }
+            catch (Exception ex)
+            {
+                Logger.Error($"Error checking object permissions: '{powerBiObjectId}', portal {portalId}, permission {permissionId}, user {user?.Username}");
+                return false;
+            }
         }
     }
 }
