@@ -186,6 +186,7 @@ namespace DotNetNuke.PowerBI.Services
                 return Request.CreateResponse(HttpStatusCode.OK, new
                 {
                     Success = true,
+                    InheritPermissions = embedService.Settings.InheritPermissions,
                     PowerBiObjects = result
                 });
             }
@@ -206,6 +207,12 @@ namespace DotNetNuke.PowerBI.Services
         {
             try
             {
+                var settings = SharedSettingsRepository.Instance.GetSettingsById(input.settingsId, PortalId);
+                if (settings.InheritPermissions != input.inheritPermissions)
+                {
+                    settings.InheritPermissions = input.inheritPermissions;
+                    SharedSettingsRepository.Instance.UpdateSettings(settings, PortalId);
+                }
                 foreach (var pbiObject in input.powerBiObjects)
                 {
                     ObjectPermissionsRepository.Instance.DeleteObjectPermissions(pbiObject.Id, PortalSettings.PortalId);

@@ -168,6 +168,7 @@ class Workspaces extends Component {
                             applicationId={item.ApplicationId}
                             workspaceId={item.WorkspaceId}
                             contentPageUrl={item.ContentPageUrl}
+                            inheritPermissions={item.InheritPermissions}
                             Collapse={this.collapse.bind(this)}
                             onUpdate={this.onUpdateWorkspaceSetting.bind(this)}
                             onValidate={this.onValidateWorkspaceSetting.bind(this)}
@@ -194,7 +195,8 @@ class Workspaces extends Component {
             ServicePrincipalApplicationId: "",
             ServicePrincipalApplicationSecret: "",
             ServicePrincipalTenant: "",
-            ContentPageUrl: ""
+            ContentPageUrl: "",
+            InheritPermissions: false
         };
         return (
             <div className="dnn-pbiEmbedded-workspaces">

@@ -33,12 +33,18 @@ export default function settings(state = {
             };
         case ActionTypes.RETRIEVED_POWERBI_OBJECT_LIST:
             return { ...state,
+                inheritPermissions: action.data.inheritPermissions,
                 powerBiObjects: action.data.powerBiObjects,
                 permissionsClientModified: action.data.permissionsClientModified
             };       
         case ActionTypes.SELECTED_POWERBI_OBJECT:
             return {...state,
                 selectedObjectId: action.data.selectedObjectId,
+                permissionsClientModified: action.data.permissionsClientModified
+            };
+        case ActionTypes.INHERIT_PERMISSIONS_CHANGED:
+            return {...state,
+                inheritPermissions: action.data.inheritPermissions,
                 permissionsClientModified: action.data.permissionsClientModified
             };
         case ActionTypes.PERMISSIONS_CHANGED:

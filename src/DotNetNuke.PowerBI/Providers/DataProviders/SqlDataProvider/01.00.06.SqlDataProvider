@@ -1,0 +1,5 @@
+﻿IF (NOT EXISTS(SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = '{objectQualifier}PBI_Settings' AND COLUMN_NAME='InheritPermissions'))
+BEGIN
+	ALTER TABLE {databaseOwner}[{objectQualifier}PBI_Settings] ADD
+		InheritPermissions bit NOT NULL CONSTRAINT DF_{objectQualifier}PBI_Settings_InheritPermissions DEFAULT (0)
+END

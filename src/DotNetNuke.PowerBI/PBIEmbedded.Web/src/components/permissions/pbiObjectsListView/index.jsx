@@ -2,7 +2,7 @@ import React, {Component} from "react";
 import PropTypes from "prop-types";
 import { connect } from "react-redux";
 import SettingsActions from "../../../actions/settings";
-import { PermissionGrid}  from "@dnnsoftware/dnn-react-common";
+import { PermissionGrid, Switch }  from "@dnnsoftware/dnn-react-common";
 import "./style.less";
 import utils from "../../../utils";
 import resx from "../../../resources";
@@ -16,6 +16,7 @@ class PbiObjectsListView extends Component {
             selectedWorkspace: "",
             powerBiObjects: null,
             selectedObjectId: "",
+            inheritPermissions: true,
             error: {
                 selectedWorkspace: false
             }
@@ -29,6 +30,7 @@ class PbiObjectsListView extends Component {
         state.powerBiObjects = props.powerBiObjects;
         state.workspaces = props.workspaces;
         state.selectedObjectId = props.selectedObjectId || "";
+        state.inheritPermissions = props.inheritPermissions;
         props.dispatch(SettingsActions.getWorkspaces());
     }
 
@@ -37,6 +39,7 @@ class PbiObjectsListView extends Component {
         state.selectedWorkspace = nextProps.selectedWorkspace;
         state.powerBiObjects = nextProps.powerBiObjects;
         state.selectedObjectId = nextProps.selectedObjectId;
+        state.inheritPermissions = nextProps.inheritPermissions;
     }      
 
     selectObject(objId) {
@@ -45,6 +48,15 @@ class PbiObjectsListView extends Component {
         
         props.dispatch(SettingsActions.selectObject(objId));
     }
+
+    onSettingChange(key) {
+        let {props} = this;
+
+        props.dispatch(SettingsActions.settingsClientModified({
+            inheritPermissions: (key === "InheritPermissions") ? !props.inheritPermissions : props.inheritPermissions,
+        }));
+    }
+
     getSelectedObject(pbiObjects) {
         const {state} = this;
         if (!pbiObjects)
@@ -90,6 +102,14 @@ class PbiObjectsListView extends Component {
                 <label>{resx.get("DefaultWorkspacePermissions")}</label>                
                 <ul>
                     {this.getObjects(-1, "NoWorkspaces")}
+                    <li>
+                        <Switch label={resx.get("lblInheritPermissions")}
+                            onText=""
+                            offText=""
+                            value={this.props.inheritPermissions}
+                            tooltipMessage={resx.get("lblInheritPermissions.Help")}
+                            onChange={this.onSettingChange.bind(this, "InheritPermissions")} />
+                    </li>
                 </ul>
             </div>
         );
@@ -144,15 +164,15 @@ class PbiObjectsListView extends Component {
 
     /* eslint-disable react/no-danger */
     render() {
-
+        const {props} = this;
         let sf = utils.utilities.sf;
 
         return (
             <div className="dnn-pbiembedded-objectlist">
                 <div className="listview">
                     {this.renderWorkspace()}
-                    {this.renderDashboards()}
-                    {this.renderReports()}
+                    {!props.inheritPermissions && this.renderDashboards()}
+                    {!props.inheritPermissions && this.renderReports()}
                 </div>
                 <div className="permissions">
                     <PermissionGrid
@@ -172,7 +192,8 @@ PbiObjectsListView.propTypes = {
     dispatch: PropTypes.func.isRequired,
     powerBiObjects: PropTypes.Object,
     selectedWorkspace: PropTypes.Number,
-    selectedObjectId: PropTypes.string
+    selectedObjectId: PropTypes.string,
+    inheritPermissions: PropTypes.Boolean
 };
 
 
@@ -180,7 +201,8 @@ function mapStateToProps(state) {
     return {
         powerBiObjects: state.settings.powerBiObjects,
         selectedWorkspace: state.settings.selectedWorkspace,
-        selectedObjectId: state.settings.selectedObjectId
+        selectedObjectId: state.settings.selectedObjectId,
+        inheritPermissions: state.settings.inheritPermissions
     };
 }
 export default connect(mapStateToProps)(PbiObjectsListView);

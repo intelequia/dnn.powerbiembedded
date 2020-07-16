@@ -18,6 +18,7 @@ class Permissions extends Component {
             selectedObjectId: "",
             powerBiObjects: null,
             workspaces: null,
+            inheritPermissions: false,
             error: {
                 selectedWorkspace: false
             }
@@ -31,6 +32,8 @@ class Permissions extends Component {
         state.selectedObjectId = props.selectedObjectId || "";
         state.powerBiObjects = props.powerBiObjects;
         state.workspaces = props.workspaces;
+        state.inheritPermissions = props.inheritPermissions;
+
         props.dispatch(SettingsActions.getWorkspaces());
     }
 
@@ -64,6 +67,7 @@ class Permissions extends Component {
             case "SelectedWorkspace":
                 state.error["selectedWorkspace"] = event.value === "";
                 state.selectedWorkspace = event.value;
+                state.selectedObjectId = "";
                 props.dispatch(SettingsActions.getPowerBiObjectList(event.value));
                 break;
             default:
@@ -72,8 +76,10 @@ class Permissions extends Component {
 
         this.setState({
             selectedWorkspace: state.selectedWorkspace,
+            selectedObjectId: state.selectedObjectId,
             workspaces: state.workspaces,
             powerBiObjects: state.powerBiObjects,
+            inheritPermissions: state.inheritPermissions,
             triedToSubmit: false
         });
 
@@ -86,10 +92,11 @@ class Permissions extends Component {
     
     onClickSave() {
         event.preventDefault();
-        let {props} = this;
+        let {props,state} = this;
 
         props.dispatch(SettingsActions.updatePermissions({
-            settingsId: props.selectedWorkspace,
+            settingsId: state.selectedWorkspace,
+            inheritPermissions: props.inheritPermissions,
             powerBiObjects: props.powerBiObjects
         }, () => {
             utils.utilities.notify(resx.get("PermissionsUpdateSuccess"));
@@ -167,7 +174,8 @@ Permissions.propTypes = {
     workspaces: PropTypes.Array,
     powerBiObjects: PropTypes.Object,
     selectedWorkspace: PropTypes.String,
-    selectedObjectId: PropTypes.String
+    selectedObjectId: PropTypes.String,
+    inheritPermissions: PropTypes.Boolean
 };
 
 
@@ -176,7 +184,8 @@ function mapStateToProps(state) {
         workspaces: state.settings.workspaces,
         powerBiObjects: state.settings.powerBiObjects,
         selectedWorkspace: state.settings.selectedWorkspace,
-        selectedObjectId: state.settings.selectedObjectId
+        selectedObjectId: state.settings.selectedObjectId,
+        inheritPermissions: state.settings.inheritPermissions
     };
 }
 export default connect(mapStateToProps)(Permissions);

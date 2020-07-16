@@ -1,11 +1,13 @@
 ﻿using DotNetNuke.Common;
 using DotNetNuke.Instrumentation;
 using DotNetNuke.PowerBI.Data;
+using DotNetNuke.PowerBI.Data.SharedSettings;
 using DotNetNuke.PowerBI.Models;
 using DotNetNuke.PowerBI.Services;
 using DotNetNuke.Web.Mvc.Framework.ActionFilters;
 using DotNetNuke.Web.Mvc.Framework.Controllers;
 using System;
+using System.Linq;
 using System.Net;
 using System.Web.Mvc;
 
@@ -20,15 +22,24 @@ namespace DotNetNuke.PowerBI.Controllers
         public ActionResult Index()
         {
             var model = new EmbedConfig();
-            EmbedService embedService;
             try
             {
                 // Remove the objects without permissions
-                var permissionsRepo = ObjectPermissionsRepository.Instance;
-                if (!string.IsNullOrEmpty((string) Request["sid"]))
-                    embedService = new EmbedService(ModuleContext.PortalId, ModuleContext.TabModuleId, (string) Request["sid"]);
-                else
-                    embedService = new EmbedService(ModuleContext.PortalId, ModuleContext.TabModuleId, (string)ModuleContext.Settings["PowerBIEmbedded_SettingsGroupId"]);
+                var settingsGroupId = Request.QueryString["sid"];
+                if (string.IsNullOrEmpty(settingsGroupId))
+                {
+                    var defaultPbiSettingsGroupId = (string)ModuleContext.Settings["PowerBIEmbedded_SettingsGroupId"];
+                    var pbiSettings = SharedSettingsRepository.Instance.GetSettings(ModuleContext.PortalId).RemoveUnauthorizedItems(User);
+                    if (!string.IsNullOrEmpty(defaultPbiSettingsGroupId) && pbiSettings.Any(x => x.SettingsGroupId == defaultPbiSettingsGroupId))
+                    {
+                        settingsGroupId = defaultPbiSettingsGroupId;
+                    }
+                    else
+                    {
+                        settingsGroupId = pbiSettings.FirstOrDefault(x => !string.IsNullOrEmpty(x.SettingsGroupId)).SettingsGroupId;
+                    }
+                }
+                var embedService = new EmbedService(ModuleContext.PortalId, ModuleContext.TabModuleId, settingsGroupId);
 
                 if (!string.IsNullOrEmpty(Request["dashboardId"]))
                 {
@@ -58,7 +69,9 @@ namespace DotNetNuke.PowerBI.Controllers
                     }
                 }
 
-                if (!string.IsNullOrEmpty(model.Id) && !permissionsRepo.HasPermissions(model.Id, ModuleContext.PortalId, 1, User))
+                var permissionsRepo = ObjectPermissionsRepository.Instance;
+                if (!string.IsNullOrEmpty(model.Id) && !permissionsRepo.HasPermissions(embedService.Settings.InheritPermissions ?
+                    embedService.Settings.SettingsGroupId : model.Id, ModuleContext.PortalId, 1, User))
                 {
                     return new HttpStatusCodeResult(HttpStatusCode.Forbidden, "User doesn't have permissions for this resource");
                 }

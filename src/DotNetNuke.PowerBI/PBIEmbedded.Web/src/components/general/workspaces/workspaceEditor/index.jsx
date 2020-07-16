@@ -24,7 +24,8 @@ class WorkspaceEditor extends Component {
                 ServicePrincipalApplicationId: "",
                 ServicePrincipalApplicationSecret: "",
                 ServicePrincipalTenant: "",
-                ContentPageUrl: ""
+                ContentPageUrl: "",
+                InheritPermissions: false
             },
             error: {
                 SettingsGroupName: false,
@@ -57,6 +58,7 @@ class WorkspaceEditor extends Component {
         state.workspaceDetail["ServicePrincipalApplicationSecret"] = props.servicePrincipalApplicationSecret || "";
         state.workspaceDetail["ServicePrincipalTenant"] = props.servicePrincipalTenant || "";
         state.workspaceDetail["ContentPageUrl"] = props.contentPageUrl || "";
+        state.workspaceDetail["InheritPermissions"] = props.inheritPermissions;
 
         state.error["SettingsGroupName"] = (props.settingsGroupName === null);
         state.error["AuthenticationType"] = (props.authenticationType === null);
@@ -373,6 +375,7 @@ WorkspaceEditor.propTypes = {
     servicePrincipalApplicationSecret: PropTypes.string,
     servicePrincipalTenant: PropTypes.string,
     contentPageUrl: PropTypes.string,
+    inheritPermissions: PropTypes.bool,
     Collapse: PropTypes.func,
     onUpdate: PropTypes.func,
     id: PropTypes.string,

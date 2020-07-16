@@ -148,7 +148,7 @@
     <value>Add</value>
   </data>
   <data name="cmdAddWorkspace.Text" xml:space="preserve">
-    <value>Add Workspace</value>
+    <value>Register Workspace</value>
   </data>
   <data name="lblApplicationId.Error" xml:space="preserve">
     <value>You must specify the Application Id</value>
@@ -316,6 +316,12 @@ To integrate a PowerBI workspace into DNN, you need to setup a set of properties
   </data>
   <data name="DefaultWorkspacePermissions.Text" xml:space="preserve">
     <value>Default permissions</value>
+  </data>
+  <data name="lblInheritPermissions.Help" xml:space="preserve">
+    <value>Use the default workspace permissions for all the reports and dashboards on this workspace</value>
+  </data>
+  <data name="lblInheritPermissions.Text" xml:space="preserve">
+    <value>Inherit permissions</value>
   </data>
   <data name="NoWorkspaces.Text" xml:space="preserve">
     <value>No workspaces to show</value>

@@ -45,6 +45,7 @@ namespace DotNetNuke.PowerBI.Data.Models
         public int CreatedBy { get; set; }
         public int ModifiedBy { get; set; }
         public DateTime ModifiedOn { get; set; }
+        public bool InheritPermissions { get; set; }
 
 
         public PowerBISettings()
@@ -86,6 +87,7 @@ namespace DotNetNuke.PowerBI.Data.Models
                 settings.ServicePrincipalApplicationSecret = sharedSettings.ServicePrincipalApplicationSecret;
                 settings.SettingsGroupId = sharedSettings.SettingsGroupId;
                 settings.SettingsGroupName = sharedSettings.SettingsGroupName;
+                settings.InheritPermissions = sharedSettings.InheritPermissions;
             }
             return settings;
         }

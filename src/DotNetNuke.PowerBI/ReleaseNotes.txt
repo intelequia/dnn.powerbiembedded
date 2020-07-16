@@ -33,4 +33,9 @@
 	</p>
 	<p>Added workspace selector on the listview and default workspace permissions<br /><br /></p>
 
+	<p class="Owner">
+		<b>Version 1.0.6</b>
+	</p>
+	<p>Added workspace permissions inheritance<br /><br /></p>
+
 </div>

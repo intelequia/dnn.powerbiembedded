@@ -23,18 +23,21 @@ namespace DotNetNuke.PowerBI.Controllers
         {
             try
             {
-                EmbedService embedService;
-                if (!string.IsNullOrEmpty(Request.QueryString["sid"]))
-                    embedService = new EmbedService(ModuleContext.PortalId, ModuleContext.TabModuleId, Request.QueryString["sid"]);
-                else
+                var settingsGroupId = Request.QueryString["sid"];
+                if (string.IsNullOrEmpty(settingsGroupId))
                 {
                     var defaultPbiSettingsGroupId = (string)ModuleContext.Settings["PowerBIEmbedded_SettingsGroupId"];
                     var pbiSettings = SharedSettingsRepository.Instance.GetSettings(ModuleContext.PortalId).RemoveUnauthorizedItems(User);
                     if (!string.IsNullOrEmpty(defaultPbiSettingsGroupId) && pbiSettings.Any(x => x.SettingsGroupId == defaultPbiSettingsGroupId))
-                        embedService = new EmbedService(ModuleContext.PortalId, ModuleContext.TabModuleId, (string)ModuleContext.Settings["PowerBIEmbedded_SettingsGroupId"]);
+                    {
+                        settingsGroupId = defaultPbiSettingsGroupId;
+                    }
                     else
-                        embedService = new EmbedService(ModuleContext.PortalId, ModuleContext.TabModuleId, pbiSettings.FirstOrDefault(x => !string.IsNullOrEmpty(x.SettingsGroupId)).SettingsGroupId);
+                    {
+                        settingsGroupId = pbiSettings.FirstOrDefault(x => !string.IsNullOrEmpty(x.SettingsGroupId)).SettingsGroupId;
+                    }
                 }
+                var embedService = new EmbedService(ModuleContext.PortalId, ModuleContext.TabModuleId, settingsGroupId);
 
                 var model = embedService.GetContentListAsync(ModuleContext.PortalSettings.UserId).Result;                
                 if (model != null)
@@ -43,7 +46,7 @@ namespace DotNetNuke.PowerBI.Controllers
                     model = model.RemoveOtherCultureItems();
 
                     // Remove the objects without permissions
-                    model = model.RemoveUnauthorizedItems(User);
+                    model = model.RemoveUnauthorizedItems(User, embedService.Settings.InheritPermissions ? settingsGroupId : "");
 
                     // Sets the reports page on the viewbag
                     var reportsPage = embedService.Settings.ContentPageUrl;
@@ -53,21 +56,7 @@ namespace DotNetNuke.PowerBI.Controllers
                     }
 
                     ViewBag.ReportsPage = reportsPage;
-
-                    //Get SettingsId
-                    if (!String.IsNullOrEmpty(Request.QueryString["sid"]))
-                    {
-                        ViewBag.SettingsGroupId = Request.QueryString["sid"];
-                    }
-                    else
-                    {
-                        var tabModuleSettings = ModuleController.Instance.GetTabModule(ModuleContext.TabModuleId)
-                            .TabModuleSettings;
-                        if (tabModuleSettings.ContainsKey("PowerBIEmbedded_SettingsGroupId"))
-                            ViewBag.SettingsGroupId = tabModuleSettings["PowerBIEmbedded_SettingsGroupId"];
-                        else
-                            ViewBag.SettingsGroupId = "";
-                    }
+                    ViewBag.SettingsGroupId = settingsGroupId;
 
                     return View(model);
                 }

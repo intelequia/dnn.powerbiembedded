@@ -36,17 +36,17 @@ namespace DotNetNuke.PowerBI.Models
             return model;
         }
 
-        public static PowerBIListView RemoveUnauthorizedItems(this PowerBIListView model, UserInfo user)
+        public static PowerBIListView RemoveUnauthorizedItems(this PowerBIListView model, UserInfo user, string inheritedObjectId = "")
         {
             if (model != null && user != null)
             {
                 var permissionsRepo = ObjectPermissionsRepository.Instance;
                 model.Reports.RemoveAll(x =>
-                    !permissionsRepo.HasPermissions(x.Id, user.PortalID, 1, user));
+                    !permissionsRepo.HasPermissions(string.IsNullOrEmpty(inheritedObjectId) ? x.Id : inheritedObjectId, user.PortalID, 1, user));
                 model.Dashboards.RemoveAll(x =>
-                    !permissionsRepo.HasPermissions(x.Id, user.PortalID, 1, user));
+                    !permissionsRepo.HasPermissions(string.IsNullOrEmpty(inheritedObjectId) ? x.Id : inheritedObjectId, user.PortalID, 1, user));
                 model.Workspaces.RemoveAll(x =>
-                    !permissionsRepo.HasPermissions(x.Id, user.PortalID, 1, user));
+                    !permissionsRepo.HasPermissions(string.IsNullOrEmpty(inheritedObjectId) ? x.Id : inheritedObjectId, user.PortalID, 1, user));
             }
             return model;
         }

@@ -18,6 +18,7 @@ namespace DotNetNuke.PowerBI.Services.Models
         }
 
         public int settingsId;
+        public bool inheritPermissions;
         public List<PowerBiObject> powerBiObjects;
     }
 }

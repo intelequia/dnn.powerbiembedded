@@ -96,6 +96,7 @@ namespace DotNetNuke.PowerBI.Data.SharedSettings
                 current.ContentPageUrl = settings.ContentPageUrl;
                 current.ModifiedOn = DateTime.Now;
                 current.ModifiedBy = Components.Common.CurrentUser.UserID;
+                current.InheritPermissions = settings.InheritPermissions;
                 repo.Update(current);
             }
 

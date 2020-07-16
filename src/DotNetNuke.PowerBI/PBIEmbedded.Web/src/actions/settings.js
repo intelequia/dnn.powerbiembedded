@@ -94,6 +94,7 @@ const settingsActions = {
                 dispatch({
                     type: ActionTypes.RETRIEVED_POWERBI_OBJECT_LIST,
                     data: {
+                        inheritPermissions: data.InheritPermissions,
                         powerBiObjects: data.PowerBiObjects,
                         permissionsClientModified: false
                     }
@@ -114,6 +115,17 @@ const settingsActions = {
                 }
             });
         };        
+    },
+    settingsClientModified(settings) {
+        return (dispatch) => {
+            dispatch({
+                type: ActionTypes.INHERIT_PERMISSIONS_CHANGED,
+                data: {
+                    inheritPermissions: settings.inheritPermissions,
+                    permissionsClientModified: true
+                }
+            });
+        };
     },
     permissionsChanged(powerBiObjects) {
         return (dispatch) => {

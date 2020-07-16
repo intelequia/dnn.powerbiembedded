@@ -205,7 +205,8 @@ namespace DotNetNuke.PowerBI.Data
         {
             try
             {
-                Requires.NotNullOrEmpty("PowerBiObjectId", powerBiObjectId);
+                if (string.IsNullOrEmpty(powerBiObjectId))
+                    return false;
 
                 if (user.IsSuperUser)
                 {
@@ -227,7 +228,7 @@ namespace DotNetNuke.PowerBI.Data
             }
             catch (Exception ex)
             {
-                Logger.Error($"Error checking object permissions: '{powerBiObjectId}', portal {portalId}, permission {permissionId}, user {user?.Username}");
+                Logger.Error($"Error checking object permissions: '{powerBiObjectId}', portal {portalId}, permission {permissionId}, user {user?.Username}", ex);
                 return false;
             }
         }
