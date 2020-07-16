@@ -1,5 +1,6 @@
 ﻿using DotNetNuke.Entities.Users;
 using DotNetNuke.PowerBI.Data;
+using DotNetNuke.PowerBI.Data.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -48,6 +49,17 @@ namespace DotNetNuke.PowerBI.Models
                     !permissionsRepo.HasPermissions(x.Id, user.PortalID, 1, user));
             }
             return model;
+        }
+
+        public static List<PowerBISettings> RemoveUnauthorizedItems(this List<PowerBISettings> settings, UserInfo user)
+        {
+            if (settings != null && user != null)
+            {
+                var permissionsRepo = ObjectPermissionsRepository.Instance;
+                settings.RemoveAll(x =>
+                    !permissionsRepo.HasPermissions(x.SettingsGroupId, user.PortalID, 1, user));
+            }
+            return settings;
         }
     }
 }
