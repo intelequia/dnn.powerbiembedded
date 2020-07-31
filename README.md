@@ -8,13 +8,24 @@ TODO: Guide users through getting your code up and running on their own system. 
 3.	Latest releases
 4.	API references
 
-# Build and Test
-TODO: Describe and show how to build your code and run the tests. 
+<a name="building"></a>
+# Building the solution
+### Requirements
+* Visual Studio 2017 or later (download from https://www.visualstudio.com/downloads/)
+* npm package manager (download from https://www.npmjs.com/get-npm)
 
-# Contribute
-TODO: Explain how other users and developers can contribute to make your code better. 
+### Configure local npm to use the DNN public repository
+From the command line, the following command must be executed:
+```
+   npm config set registry https://www.myget.org/F/dnn-software-public/npm/
+```
+### Install package dependencies
+From the command line, enter the `<RepoRoot>\DotNetNuke.PowerBI\PBIEmbedded.Web` and run the following commands:
+```
+  npm install -g webpack
+  npm install -g webpack-cli
+  npm install
+```
 
-If you want to learn more about creating good readme files then refer the following [guidelines](https://docs.microsoft.com/en-us/azure/devops/repos/git/create-a-readme?view=azure-devops). You can also seek inspiration from the below readme files:
-- [ASP.NET Core](https://github.com/aspnet/Home)
-- [Visual Studio Code](https://github.com/Microsoft/vscode)
-- [Chakra Core](https://github.com/Microsoft/ChakraCore)
+### Build the module
+Now you can build the solution by opening the file `DotNetNuke.PowerBI.sln` in Visual Studio. Building the solution in "Release", will generate the React bundle and package it all together with the installation zip file, created under the "\releases" folder.
