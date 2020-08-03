@@ -8,6 +8,7 @@ using DotNetNuke.Security.Roles;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using DotNetNuke.Entities.Portals;
 
 namespace DotNetNuke.PowerBI.Data
 {
@@ -213,8 +214,13 @@ namespace DotNetNuke.PowerBI.Data
                     return true;
                 }
 
+                var permissions = GetObjectPermissions(powerBiObjectId, portalId != -1 ? portalId : PortalSettings.Current.PortalId);
+                if (permissions.Any(permission => permission.RoleID == -1))
+                {
+                    return true;
+                }
+
                 var roles = RoleController.Instance.GetRoles(portalId, x => user.Roles.Contains(x.RoleName));
-                var permissions = GetObjectPermissions(powerBiObjectId, portalId);
                 return permissions.Any(x =>
                     x.PermissionID == permissionId
                     && x.AllowAccess
