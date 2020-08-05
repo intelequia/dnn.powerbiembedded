@@ -17,15 +17,16 @@
         <h2>@Dnn.LocalizeString("ErrorTitle")</h2>
         <p>@Model.ErrorMessage</p>
     </div>
-    } 
-    else 
-    { 
+    }
+    else
+    {
     <div id="embedContainer" class="mobile-view active" ></div>
     <script>
         // Get models. models contains enums that can be used.
         var models = window['powerbi-client'].models;
         var isMobile = window.innerWidth < 425 || window.innerHeight < 425;
         var isLandscape = window.innerWidth > window.innerHeight;
+        var defaultHeight = '@ViewBag.Height';
         var config = {
             type: '@Model.ContentType',
             tokenType: models.TokenType.Embed,
@@ -35,12 +36,21 @@
             permissions: models.Permissions.Read,
             viewMode: models.ViewMode.View,
             settings: {
-                filterPaneEnabled: !isMobile,
-                navContentPaneEnabled: true,
+                filterPaneEnabled: @ViewBag.FilterPaneVisible.ToString().ToLowerInvariant() && !isMobile,
+                navContentPaneEnabled: @ViewBag.NavPaneVisible.ToString().ToLowerInvariant(),
                 localeSettings: {
                     language: "@ViewBag.Locale",
                     formatLocale: "@ViewBag.Locale"
                 },
+                visualSettings: {
+                    visualHeaders: [
+                        {
+                            settings: {
+                                visible: @ViewBag.VisualHeaderVisible.ToString().ToLowerInvariant()
+                            }
+                        }
+                    ]
+                }, 
                 //background: models.BackgroundType.Transparent,
                 layoutType: isMobile ? (isLandscape ? models.LayoutType.MobileLandscape : models.LayoutType.MobilePortrait) : null
             } 
@@ -48,7 +58,7 @@
         // Get a reference to the embedded report HTML element
         var reportContainer = $('#embedContainer')[0];
         if (!isMobile && isLandscape) {
-            var h = window.innerHeight - 50 - 20 - 39 - 20 - 10;
+            var h = defaultHeight !== '' ? defaultHeight : window.innerHeight - 50 - 20 - 39 - 20 - 10;            
             $('#embedContainer').css("height", h +"px");
         }
         
@@ -69,9 +79,9 @@
             isMobile = window.innerWidth < 425 || window.innerHeight < 425;
             isLandscape = window.innerWidth > window.innerHeight;
             if (!isMobile && isLandscape) {
-                var h = window.innerHeight - 50 - 20 - 39 - 20 - 10;
+                var h = defaultHeight !== '' ? defaultHeight : window.innerHeight - 50 - 20 - 39 - 20 - 10;            
                 $('#embedContainer').css("height", h +"px");
-            }
+            } 
         }
         window.onmessage = function (m) {
             if (m && m.isTrusted

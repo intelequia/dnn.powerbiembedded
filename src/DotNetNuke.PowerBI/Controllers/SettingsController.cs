@@ -7,6 +7,7 @@ using DotNetNuke.Security;
 using DotNetNuke.Web.Mvc.Framework.ActionFilters;
 using DotNetNuke.Web.Mvc.Framework.Controllers;
 using System;
+using System.Linq;
 using System.Web.Mvc;
 
 namespace DotNetNuke.PowerBI.Controllers
@@ -17,8 +18,21 @@ namespace DotNetNuke.PowerBI.Controllers
     {
         public class SettingsModel
         {
+            public SettingsModel()
+            {
+                FilterPaneVisible = true;
+                NavPaneVisible = true;
+                VisualHeaderVisible = true;
+                IsContentView = false;
+                Height = "";
+            }
             public string SettingsGroupId { get; set; }
             public string ContentItemId { get; set; }
+            public bool IsContentView { get; set; }
+            public bool FilterPaneVisible { get; set; }
+            public bool NavPaneVisible { get; set; }
+            public bool VisualHeaderVisible { get; set; }
+            public string Height { get; set; }
         }
         private static readonly ILog Logger = LoggerSource.Instance.GetLogger(typeof(SettingsController));
         // GET: Settings
@@ -33,13 +47,33 @@ namespace DotNetNuke.PowerBI.Controllers
                 var tabModule = ModuleController.Instance.GetTabModule(this.ModuleContext.TabModuleId);
                 var model = new SettingsModel
                 {
-                    SettingsGroupId = (string) tabModule.TabModuleSettings["PowerBIEmbedded_SettingsGroupId"],
-                    ContentItemId = (string)tabModule.TabModuleSettings["PowerBIEmbedded_ContentItemId"]
+                    SettingsGroupId = GetSetting("PowerBIEmbedded_SettingsGroupId"),
+                    ContentItemId = GetSetting("PowerBIEmbedded_ContentItemId"),
+                    IsContentView = ModuleContext.Configuration.ModuleDefinition.DefinitionName == "PowerBI Embedded Content View",
+                    FilterPaneVisible = bool.Parse(GetSetting("PowerBIEmbedded_FilterPaneVisible", "True")),
+                    NavPaneVisible = bool.Parse(GetSetting("PowerBIEmbedded_NavPaneVisible", "True")),
+                    Height = GetSetting("PowerBIEmbedded_Height"),
+                    VisualHeaderVisible = bool.Parse(GetSetting("PowerBIEmbedded_VisualHeaderVisible", "True"))
                 };
 
-                if (ModuleContext.Configuration.ModuleDefinition.DefinitionName == "PowerBI Embedded Content View")
+                if (model.IsContentView)
                 {
-                    var embedService = new EmbedService(ModuleContext.PortalId, ModuleContext.TabModuleId, model.SettingsGroupId);
+                    var settingsGroupId = model.SettingsGroupId;
+                    if (string.IsNullOrEmpty(settingsGroupId))
+                    {
+                        var defaultPbiSettingsGroupId = model.SettingsGroupId;
+                        var pbiSettings = SharedSettingsRepository.Instance.GetSettings(ModuleContext.PortalId).RemoveUnauthorizedItems(User);
+                        if (!string.IsNullOrEmpty(defaultPbiSettingsGroupId) && pbiSettings.Any(x => x.SettingsGroupId == defaultPbiSettingsGroupId))
+                        {
+                            settingsGroupId = defaultPbiSettingsGroupId;
+                        }
+                        else
+                        {
+                            settingsGroupId = pbiSettings.FirstOrDefault(x => !string.IsNullOrEmpty(x.SettingsGroupId)).SettingsGroupId;
+                        }
+                    }
+
+                    var embedService = new EmbedService(ModuleContext.PortalId, ModuleContext.TabModuleId, settingsGroupId);
                     var contentItems = embedService.GetContentListAsync(ModuleContext.PortalSettings.UserId).Result;
                     if (contentItems != null)
                     {
@@ -67,6 +101,10 @@ namespace DotNetNuke.PowerBI.Controllers
             {
                 ModuleController.Instance.UpdateTabModuleSetting(this.ModuleContext.TabModuleId, "PowerBIEmbedded_SettingsGroupId", settings.SettingsGroupId);
                 ModuleController.Instance.UpdateTabModuleSetting(this.ModuleContext.TabModuleId, "PowerBIEmbedded_ContentItemId", settings.ContentItemId);
+                ModuleController.Instance.UpdateTabModuleSetting(this.ModuleContext.TabModuleId, "PowerBIEmbedded_FilterPaneVisible", settings.FilterPaneVisible.ToString());
+                ModuleController.Instance.UpdateTabModuleSetting(this.ModuleContext.TabModuleId, "PowerBIEmbedded_NavPaneVisible", settings.NavPaneVisible.ToString());
+                ModuleController.Instance.UpdateTabModuleSetting(this.ModuleContext.TabModuleId, "PowerBIEmbedded_Height", settings.Height);
+                ModuleController.Instance.UpdateTabModuleSetting(this.ModuleContext.TabModuleId, "PowerBIEmbedded_VisualHeaderVisible", settings.VisualHeaderVisible.ToString());
 
                 return RedirectToDefaultRoute();
             }
@@ -75,6 +113,13 @@ namespace DotNetNuke.PowerBI.Controllers
                 Logger.Error(ex);
                 return View();
             }
+        }
+
+        private string GetSetting(string key, string defaultValue = "")
+        {
+            return ModuleContext.Settings.ContainsKey(key) ?
+                (string)ModuleContext.Settings[key]
+                : defaultValue;
         }
 
     }

@@ -53,12 +53,11 @@ namespace DotNetNuke.PowerBI.Controllers
                     var roles = string.Join(",", ModuleContext.PortalSettings.UserInfo.Roles);
                     model = embedService.GetReportEmbedConfigAsync(ModuleContext.PortalSettings.UserId, user, roles, Request["reportId"]).Result;
                 }
-                else if (ModuleContext.Settings.ContainsKey("PowerBIEmbedded_ContentItemId") 
-                    && !string.IsNullOrEmpty((string) ModuleContext.Settings["PowerBIEmbedded_ContentItemId"]))
+                else if (!string.IsNullOrEmpty(GetSetting("PowerBIEmbedded_ContentItemId")))
                 {
                     var user = ModuleContext.PortalSettings.UserInfo.Username;
                     var roles = string.Join(",", ModuleContext.PortalSettings.UserInfo.Roles);
-                    var contentItemId = (string)ModuleContext.Settings["PowerBIEmbedded_ContentItemId"];
+                    var contentItemId = GetSetting("PowerBIEmbedded_ContentItemId");
                     if (contentItemId.Substring(0, 2) == "D_")
                     {
                         model = embedService.GetDashboardEmbedConfigAsync(ModuleContext.PortalSettings.UserId, user, roles, contentItemId.Substring(2)).Result;
@@ -77,6 +76,12 @@ namespace DotNetNuke.PowerBI.Controllers
                 }
 
                 ViewBag.Locale = System.Threading.Thread.CurrentThread.CurrentUICulture.Name.Substring(0, 2);
+
+                ViewBag.FilterPaneVisible = bool.Parse(GetSetting("PowerBIEmbedded_FilterPaneVisible", "true"));
+                ViewBag.NavPaneVisible = bool.Parse(GetSetting("PowerBIEmbedded_NavPaneVisible", "true"));
+                ViewBag.VisualHeaderVisible = bool.Parse(GetSetting("PowerBIEmbedded_VisualHeaderVisible", "true"));
+                ViewBag.Height = GetSetting("PowerBIEmbedded_Height");
+
                 // Sets the reports page on the viewbag
                 if (embedService != null)
                 {
@@ -96,6 +101,13 @@ namespace DotNetNuke.PowerBI.Controllers
                 model.ErrorMessage = LocalizeString("Error");
                 return View(model);
             }
+        }
+
+        private string GetSetting(string key, string defaultValue = "")
+        {
+            return ModuleContext.Settings.ContainsKey(key) ?
+                (string)ModuleContext.Settings[key]
+                : defaultValue;
         }
     }
 }

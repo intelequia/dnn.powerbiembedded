@@ -43,4 +43,9 @@
 	</p>
 	<p>Fix permissions on Content View<br /><br /></p>
 
+	<p class="Owner">
+	<b>Version 1.0.8</b>
+	</p>
+	<p>Added options for Content Viewer<br /><br /></p>
+
 </div>

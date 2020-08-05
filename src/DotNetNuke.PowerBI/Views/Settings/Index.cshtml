@@ -1,4 +1,5 @@
 ﻿@inherits DotNetNuke.Web.Mvc.Framework.DnnWebViewPage<DotNetNuke.PowerBI.Controllers.SettingsController.SettingsModel>
+@using DotNetNuke.Web.Mvc.Helpers
 @using DotNetNuke.Web.Client.ClientResourceManagement
 @{
     ClientResourceManager.RegisterStyleSheet(Dnn.DnnPage, "~/DesktopModules/MVC/PowerBIEmbedded/Css/module.css", 9, "DnnPageHeaderProvider");
@@ -29,36 +30,63 @@
             </div>
         </div>
         @{
-            if (ViewBag.ContentItems != null)
+            if (Model.IsContentView)
             {
                 <div class="dnnFormItem">
-                            <div class="leftGroup">
-                                <label>Content Item</label>
-                                @{
-                                    List<SelectListItem> contentItems = new List<SelectListItem>();
-                                    foreach (var contentItem in ViewBag.ContentItems.Dashboards)
+                    <div class="leftGroup">
+                        <label>Content Item</label>
+                        @{
+                            var contentItems = new List<SelectListItem>();
+                            if (ViewBag.ContentItems != null)
+                            {
+                                foreach (var contentItem in ViewBag.ContentItems.Dashboards)
+                                {
+                                    contentItems.Add(new SelectListItem
                                     {
-                                        contentItems.Add(new SelectListItem
-                                        {
-                                            Text = "Dashboard - " + contentItem.DisplayName,
-                                            Value = "D_" + contentItem.Id
-                                        });
-                                    }
-                                    foreach (var contentItem in ViewBag.ContentItems.Reports)
-                                    {
-                                        contentItems.Add(new SelectListItem
-                                        {
-                                            Text = "Reports - " + contentItem.Name,
-                                            Value = "R_" + contentItem.Id
-                                        });
-                                    }
+                                        Text = "Dashboard - " + contentItem.DisplayName,
+                                        Value = "D_" + contentItem.Id
+                                    });
                                 }
-                                @Html.DropDownListFor(m => m.ContentItemId, contentItems, "Choose one...")
-                            </div>
+                                foreach (var contentItem in ViewBag.ContentItems.Reports)
+                                {
+                                    contentItems.Add(new SelectListItem
+                                    {
+                                        Text = "Reports - " + contentItem.Name,
+                                        Value = "R_" + contentItem.Id
+                                    });
+                                }
+                            }
+                        }
+                        @Html.DropDownListFor(m => m.ContentItemId, contentItems, "Choose one...")
+                    </div>
+                </div>
+                <div class="dnnFormItem">
+                    <div class="leftGroup">
+                        <label>Height</label>
+                        @Html.TextBoxFor(m => m.Height, new { @class = "number" })
+                    </div>
+                </div>
+                <div class="dnnFormItem">
+                    <div class="leftGroup">
+                        <label>Filter Pane Visible</label>
+                        @Html.CheckBoxFor(m => m.FilterPaneVisible, true)
+                    </div>
+                </div>
+                <div class="dnnFormItem">
+                    <div class="leftGroup">
+                        <label>Nav Pane Visible</label>
+                        @Html.CheckBoxFor(m => m.NavPaneVisible, true)
+                    </div>
+                </div>
+                <div class="dnnFormItem">
+                    <div class="leftGroup">
+                        <label>Visual Header Visible</label>
+                        @Html.CheckBoxFor(m => m.VisualHeaderVisible, true)
+                    </div>
                 </div>
             }
         }
-    </fieldset> 
+    </fieldset>
 
 </div>
 
