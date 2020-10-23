@@ -13,5 +13,7 @@ namespace DotNetNuke.PowerBI.Models
         public string Name { get; set; }
         [DataMember]
         public int SettingsId { get; set; }
+        [DataMember]
+        public bool InheritPermissions { get; set; }
     }
 }

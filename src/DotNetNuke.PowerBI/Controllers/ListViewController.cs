@@ -46,7 +46,7 @@ namespace DotNetNuke.PowerBI.Controllers
                     model = model.RemoveOtherCultureItems();
 
                     // Remove the objects without permissions
-                    model = model.RemoveUnauthorizedItems(User, embedService.Settings.InheritPermissions ? settingsGroupId : "");
+                    model = model.RemoveUnauthorizedItems(User);
 
                     // Sets the reports page on the viewbag
                     var reportsPage = embedService.Settings.ContentPageUrl;

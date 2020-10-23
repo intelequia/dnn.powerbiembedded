@@ -101,7 +101,8 @@ namespace DotNetNuke.PowerBI.Services
                 {
                     Id = s.SettingsGroupId,
                     Name = s.SettingsGroupName,
-                    SettingsId = s.SettingsId
+                    SettingsId = s.SettingsId,
+                    InheritPermissions = s.InheritPermissions
                 });
             }
 

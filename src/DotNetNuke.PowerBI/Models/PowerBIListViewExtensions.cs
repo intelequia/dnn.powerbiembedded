@@ -36,17 +36,32 @@ namespace DotNetNuke.PowerBI.Models
             return model;
         }
 
-        public static PowerBIListView RemoveUnauthorizedItems(this PowerBIListView model, UserInfo user, string inheritedObjectId = "")
+        public static PowerBIListView RemoveUnauthorizedItems(this PowerBIListView model, UserInfo user)
         {
             if (model != null && user != null)
             {
                 var permissionsRepo = ObjectPermissionsRepository.Instance;
-                model.Reports.RemoveAll(x =>
-                    !permissionsRepo.HasPermissions(string.IsNullOrEmpty(inheritedObjectId) ? x.Id : inheritedObjectId, user.PortalID, 1, user));
-                model.Dashboards.RemoveAll(x =>
-                    !permissionsRepo.HasPermissions(string.IsNullOrEmpty(inheritedObjectId) ? x.Id : inheritedObjectId, user.PortalID, 1, user));
+
+                // Remove unauthorized workspaces
                 model.Workspaces.RemoveAll(x =>
-                    !permissionsRepo.HasPermissions(string.IsNullOrEmpty(inheritedObjectId) ? x.Id : inheritedObjectId, user.PortalID, 1, user));
+                    !permissionsRepo.HasPermissions(x.Id, user.PortalID, 1, user));
+
+                // Remove unauthorized reports
+                model.Reports.RemoveAll(x => 
+                    model.Workspaces.FirstOrDefault(c => c.Id == HttpUtility.ParseQueryString((new Uri(x.EmbedUrl)).Query)?.Get("groupId")) == null
+                    ||
+                    (!model.Workspaces.FirstOrDefault(c => c.Id == HttpUtility.ParseQueryString((new Uri(x.EmbedUrl)).Query)?.Get("groupId")).InheritPermissions
+                        && !permissionsRepo.HasPermissions(x.Id, user.PortalID, 1, user))
+                );
+
+
+                // Remove unauthorized dashboards
+                model.Dashboards.RemoveAll(x =>
+                    model.Workspaces.FirstOrDefault(c => c.Id == HttpUtility.ParseQueryString((new Uri(x.EmbedUrl)).Query)?.Get("groupId")) == null
+                    ||
+                    (!model.Workspaces.FirstOrDefault(c => c.Id == HttpUtility.ParseQueryString((new Uri(x.EmbedUrl)).Query)?.Get("groupId")).InheritPermissions
+                        && !permissionsRepo.HasPermissions(x.Id, user.PortalID, 1, user))
+                );
             }
             return model;
         }
