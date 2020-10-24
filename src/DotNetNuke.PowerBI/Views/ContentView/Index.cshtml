@@ -25,87 +25,92 @@
             }
             <div id="embedContainer" class="mobile-view active"></div>
             <script>
-        // Get models. models contains enums that can be used.
-        var models = window['powerbi-client'].models;
-        var isMobile = window.innerWidth < 425 || window.innerHeight < 425;
-        var isLandscape = window.innerWidth > window.innerHeight;
-        var defaultHeight = '@ViewBag.Height';
-        var config = {
-            type: '@Model.ContentType',
-            tokenType: models.TokenType.Embed,
-            accessToken: "@Model.EmbedToken.Token",
-            embedUrl: "@Model.EmbedUrl",
-            id: "@Model.Id",
-            permissions: models.Permissions.Read,
-            viewMode: models.ViewMode.View,
-            settings: {
-                filterPaneEnabled: @ViewBag.FilterPaneVisible.ToString().ToLowerInvariant() && !isMobile,
-                navContentPaneEnabled: @ViewBag.NavPaneVisible.ToString().ToLowerInvariant(),
-                localeSettings: {
-                    language: "@ViewBag.Locale",
-                    formatLocale: "@ViewBag.Locale"
-                },
-                visualSettings: {
-                    visualHeaders: [
-                        {
-                            settings: {
-                                visible: @ViewBag.VisualHeaderVisible.ToString().ToLowerInvariant()
-                            }
-                        }
-                    ]
-                },
-                //background: models.BackgroundType.Transparent,
-                layoutType: isMobile ? (isLandscape ? models.LayoutType.MobileLandscape : models.LayoutType.MobilePortrait) : null
-            }
-        };
-        // Get a reference to the embedded report HTML element
-        var reportContainer = $('#embedContainer')[0];
-        if (!isMobile && isLandscape) {
-            var h = defaultHeight !== '' ? defaultHeight : window.innerHeight - 50 - 20 - 39 - 20 - 10;
-            $('#embedContainer').css("height", h +"px");
-        }
+                // Get models. models contains enums that can be used.
+                var models = window['powerbi-client'].models;
+                var isMobile = window.innerWidth < 425 || window.innerHeight < 425;
+                var isLandscape = window.innerWidth > window.innerHeight;
+                var defaultHeight = '@ViewBag.Height';
+                var overrideVisualHeaderVisibility =  @ViewBag.OverrideVisualHeaderVisibility.ToString().ToLowerInvariant();
+                var config = {
+                    type: '@Model.ContentType',
+                    tokenType: models.TokenType.Embed,
+                    accessToken: "@Model.EmbedToken.Token",
+                    embedUrl: "@Model.EmbedUrl",
+                    id: "@Model.Id",
+                    permissions: models.Permissions.Read,
+                    viewMode: models.ViewMode.View,
+                    settings: {
+                        filterPaneEnabled: @ViewBag.FilterPaneVisible.ToString().ToLowerInvariant() && !isMobile,
+                        navContentPaneEnabled: @ViewBag.NavPaneVisible.ToString().ToLowerInvariant(),
+                        localeSettings: {
+                            language: "@ViewBag.Locale",
+                            formatLocale: "@ViewBag.Locale"
+                        },
+                        //background: models.BackgroundType.Transparent,
+                        layoutType: isMobile ? (isLandscape ? models.LayoutType.MobileLandscape : models.LayoutType.MobilePortrait) : null
+                    }
+                };
 
-        // Embed the report and display it within the div container.
-        var report = powerbi.embed(reportContainer, config);
-
-        function getParameterByName(name, url) {
-            if (!url) url = window.location.href;
-            name = name.replace(/[\[\]]/g, '\\$&');
-            var regex = new RegExp('[?&]' + name + '(=([^&#]*)|&|#|$)'),
-                results = regex.exec(url);
-            if (!results) return null;
-            if (!results[2]) return '';
-            return decodeURIComponent(results[2].replace(/\+/g, ' '));
-        }
-
-        function pbirefresh() {
-            report.refresh()
-                .catch(error => { console.log(error); });
-        }
-
-        window.onresize = function () {
-            isMobile = window.innerWidth < 425 || window.innerHeight < 425;
-            isLandscape = window.innerWidth > window.innerHeight;
-            if (!isMobile && isLandscape) {
-                var h = defaultHeight !== '' ? defaultHeight : window.innerHeight - 50 - 20 - 39 - 20 - 10;
-                $('#embedContainer').css("height", h +"px");
-            }
-        }
-        window.onmessage = function (m) {
-            if (m && m.isTrusted
-                && m.origin === "https://app.powerbi.com"
-                && m.type === "message"
-                && m.data.body) {
-                switch (m.data.body.event) {
-                    case "tileClicked":
-                        var reportId = getParameterByName("reportId", m.data.body.reportEmbedUrl);
-                        if (reportId && reportId !== "")
-                            window.location = '@ViewBag.ReportsPage?reportId=' + reportId;
-                        break;
-                    default: break;
+                if (overrideVisualHeaderVisibility) {
+                    config.settings.visualSettings = {
+                            visualHeaders: [
+                                    {
+                                settings: {
+                                    visible: @ViewBag.VisualHeaderVisible.ToString().ToLowerInvariant()
+                                        }
+                                }
+                                ]
+                    };
                 }
-            }
-        }
+
+                // Get a reference to the embedded report HTML element
+                var reportContainer = $('#embedContainer')[0];
+                if (!isMobile && isLandscape) {
+                    var h = defaultHeight !== '' ? defaultHeight : window.innerHeight - 50 - 20 - 39 - 20 - 10;
+                    $('#embedContainer').css("height", h +"px");
+                }
+
+                // Embed the report and display it within the div container.
+                var report = powerbi.embed(reportContainer, config);
+
+                function getParameterByName(name, url) {
+                    if (!url) url = window.location.href;
+                    name = name.replace(/[\[\]]/g, '\\$&');
+                    var regex = new RegExp('[?&]' + name + '(=([^&#]*)|&|#|$)'),
+                        results = regex.exec(url);
+                    if (!results) return null;
+                    if (!results[2]) return '';
+                    return decodeURIComponent(results[2].replace(/\+/g, ' '));
+                }
+
+                function pbirefresh() {
+                    report.refresh()
+                        .catch(error => { console.log(error); });
+                }
+
+                window.onresize = function () {
+                    isMobile = window.innerWidth < 425 || window.innerHeight < 425;
+                    isLandscape = window.innerWidth > window.innerHeight;
+                    if (!isMobile && isLandscape) {
+                        var h = defaultHeight !== '' ? defaultHeight : window.innerHeight - 50 - 20 - 39 - 20 - 10;
+                        $('#embedContainer').css("height", h +"px");
+                    }
+                }
+                window.onmessage = function (m) {
+                    if (m && m.isTrusted
+                        && m.origin === "https://app.powerbi.com"
+                        && m.type === "message"
+                        && m.data.body) {
+                        switch (m.data.body.event) {
+                            case "tileClicked":
+                                var reportId = getParameterByName("reportId", m.data.body.reportEmbedUrl);
+                                if (reportId && reportId !== "")
+                                    window.location = '@ViewBag.ReportsPage?reportId=' + reportId;
+                                break;
+                            default: break;
+                        }
+                    }
+                }
             </script>
         }
     </div>

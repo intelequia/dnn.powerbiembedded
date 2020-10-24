@@ -22,7 +22,8 @@ namespace DotNetNuke.PowerBI.Controllers
             {
                 FilterPaneVisible = true;
                 NavPaneVisible = true;
-                VisualHeaderVisible = true;
+                OverrideVisualHeaderVisibility = false;
+                VisualHeaderVisible = false;
                 IsContentView = false;
                 ToolbarVisible = false;
                 Height = "";
@@ -32,6 +33,7 @@ namespace DotNetNuke.PowerBI.Controllers
             public bool IsContentView { get; set; }
             public bool FilterPaneVisible { get; set; }
             public bool NavPaneVisible { get; set; }
+            public bool OverrideVisualHeaderVisibility { get; set; }
             public bool VisualHeaderVisible { get; set; }
             public bool ToolbarVisible { get; set; }
             public string Height { get; set; }
@@ -55,7 +57,8 @@ namespace DotNetNuke.PowerBI.Controllers
                     FilterPaneVisible = bool.Parse(GetSetting("PowerBIEmbedded_FilterPaneVisible", "True")),
                     NavPaneVisible = bool.Parse(GetSetting("PowerBIEmbedded_NavPaneVisible", "True")),
                     Height = GetSetting("PowerBIEmbedded_Height"),
-                    VisualHeaderVisible = bool.Parse(GetSetting("PowerBIEmbedded_VisualHeaderVisible", "True")),
+                    OverrideVisualHeaderVisibility = bool.Parse(GetSetting("PowerBIEmbedded_OverrideVisualHeaderVisibility", "False")),
+                    VisualHeaderVisible = bool.Parse(GetSetting("PowerBIEmbedded_VisualHeaderVisible", "False")),
                     ToolbarVisible = bool.Parse(GetSetting("PowerBIEmbedded_ToolbarVisible", "False"))
                 };
 
@@ -107,6 +110,7 @@ namespace DotNetNuke.PowerBI.Controllers
                 ModuleController.Instance.UpdateTabModuleSetting(this.ModuleContext.TabModuleId, "PowerBIEmbedded_FilterPaneVisible", settings.FilterPaneVisible.ToString());
                 ModuleController.Instance.UpdateTabModuleSetting(this.ModuleContext.TabModuleId, "PowerBIEmbedded_NavPaneVisible", settings.NavPaneVisible.ToString());
                 ModuleController.Instance.UpdateTabModuleSetting(this.ModuleContext.TabModuleId, "PowerBIEmbedded_Height", settings.Height);
+                ModuleController.Instance.UpdateTabModuleSetting(this.ModuleContext.TabModuleId, "PowerBIEmbedded_OverrideVisualHeaderVisibility", settings.OverrideVisualHeaderVisibility.ToString());
                 ModuleController.Instance.UpdateTabModuleSetting(this.ModuleContext.TabModuleId, "PowerBIEmbedded_VisualHeaderVisible", settings.VisualHeaderVisible.ToString());
                 ModuleController.Instance.UpdateTabModuleSetting(this.ModuleContext.TabModuleId, "PowerBIEmbedded_ToolbarVisible", settings.ToolbarVisible.ToString());
 
