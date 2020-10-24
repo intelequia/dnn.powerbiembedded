@@ -24,6 +24,7 @@ namespace DotNetNuke.PowerBI.Controllers
                 NavPaneVisible = true;
                 VisualHeaderVisible = true;
                 IsContentView = false;
+                ToolbarVisible = false;
                 Height = "";
             }
             public string SettingsGroupId { get; set; }
@@ -32,6 +33,7 @@ namespace DotNetNuke.PowerBI.Controllers
             public bool FilterPaneVisible { get; set; }
             public bool NavPaneVisible { get; set; }
             public bool VisualHeaderVisible { get; set; }
+            public bool ToolbarVisible { get; set; }
             public string Height { get; set; }
         }
         private static readonly ILog Logger = LoggerSource.Instance.GetLogger(typeof(SettingsController));
@@ -53,7 +55,8 @@ namespace DotNetNuke.PowerBI.Controllers
                     FilterPaneVisible = bool.Parse(GetSetting("PowerBIEmbedded_FilterPaneVisible", "True")),
                     NavPaneVisible = bool.Parse(GetSetting("PowerBIEmbedded_NavPaneVisible", "True")),
                     Height = GetSetting("PowerBIEmbedded_Height"),
-                    VisualHeaderVisible = bool.Parse(GetSetting("PowerBIEmbedded_VisualHeaderVisible", "True"))
+                    VisualHeaderVisible = bool.Parse(GetSetting("PowerBIEmbedded_VisualHeaderVisible", "True")),
+                    ToolbarVisible = bool.Parse(GetSetting("PowerBIEmbedded_ToolbarVisible", "False"))
                 };
 
                 if (model.IsContentView)
@@ -105,6 +108,7 @@ namespace DotNetNuke.PowerBI.Controllers
                 ModuleController.Instance.UpdateTabModuleSetting(this.ModuleContext.TabModuleId, "PowerBIEmbedded_NavPaneVisible", settings.NavPaneVisible.ToString());
                 ModuleController.Instance.UpdateTabModuleSetting(this.ModuleContext.TabModuleId, "PowerBIEmbedded_Height", settings.Height);
                 ModuleController.Instance.UpdateTabModuleSetting(this.ModuleContext.TabModuleId, "PowerBIEmbedded_VisualHeaderVisible", settings.VisualHeaderVisible.ToString());
+                ModuleController.Instance.UpdateTabModuleSetting(this.ModuleContext.TabModuleId, "PowerBIEmbedded_ToolbarVisible", settings.ToolbarVisible.ToString());
 
                 return RedirectToDefaultRoute();
             }

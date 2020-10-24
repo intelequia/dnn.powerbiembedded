@@ -178,3 +178,28 @@
 #PowerBISettings .dnnFormItem input[type="checkbox"] + span {
     margin-left: 0px;
 }
+
+.powerbiContentView .pbitoolbar {
+    display: block;
+    z-index: 99;
+    width: 100%;
+    background-color: #f3f2f0;
+    height: 41px;
+    vertical-align: middle;
+    text-align: right;
+}
+    .powerbiContentView .pbitoolbar .refresh {
+        background-image: url('../images/refresh.png');
+        width: 16px;
+        height: 100%;
+        display: inline-block;
+        background-size: 16px;
+        background-repeat: no-repeat;
+        background-position-y: center;
+        margin-right: 10px;
+        margin-left: 10px;
+    }
+
+        .powerbiContentView .pbitoolbar .refresh:hover {
+            background-color: #f4f4f4;
+        }

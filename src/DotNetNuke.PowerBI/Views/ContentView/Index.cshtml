@@ -7,21 +7,24 @@
     ClientResourceManager.RegisterStyleSheet(Dnn.DnnPage, "~/DesktopModules/MVC/PowerBIEmbedded/Css/module.css", 10, "DnnPageHeaderProvider");
 }
 
-<div class="powerbiContentView">
-    @if (Model == null || string.IsNullOrEmpty(Model.Id))
-    {
-    } 
-    else if (!string.IsNullOrEmpty(Model.ErrorMessage))
-    {
-    <div id="errorWrapper">
-        <h2>@Dnn.LocalizeString("ErrorTitle")</h2>
-        <p>@Model.ErrorMessage</p>
-    </div>
-    }
-    else
-    {
-    <div id="embedContainer" class="mobile-view active" ></div>
-    <script>
+    <div class="powerbiContentView">
+        @if (Model == null || string.IsNullOrEmpty(Model.Id))
+        {
+        }
+        else if (!string.IsNullOrEmpty(Model.ErrorMessage))
+        {
+            <div id="errorWrapper">
+                <h2>@Dnn.LocalizeString("ErrorTitle")</h2>
+                <p>@Model.ErrorMessage</p>
+            </div>
+        }
+        else
+        {
+            if (ViewBag.ToolbarVisible) {
+                <div class="pbitoolbar"><a href="#" class="refresh" title="Refresh visual objects and data" onclick="javascript:return pbirefresh()" /></div>
+            }
+            <div id="embedContainer" class="mobile-view active"></div>
+            <script>
         // Get models. models contains enums that can be used.
         var models = window['powerbi-client'].models;
         var isMobile = window.innerWidth < 425 || window.innerHeight < 425;
@@ -50,18 +53,18 @@
                             }
                         }
                     ]
-                }, 
+                },
                 //background: models.BackgroundType.Transparent,
                 layoutType: isMobile ? (isLandscape ? models.LayoutType.MobileLandscape : models.LayoutType.MobilePortrait) : null
-            } 
+            }
         };
         // Get a reference to the embedded report HTML element
         var reportContainer = $('#embedContainer')[0];
         if (!isMobile && isLandscape) {
-            var h = defaultHeight !== '' ? defaultHeight : window.innerHeight - 50 - 20 - 39 - 20 - 10;            
+            var h = defaultHeight !== '' ? defaultHeight : window.innerHeight - 50 - 20 - 39 - 20 - 10;
             $('#embedContainer').css("height", h +"px");
         }
-        
+
         // Embed the report and display it within the div container.
         var report = powerbi.embed(reportContainer, config);
 
@@ -75,13 +78,18 @@
             return decodeURIComponent(results[2].replace(/\+/g, ' '));
         }
 
+        function pbirefresh() {
+            report.refresh()
+                .catch(error => { console.log(error); });
+        }
+
         window.onresize = function () {
             isMobile = window.innerWidth < 425 || window.innerHeight < 425;
             isLandscape = window.innerWidth > window.innerHeight;
             if (!isMobile && isLandscape) {
-                var h = defaultHeight !== '' ? defaultHeight : window.innerHeight - 50 - 20 - 39 - 20 - 10;            
+                var h = defaultHeight !== '' ? defaultHeight : window.innerHeight - 50 - 20 - 39 - 20 - 10;
                 $('#embedContainer').css("height", h +"px");
-            } 
+            }
         }
         window.onmessage = function (m) {
             if (m && m.isTrusted
@@ -98,6 +106,6 @@
                 }
             }
         }
-    </script>
-    }
-</div>
+            </script>
+        }
+    </div>

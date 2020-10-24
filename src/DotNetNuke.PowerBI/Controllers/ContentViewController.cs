@@ -80,6 +80,7 @@ namespace DotNetNuke.PowerBI.Controllers
                 ViewBag.FilterPaneVisible = bool.Parse(GetSetting("PowerBIEmbedded_FilterPaneVisible", "true"));
                 ViewBag.NavPaneVisible = bool.Parse(GetSetting("PowerBIEmbedded_NavPaneVisible", "true"));
                 ViewBag.VisualHeaderVisible = bool.Parse(GetSetting("PowerBIEmbedded_VisualHeaderVisible", "true"));
+                ViewBag.ToolbarVisible = bool.Parse(GetSetting("PowerBIEmbedded_ToolbarVisible", "false"));
                 ViewBag.Height = GetSetting("PowerBIEmbedded_Height");
 
                 // Sets the reports page on the viewbag
