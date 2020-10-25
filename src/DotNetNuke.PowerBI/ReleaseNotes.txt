@@ -48,4 +48,9 @@
 	</p>
 	<p>Added options for Content Viewer<br /><br /></p>
 
+	<p class="Owner">
+	<b>Version 1.0.10</b>
+	</p>
+	<p>Visual header is now an overridable setting. Fixed permissions issue.<br /></p>
+
 </div>
