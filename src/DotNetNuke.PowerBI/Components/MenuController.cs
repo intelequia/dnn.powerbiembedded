@@ -38,7 +38,7 @@ namespace DotNetNuke.PowerBI.Components
         public bool Visible(MenuItem menuItem)
         {
             var user = UserController.Instance.GetCurrentUserInfo();
-            return user != null && user.IsSuperUser;
+            return user != null && (user.IsSuperUser || user.IsInRole("Administrators"));
         }
 
         public IDictionary<string, object> GetSettings(MenuItem menuItem)
