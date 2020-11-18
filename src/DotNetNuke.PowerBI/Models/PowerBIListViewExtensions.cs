@@ -57,9 +57,9 @@ namespace DotNetNuke.PowerBI.Models
 
                 // Remove unauthorized dashboards
                 model.Dashboards.RemoveAll(x =>
-                    model.Workspaces.FirstOrDefault(c => c.Id == HttpUtility.ParseQueryString((new Uri(x.EmbedUrl)).Query)?.Get("groupId")) == null
+                    model.Workspaces.FirstOrDefault(c => c.Id == model.WorkspaceId) == null
                     ||
-                    (!model.Workspaces.FirstOrDefault(c => c.Id == HttpUtility.ParseQueryString((new Uri(x.EmbedUrl)).Query)?.Get("groupId")).InheritPermissions
+                    (!model.Workspaces.FirstOrDefault(c => c.Id == model.WorkspaceId).InheritPermissions
                         && !permissionsRepo.HasPermissions(x.Id, user.PortalID, 1, user))
                 );
             }

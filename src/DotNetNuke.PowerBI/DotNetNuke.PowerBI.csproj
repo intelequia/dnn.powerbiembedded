@@ -194,6 +194,8 @@
     <Content Include="admin\personaBar\scripts\PBIEmbedded.js" />
     <Content Include="css\vendors\select2.min.css" />
     <Content Include="images\powerbi.png" />
+    <Content Include="images\powerbi.svg" />
+    <Content Include="images\refresh.png" />
     <Content Include="License.txt" />
     <Content Include="css\module.css" />
     <Content Include="ReleaseNotes.txt" />
@@ -322,6 +324,6 @@
   <Target Name="AfterBuild" DependsOnTargets="PackageModule">
   </Target>
   <PropertyGroup>
-    <PostBuildEvent>IF $(ConfigurationName)==Debug copy $(TargetDir)$(TargetName).* C:\Websites\userportal.dnndev.me\bin /Y</PostBuildEvent>
+    <PostBuildEvent>IF $(ConfigurationName)==Debug copy $(TargetDir)$(TargetName).* C:\Websites\pbiportal.dnndev.me\bin /Y</PostBuildEvent>
   </PropertyGroup>
 </Project>

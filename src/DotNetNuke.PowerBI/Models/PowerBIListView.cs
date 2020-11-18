@@ -18,6 +18,8 @@ namespace DotNetNuke.PowerBI.Models
             Workspaces = new List<Workspace>();
         }
         [DataMember]
+        public string WorkspaceId { get; set; }
+        [DataMember]
         public List<Report> Reports { get; set; }
         [DataMember]
         public List<Dashboard> Dashboards { get; set; }

@@ -53,4 +53,9 @@
 	</p>
 	<p>Visual header is now an overridable setting. Fixed permissions issue.<br /></p>
 
+	<p class="Owner">
+	<b>Version 1.0.11</b>
+	</p>
+	<p>Fixed permissions issue on Dashboards<br /></p>
+
 </div>

@@ -92,7 +92,10 @@ namespace DotNetNuke.PowerBI.Services
                 // The error message set in GetTokenCredentials
                 return null;
             }
-            model = new PowerBIListView();
+            model = new PowerBIListView()
+            {
+                WorkspaceId = Settings.WorkspaceId
+            };
 
             var pbiSettings = SharedSettingsRepository.Instance.GetSettings(Settings.PortalId);
             foreach (var s in pbiSettings)
