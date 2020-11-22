@@ -21,7 +21,13 @@
         else
         {
             if (ViewBag.ToolbarVisible) {
-                <div class="pbitoolbar"><a href="#" class="refresh" title="Refresh visual objects and data" onclick="javascript:return pbirefresh()" /></div>
+    <div class="pbitoolbar">
+        @if (ViewBag.PrintVisible)
+        {
+            <a href="#" class="print" title="Print report" onclick="javascript:return pbiprint()" />
+        }
+        <a href="#" class="refresh" title="Refresh visual objects and data" onclick="javascript:return pbirefresh()" />
+    </div>
             }
             <div id="embedContainer" class="mobile-view active"></div>
             <script>
@@ -86,6 +92,9 @@
                 function pbirefresh() {
                     report.refresh()
                         .catch(error => { console.log(error); });
+                }
+                function pbiprint() {
+                    alert('Not implemented yet');
                 }
 
                 window.onresize = function () {

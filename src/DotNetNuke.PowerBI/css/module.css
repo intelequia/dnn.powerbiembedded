@@ -188,6 +188,18 @@
     vertical-align: middle;
     text-align: right;
 }
+    .powerbiContentView .pbitoolbar .print {
+        background-image: url('../images/print.png');
+        width: 16px;
+        height: 100%;
+        display: inline-block;
+        background-size: 16px;
+        background-repeat: no-repeat;
+        background-position-y: center;
+        margin-right: 10px;
+        margin-left: 10px;
+    }
+
     .powerbiContentView .pbitoolbar .refresh {
         background-image: url('../images/refresh.png');
         width: 16px;
@@ -200,6 +212,7 @@
         margin-left: 10px;
     }
 
-        .powerbiContentView .pbitoolbar .refresh:hover {
-            background-color: #f4f4f4;
-        }
+    .powerbiContentView .pbitoolbar .refresh:hover,
+    .powerbiContentView .pbitoolbar .print:hover {
+        background-color: #f4f4f4;
+    }

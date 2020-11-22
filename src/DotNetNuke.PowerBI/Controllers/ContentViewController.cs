@@ -81,6 +81,7 @@ namespace DotNetNuke.PowerBI.Controllers
                 ViewBag.NavPaneVisible = bool.Parse(GetSetting("PowerBIEmbedded_NavPaneVisible", "true"));
                 ViewBag.OverrideVisualHeaderVisibility = bool.Parse(GetSetting("PowerBIEmbedded_OverrideVisualHeaderVisibility", "false"));
                 ViewBag.VisualHeaderVisible = bool.Parse(GetSetting("PowerBIEmbedded_VisualHeaderVisible", "false"));
+                ViewBag.PrintVisible = bool.Parse(GetSetting("PowerBIEmbedded_PrintVisible", "false"));
                 ViewBag.ToolbarVisible = bool.Parse(GetSetting("PowerBIEmbedded_ToolbarVisible", "false"));
                 ViewBag.Height = GetSetting("PowerBIEmbedded_Height");
 

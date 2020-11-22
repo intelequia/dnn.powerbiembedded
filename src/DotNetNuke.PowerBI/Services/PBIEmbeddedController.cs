@@ -32,6 +32,7 @@ using DotNetNuke.PowerBI.Services.Models;
 using DotNetNuke.Services.Cache;
 using System;
 using System.Collections.Generic;
+using System.Configuration;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
@@ -92,10 +93,11 @@ namespace DotNetNuke.PowerBI.Services
                     SharedSettingsRepository.Instance.UpdateSettings(parameters.workspaceSettingsDetail, PortalId);
                 }
                 CachingProvider.Instance().Clear("Prefix", $"PBI_{PortalId}_");
-                return Request.CreateResponse(HttpStatusCode.OK, new
-                {
-                    Success = true
-                });
+
+                // Verify settings
+                var settings = SharedSettingsRepository.Instance.GetSettings(PortalId);
+                var setting = settings.FirstOrDefault(x => x.WorkspaceId == parameters.workspaceSettingsDetail.WorkspaceId);
+                return GetPowerBiObjectList(setting.SettingsId);
             }
             catch (Exception ex)
             {
@@ -146,6 +148,11 @@ namespace DotNetNuke.PowerBI.Services
                 var embedService = new EmbedService(PortalSettings.PortalId, -1, settingsId);
                 var model = embedService.GetContentListAsync(PortalSettings.UserInfo.UserID).Result;
 
+                if (model == null)
+                {
+                    throw new ConfigurationErrorsException(embedService.EmbedConfig.ErrorMessage);
+                }
+
                 // Add workspace permissions
                 var workspaceSecurity = ObjectPermissionsRepository.Instance.GetObjectPermissions(embedService.Settings.SettingsGroupId, PortalSettings.PortalId);
                 result.Add(new GetPowerBiObjectListResponse
@@ -188,6 +195,16 @@ namespace DotNetNuke.PowerBI.Services
                     Success = true,
                     InheritPermissions = embedService.Settings.InheritPermissions,
                     PowerBiObjects = result
+                });
+            }
+            catch (ConfigurationErrorsException cex)
+            {
+                Logger.Error(cex);
+                return Request.CreateResponse(HttpStatusCode.BadRequest, new
+                {
+                    Success = false,
+                    Message = cex.Message,
+                    Error = cex
                 });
             }
             catch (Exception ex)

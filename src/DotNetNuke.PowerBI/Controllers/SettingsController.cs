@@ -26,6 +26,7 @@ namespace DotNetNuke.PowerBI.Controllers
                 VisualHeaderVisible = false;
                 IsContentView = false;
                 ToolbarVisible = false;
+                PrintVisible = false;
                 Height = "";
             }
             public string SettingsGroupId { get; set; }
@@ -36,6 +37,7 @@ namespace DotNetNuke.PowerBI.Controllers
             public bool OverrideVisualHeaderVisibility { get; set; }
             public bool VisualHeaderVisible { get; set; }
             public bool ToolbarVisible { get; set; }
+            public bool PrintVisible { get; set; }
             public string Height { get; set; }
         }
         private static readonly ILog Logger = LoggerSource.Instance.GetLogger(typeof(SettingsController));
@@ -59,7 +61,8 @@ namespace DotNetNuke.PowerBI.Controllers
                     Height = GetSetting("PowerBIEmbedded_Height"),
                     OverrideVisualHeaderVisibility = bool.Parse(GetSetting("PowerBIEmbedded_OverrideVisualHeaderVisibility", "False")),
                     VisualHeaderVisible = bool.Parse(GetSetting("PowerBIEmbedded_VisualHeaderVisible", "False")),
-                    ToolbarVisible = bool.Parse(GetSetting("PowerBIEmbedded_ToolbarVisible", "False"))
+                    ToolbarVisible = bool.Parse(GetSetting("PowerBIEmbedded_ToolbarVisible", "False")),
+                    PrintVisible = bool.Parse(GetSetting("PowerBIEmbedded_PrintVisible", "False"))
                 };
 
                 if (model.IsContentView)
@@ -113,6 +116,7 @@ namespace DotNetNuke.PowerBI.Controllers
                 ModuleController.Instance.UpdateTabModuleSetting(this.ModuleContext.TabModuleId, "PowerBIEmbedded_OverrideVisualHeaderVisibility", settings.OverrideVisualHeaderVisibility.ToString());
                 ModuleController.Instance.UpdateTabModuleSetting(this.ModuleContext.TabModuleId, "PowerBIEmbedded_VisualHeaderVisible", settings.VisualHeaderVisible.ToString());
                 ModuleController.Instance.UpdateTabModuleSetting(this.ModuleContext.TabModuleId, "PowerBIEmbedded_ToolbarVisible", settings.ToolbarVisible.ToString());
+                ModuleController.Instance.UpdateTabModuleSetting(this.ModuleContext.TabModuleId, "PowerBIEmbedded_PrintVisible", settings.PrintVisible.ToString());
 
                 return RedirectToDefaultRoute();
             }
