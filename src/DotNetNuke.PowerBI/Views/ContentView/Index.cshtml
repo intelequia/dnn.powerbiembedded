@@ -94,7 +94,8 @@
                         .catch(error => { console.log(error); });
                 }
                 function pbiprint() {
-                    alert('Not implemented yet');
+                    report.print()
+                        .catch(error => {console.log(error) });
                 }
 
                 window.onresize = function () {
