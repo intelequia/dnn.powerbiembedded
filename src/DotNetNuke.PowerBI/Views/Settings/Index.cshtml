@@ -106,6 +106,34 @@
             }
         }
     </fieldset>
+    <h2 class="dnnFormSectionHead"><a href="#">Role Level Security (RLS)</a></h2>
+    <fieldset id="ListViewGroupSettings">
+        @{
+            if (Model.IsContentView)
+            {
+                <div class="dnnFormItem">
+                    <div class="leftGroup">
+                        <label>User Property</label>
+                        @{
+                            var userPropertiesItems = new List<SelectListItem>();
+                            if (ViewBag.UserProperties != null)
+                            {
+                                foreach (var userProperty in ViewBag.UserProperties)
+                                {
+                                    userPropertiesItems.Add(new SelectListItem
+                                    {
+                                        Text = userProperty,
+                                        Value = userProperty
+                                    });
+                                }
+                            }
+                        }
+                        @Html.DropDownListFor(m => m.UserProperty, userPropertiesItems, "Choose one...")
+                    </div>
+                </div>
+            }
+        }
+    </fieldset>
 
 </div>
 

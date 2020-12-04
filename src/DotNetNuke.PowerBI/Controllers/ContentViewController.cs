@@ -10,6 +10,9 @@ using System;
 using System.Linq;
 using System.Net;
 using System.Web.Mvc;
+using DotNetNuke.Entities.Profile;
+using DotNetNuke.Entities.Users;
+using DotNetNuke.Security.Roles;
 
 namespace DotNetNuke.PowerBI.Controllers
 {
@@ -41,21 +44,30 @@ namespace DotNetNuke.PowerBI.Controllers
                 }
                 var embedService = new EmbedService(ModuleContext.PortalId, ModuleContext.TabModuleId, settingsGroupId);
 
+
+                var user = ModuleContext.PortalSettings.UserInfo.Username;
+                var userPropertySetting = (string)ModuleContext.Settings["PowerBIEmbedded_UserProperty"];
+                if (userPropertySetting == "PowerBiGroup")
+                {
+                    var userProperty = PortalSettings.UserInfo.Profile.GetProperty("PowerBiGroup");
+                    if (userProperty != null && userProperty.PropertyValue != null)
+                    {
+                        user = userProperty.PropertyValue;
+                    }
+                }
+
                 if (!string.IsNullOrEmpty(Request["dashboardId"]))
                 {
-                    var user = ModuleContext.PortalSettings.UserInfo.Username;
                     var roles = string.Join(",", ModuleContext.PortalSettings.UserInfo.Roles);
                     model = embedService.GetDashboardEmbedConfigAsync(ModuleContext.PortalSettings.UserId, user,roles, Request["dashboardId"]).Result;
                 }
                 else if (!string.IsNullOrEmpty(Request["reportId"]))
                 {
-                    var user = ModuleContext.PortalSettings.UserInfo.Username;
                     var roles = string.Join(",", ModuleContext.PortalSettings.UserInfo.Roles);
                     model = embedService.GetReportEmbedConfigAsync(ModuleContext.PortalSettings.UserId, user, roles, Request["reportId"]).Result;
                 }
                 else if (!string.IsNullOrEmpty(GetSetting("PowerBIEmbedded_ContentItemId")))
                 {
-                    var user = ModuleContext.PortalSettings.UserInfo.Username;
                     var roles = string.Join(",", ModuleContext.PortalSettings.UserInfo.Roles);
                     var contentItemId = GetSetting("PowerBIEmbedded_ContentItemId");
                     if (contentItemId.Substring(0, 2) == "D_")

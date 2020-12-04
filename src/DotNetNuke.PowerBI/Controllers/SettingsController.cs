@@ -7,8 +7,10 @@ using DotNetNuke.Security;
 using DotNetNuke.Web.Mvc.Framework.ActionFilters;
 using DotNetNuke.Web.Mvc.Framework.Controllers;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Web.Mvc;
+using DotNetNuke.Entities.Profile;
 
 namespace DotNetNuke.PowerBI.Controllers
 {
@@ -39,6 +41,7 @@ namespace DotNetNuke.PowerBI.Controllers
             public bool ToolbarVisible { get; set; }
             public bool PrintVisible { get; set; }
             public string Height { get; set; }
+            public string UserProperty { get; set; }
         }
         private static readonly ILog Logger = LoggerSource.Instance.GetLogger(typeof(SettingsController));
         // GET: Settings
@@ -62,7 +65,8 @@ namespace DotNetNuke.PowerBI.Controllers
                     OverrideVisualHeaderVisibility = bool.Parse(GetSetting("PowerBIEmbedded_OverrideVisualHeaderVisibility", "False")),
                     VisualHeaderVisible = bool.Parse(GetSetting("PowerBIEmbedded_VisualHeaderVisible", "False")),
                     ToolbarVisible = bool.Parse(GetSetting("PowerBIEmbedded_ToolbarVisible", "False")),
-                    PrintVisible = bool.Parse(GetSetting("PowerBIEmbedded_PrintVisible", "False"))
+                    PrintVisible = bool.Parse(GetSetting("PowerBIEmbedded_PrintVisible", "False")),
+                    UserProperty = GetSetting("PowerBIEmbedded_UserProperty","Username")
                 };
 
                 if (model.IsContentView)
@@ -90,6 +94,20 @@ namespace DotNetNuke.PowerBI.Controllers
                         contentItems = contentItems.RemoveOtherCultureItems();
                         ViewBag.ContentItems = contentItems;
                     }
+
+                    var userProperties = new List<string>
+                    {
+                        "Username",
+                    };
+                    var property = ProfileController.GetPropertyDefinitionByName(PortalSettings.PortalId, "PowerBiGroup");
+                    if (property !=null && !property.Deleted)
+                    {
+                         userProperties.Add("PowerBiGroup");
+                    }
+
+                    ViewBag.UserProperties = userProperties;
+
+
                 }
                 return View(model);
             }
@@ -117,7 +135,7 @@ namespace DotNetNuke.PowerBI.Controllers
                 ModuleController.Instance.UpdateTabModuleSetting(this.ModuleContext.TabModuleId, "PowerBIEmbedded_VisualHeaderVisible", settings.VisualHeaderVisible.ToString());
                 ModuleController.Instance.UpdateTabModuleSetting(this.ModuleContext.TabModuleId, "PowerBIEmbedded_ToolbarVisible", settings.ToolbarVisible.ToString());
                 ModuleController.Instance.UpdateTabModuleSetting(this.ModuleContext.TabModuleId, "PowerBIEmbedded_PrintVisible", settings.PrintVisible.ToString());
-
+                ModuleController.Instance.UpdateTabModuleSetting(this.ModuleContext.TabModuleId, "PowerBIEmbedded_UserProperty", settings.UserProperty);
                 return RedirectToDefaultRoute();
             }
             catch (Exception ex)

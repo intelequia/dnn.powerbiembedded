@@ -324,6 +324,6 @@
   <Target Name="AfterBuild" DependsOnTargets="PackageModule">
   </Target>
   <PropertyGroup>
-    <PostBuildEvent>IF $(ConfigurationName)==Debug copy $(TargetDir)$(TargetName).* C:\Websites\pbiportal.dnndev.me\bin /Y</PostBuildEvent>
+    <PostBuildEvent>IF $(ConfigurationName)==Debug copy $(TargetDir)$(TargetName).* C:\Websites\ull.dnndev.me\bin /Y</PostBuildEvent>
   </PropertyGroup>
 </Project>

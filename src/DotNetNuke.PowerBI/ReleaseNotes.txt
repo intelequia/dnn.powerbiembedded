@@ -63,4 +63,9 @@
 	</p>
 	<p>Addded print button functionality<br /></p>
 
+	<p class="Owner">
+	<b>Version 1.0.13</b>
+	</p>
+	<p>Added a profile property to link dnn user to powerbi column (company, email, etc)<br /></p>
+
 </div>

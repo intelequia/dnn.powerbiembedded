@@ -12,12 +12,12 @@
 
 using System;
 using System.Collections.Generic;
-using System.Globalization;
-using System.Linq;
-using System.Text;
-using System.Xml;
-using DotNetNuke.Common.Utilities;
 using DotNetNuke.Entities.Modules;
+using DotNetNuke.Entities.Portals;
+using DotNetNuke.Entities.Profile;
+using DotNetNuke.Entities.Users;
+using DotNetNuke.Entities.Users.Social;
+using DotNetNuke.Security.Roles;
 using DotNetNuke.Services.Search.Entities;
 
 namespace DotNetNuke.PowerBI
@@ -180,8 +180,36 @@ namespace DotNetNuke.PowerBI
             {
                 switch (version)
                 {
-                    case "01.00.00":
-                        // run your custom code here
+                    case "01.00.13":
+                        var portalController = new PortalController();
+                        var portals = portalController.GetPortals();
+                        foreach (PortalInfo portal in portals)
+                        {
+                            var property = ProfileController.GetPropertyDefinitionByName(portal.PortalID, "PowerBiGroup");
+                            if (property == null)
+                            {
+                                var propertyDefinition = new ProfilePropertyDefinition
+                                {
+                                    PortalId = portal.PortalID,
+                                    PropertyCategory = "PowerBi Embedded RLS",
+                                    PropertyName = "PowerBiGroup",
+                                    DataType = 349,
+                                    DefaultVisibility = UserVisibilityMode.AdminOnly,
+                                    Deleted = false,
+                                    ProfileVisibility = new ProfileVisibility
+                                    {
+                                        VisibilityMode = UserVisibilityMode.AdminOnly,
+                                        RelationshipVisibilities = new List<Relationship>(),
+                                        RoleVisibilities = new List<RoleInfo>()
+                                    },
+                                    Length = 100,
+                                    ReadOnly = false,
+                                    Visible = false,
+                                };
+
+                                ProfileController.AddPropertyDefinition(propertyDefinition);
+                            }
+                        }
                         return "success";
                     default:
                         return "success";
