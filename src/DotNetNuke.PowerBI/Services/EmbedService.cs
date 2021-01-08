@@ -80,7 +80,7 @@ namespace DotNetNuke.PowerBI.Services
         }
 
         public async Task<PowerBIListView> GetContentListAsync(int userId)
-        {            
+        {
             var model = (PowerBIListView)CachingProvider.Instance().GetItem($"PBI_{Settings.PortalId}_{Settings.SettingsId}_{userId}_{Thread.CurrentThread.CurrentUICulture.Name}_PowerBIListView");
             if (model != null)
                 return model;
@@ -117,10 +117,20 @@ namespace DotNetNuke.PowerBI.Services
 
                 // Get a list of reports.
                 var reports = client.Reports.GetReportsInGroupAsync(Settings.WorkspaceId).GetAwaiter().GetResult();
-                model.Reports.AddRange(reports.Value);
+                var cleanedReports = CleanUsageReports(reports.Value.ToList());
+                model.Reports.AddRange(cleanedReports);
             }
             CachingProvider.Instance().Insert($"PBI_{Settings.PortalId}_{Settings.SettingsId}_{userId}_{Thread.CurrentThread.CurrentUICulture.Name}_PowerBIListView", model, null, DateTime.Now.AddSeconds(60), TimeSpan.Zero);
             return model;
+        }
+
+        private List<Report> CleanUsageReports(List<Report> reports)
+        {
+            if (reports.Any(r => r.Name.Contains("Usage Metrics Report")))
+            {
+                var i = reports.RemoveAll(r => r.Name.Contains("Usage Metrics Report"));
+            }
+            return reports;
         }
 
 
@@ -164,8 +174,8 @@ namespace DotNetNuke.PowerBI.Services
                 {
                     // Check if the dataset has effective identity required
                     var dataset = await client.Datasets.GetDatasetByIdAsync(report.DatasetId);
-                    
-                    if ((dataset.IsEffectiveIdentityRequired.GetValueOrDefault(false) || dataset.IsEffectiveIdentityRolesRequired.GetValueOrDefault(false)) 
+
+                    if ((dataset.IsEffectiveIdentityRequired.GetValueOrDefault(false) || dataset.IsEffectiveIdentityRolesRequired.GetValueOrDefault(false))
                         && !dataset.IsOnPremGatewayRequired.GetValueOrDefault(false))
                     {
                         var rls = new EffectiveIdentity(username, new List<string> { report.DatasetId });
@@ -259,7 +269,7 @@ namespace DotNetNuke.PowerBI.Services
                 EmbedToken tokenResponse;
                 try
                 {
-                    tokenResponse = await client.Dashboards.GenerateTokenInGroupAsync(Settings.WorkspaceId, dashboard.Id, generateTokenRequestParameters).ConfigureAwait(false);                    
+                    tokenResponse = await client.Dashboards.GenerateTokenInGroupAsync(Settings.WorkspaceId, dashboard.Id, generateTokenRequestParameters).ConfigureAwait(false);
                 }
                 catch (HttpOperationException ex)
                 {

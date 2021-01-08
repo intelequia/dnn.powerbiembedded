@@ -68,4 +68,9 @@
 	</p>
 	<p>Added a profile property to link dnn user to powerbi column (company, email, etc)<br /></p>
 
+	<p class="Owner">
+	<b>Version 1.0.14</b>
+	</p>
+	<p>Filter reports so that they do not show PowerBi internal usage<br /></p>
+
 </div>

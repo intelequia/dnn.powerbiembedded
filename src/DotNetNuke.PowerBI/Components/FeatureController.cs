@@ -181,6 +181,7 @@ namespace DotNetNuke.PowerBI
                 switch (version)
                 {
                     case "01.00.13":
+                    case "01.00.14":
                         var portalController = new PortalController();
                         var portals = portalController.GetPortals();
                         foreach (PortalInfo portal in portals)
