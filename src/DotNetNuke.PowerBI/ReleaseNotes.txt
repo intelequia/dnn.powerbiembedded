@@ -73,4 +73,9 @@
 	</p>
 	<p>Filter reports so that they do not show PowerBi internal usage<br /></p>
 
+		<p class="Owner">
+	<b>Version 1.0.15</b>
+	</p>
+	<p>A new view has been added to see the update schedule for each dataset<br /></p>
+
 </div>

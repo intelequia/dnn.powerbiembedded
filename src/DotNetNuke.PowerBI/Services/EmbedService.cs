@@ -9,6 +9,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Configuration;
+using System.Globalization;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -131,6 +132,165 @@ namespace DotNetNuke.PowerBI.Services
                 var i = reports.RemoveAll(r => r.Name.Contains("Usage Metrics Report"));
             }
             return reports;
+        }
+
+        public async Task<PowerBICalendarView> GetScheduleInGroup(string mode)
+        {
+            // Get token credentials for user
+            var getCredentialsResult = await GetTokenCredentials();
+            if (!getCredentialsResult)
+            {
+                // The error message set in GetTokenCredentials
+                return null;
+            }
+
+            var colours = new List<string>
+            {
+                "#1ab394",
+                "#364B45",
+                "#98B0A9",
+                "#A993E2",
+                "#7360AA"
+            };
+            var model = new PowerBICalendarView();
+            // Create a Power BI Client object. It will be used to call Power BI APIs.
+            using (var client = new PowerBIClient(new Uri(Settings.ApiUrl), tokenCredentials))
+            {
+                if (mode == "0")
+                {
+                    //Mode = 0 schedule for all workspaces
+                    var workspaces = GetWorkspaces().Result;
+                    model.Workspaces = workspaces.Select(group => group.Id).ToList();
+                }
+                else
+                {
+                    //Schedule for currect workspace
+                    model.Workspaces = new List<string> {Settings.WorkspaceId};
+                }
+
+                foreach (var workspace in model.Workspaces)
+                {
+                    //Get Schedule datasets
+                    var datasets = client.Datasets.GetDatasetsInGroupAsync(workspace).GetAwaiter().GetResult().Value;
+                    datasets = CleanUsageDatasets(datasets.ToList());
+
+                   
+                    for (var x = 0; x < datasets.Count; x++)
+                    {
+                        var dataset = datasets[x];
+
+                        try
+                        {
+                            //Get refresh Schedule by dataset and Workspace
+                            var schedule = client.Datasets.GetRefreshScheduleInGroupAsync(Settings.WorkspaceId, dataset.Id)
+                                .GetAwaiter().GetResult();
+                            var timeRange = new List<Schedule>();
+                            string startHour = schedule.Times[0];
+                            string endHour = schedule.Times[0];
+
+                            //Grouping of consecutive hours
+                            for (int i = 0; i < schedule.Times.Count; i++)
+                            {
+                                if (schedule.Times[i] != schedule.Times.Last())
+                                {
+                                    DateTime hour = DateTime.ParseExact(schedule.Times[i], "HH:mm",
+                                        CultureInfo.InvariantCulture);
+                                    DateTime nextHour = DateTime.ParseExact(schedule.Times[i + 1], "HH:mm",
+                                        CultureInfo.InvariantCulture);
+                                    if (nextHour.Hour == hour.Hour + 1)
+                                    {
+                                        continue;
+                                    }
+                                    else
+                                    {
+                                        endHour = hour.AddHours(1).ToString("HH:mm");
+                                        timeRange.Add(new Schedule
+                                        {
+                                            start = startHour,
+                                            end = endHour
+                                        });
+                                        startHour = schedule.Times[i + 1];
+                                        endHour = schedule.Times[i + 1];
+                                    }
+                                }
+                                else
+                                {
+                                    endHour = DateTime.ParseExact(schedule.Times[i], "HH:mm",
+                                        CultureInfo.InvariantCulture).AddHours(1).ToString("HH:mm");
+                                    timeRange.Add(new Schedule
+                                    {
+                                        start = startHour,
+                                        end = endHour
+                                    });
+                                }
+                            }
+                            //Create calendar event by each date and hour group
+                            for (var index = 0; index < schedule.Days.Count; index++)
+                            {
+                                var day = schedule.Days[index];
+                                var dayOfWeek = (int)day.Value;
+                                int weekDay;
+
+                                for (var i = 0; i < timeRange.Count; i++)
+                                {
+                                    var time = timeRange[i];
+                                    var id = Guid.NewGuid().ToString("N");
+                                    var item = new CalendarItem
+                                    {
+                                        id = id,
+                                        color = colours[x < datasets.Count ? x : 0],
+                                        start = getCalendarDateTime(dayOfWeek, time.start),
+                                        end = getCalendarDateTime(dayOfWeek, time.end),
+                                        title = dataset.Name
+                                    };
+                                    model.RefreshSchedules.Add(item);
+                                }
+                            }
+                        }
+                        catch (Exception e)
+                        {
+                            continue;
+                        }
+                        
+                    }
+                }
+            }
+            return model;
+        }
+
+        private List<Dataset> CleanUsageDatasets(List<Dataset> datasets)
+        {
+            if (datasets.Any(r => r.Name.Contains("Report Usage Metrics Model")))
+            {
+                var i = datasets.RemoveAll(r => r.Name.Contains("Report Usage Metrics Model"));
+            }
+            return datasets;
+        }
+
+        private string getCalendarDateTime(int DayOfWeek, string time)
+        {
+            var baseDate = new DateTime(2006, 1, 2);
+            var result = baseDate.AddDays(DayOfWeek);
+            result = result.AddHours(int.Parse(time.Substring(0, time.IndexOf(":"))));
+            result = result.AddMinutes(int.Parse(time.Substring(time.IndexOf(":") + 1)));
+
+            return result.ToString("yyyy-MM-ddTHH:mm:ss");
+        }
+
+        public async Task<List<Group>> GetWorkspaces()
+        {
+            var getCredentialsResult = await GetTokenCredentials();
+            if (!getCredentialsResult)
+            {
+                // The error message set in GetTokenCredentials
+                return null;
+            }
+
+            using (var client = new PowerBIClient(new Uri(Settings.ApiUrl), tokenCredentials))
+            {
+                var workspaces = client.Groups.GetGroupsAsync().GetAwaiter().GetResult();
+                return workspaces.Value.ToList();
+            }
         }
 
 

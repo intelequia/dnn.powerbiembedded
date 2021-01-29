@@ -165,6 +165,7 @@
     <Compile Include="Components\FeatureController.cs" />
     <Compile Include="Components\MenuController.cs" />
     <Compile Include="Components\RouteMapper.cs" />
+    <Compile Include="Controllers\CalendarViewController.cs" />
     <Compile Include="Controllers\ContentViewController.cs" />
     <Compile Include="Controllers\ListViewController.cs" />
     <Compile Include="Controllers\SettingsController.cs" />
@@ -175,6 +176,7 @@
     <Compile Include="Data\ObjectPermissionsRepository.cs" />
     <Compile Include="Data\SharedSettings\SharedSettingsRepository.cs" />
     <Compile Include="Models\EmbedConfig.cs" />
+    <Compile Include="Models\PowerBICalendarView.cs" />
     <Compile Include="Models\PowerBIListView.cs" />
     <Compile Include="Models\PowerBIListViewExtensions.cs" />
     <Compile Include="Models\TileEmbedConfig.cs" />
@@ -232,6 +234,7 @@
     <Content Include="Providers\DataProviders\SqlDataProvider\01.00.02.SqlDataProvider" />
     <Content Include="Providers\DataProviders\SqlDataProvider\01.00.04.SqlDataProvider" />
     <Content Include="Providers\DataProviders\SqlDataProvider\01.00.06.SqlDataProvider" />
+    <Content Include="Views\CalendarView\Index.cshtml" />
     <None Include="web.Debug.config">
       <DependentUpon>web.config</DependentUpon>
     </None>

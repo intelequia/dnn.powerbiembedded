@@ -1,0 +1,114 @@
+﻿@inherits DotNetNuke.Web.Mvc.Framework.DnnWebViewPage<DotNetNuke.PowerBI.Models.PowerBICalendarView>
+@using System.Web.Mvc
+@using System.Web.WebPages.Html
+@using DotNetNuke.Web.Mvc.Helpers
+@using DotNetNuke.Web.Client.ClientResourceManagement
+@using SelectListItem = System.Web.Mvc.SelectListItem
+@{
+    ClientResourceManager.RegisterStyleSheet(Dnn.DnnPage, "https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/3.9.0/fullcalendar.min.css", 10, "DnnPageHeaderProvider");
+    ClientResourceManager.RegisterScript(Dnn.DnnPage, "~/DesktopModules/MVC/PowerBIEmbedded/scripts/powerbi.min.js", 20);
+    ClientResourceManager.RegisterScript(Dnn.DnnPage, "https://npmcdn.com/es6-promise@3.2.1", 18);
+    ClientResourceManager.RegisterScript(Dnn.DnnPage, "https://code.jquery.com/jquery-1.11.2.min.js", 19);
+    //ClientResourceManager.RegisterScript(Dnn.DnnPage, "https://code.jquery.com/ui/1.11.2/jquery-ui.min.js", 19);
+    ClientResourceManager.RegisterScript(Dnn.DnnPage, "https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.21.0/moment.min.js", 20);
+    ClientResourceManager.RegisterScript(Dnn.DnnPage, "https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/3.9.0/fullcalendar.min.js", 21);
+    ClientResourceManager.RegisterScript(Dnn.DnnPage, "https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/3.9.0/locale-all.js", 22);
+
+
+}
+ 
+<div class="powerbiCalendarView">
+    @Html.DropDownList("Mode", ViewBag.Options as SelectList,new { @class = "form-control drop m-b" })
+    @*@Html.DropDownListFor(m => m.SelectedOption, Model.Options, new { @onchange = "callChangefunc(this.value)" })*@
+    <script>
+        function addOrUpdateUrlParam(name, value) {
+            var href = window.location.href;
+            var regex = new RegExp("[&\\?]" + name + "=");
+            if (regex.test(href)) {
+                regex = new RegExp("([&\\?])" + name + "=\\d+");
+                window.location.href = href.replace(regex, "$1" + name + "=" + value);
+            }
+            else {
+                if (href.indexOf("?") > -1)
+                    window.location.href = href + "&" + name + "=" + value;
+                else
+                    window.location.href = href + "?" + name + "=" + value;
+            }
+        }
+        $("#Mode").on("change", function () {
+            var selectedId = $(this).val();
+
+            /**/
+            addOrUpdateUrlParam('mode', selectedId);
+            /**/
+        });
+
+    </script>
+    @if (Model == null)
+    {
+    }
+    else if (!string.IsNullOrEmpty(Model.ErrorMessage))
+    {
+        <div id="errorWrapper">
+            <h2>@Dnn.LocalizeString("ErrorTitle")</h2>
+            <p>@Model.ErrorMessage</p>
+        </div>
+    }
+    else
+    {
+        <div id="calendar" class="fc fc-unthemed fc-ltr"></div>
+        <script>
+
+
+            var events = @Html.Raw(Json.Encode(Model.RefreshSchedules));
+
+
+            // Calendar
+            $('#calendar').fullCalendar({
+                defaultView: 'agendaWeek',
+                defaultDate: '2006-01-02',
+                firstDay: 1,
+                minTime: '00:00:00',
+                maxTime: '23:59:00',
+                timeFormat: "HH:mm",
+                slotLabelFormat: "HH:mm",
+                editable: false,
+                selectable: false,
+                eventLimit: true, // allow "more" link when too many events
+                eventLimitText: "More", //sets the text for more events
+                droppable: false, // this allows things to be dropped onto the calendar
+                dragRevertDuration: 0,
+                events: events,
+                contentHeight: 'auto',
+                header: {
+                    //left: 'prev,next today',
+                    //center: 'title',
+                    //right: 'agendaDay,agendaTwoDay,agendaWeek,month'
+
+                },
+                views: {
+                    agendaTwoDay: {
+                        type: 'agenda',
+                        duration: {
+                            days: 1
+                        }
+                        // views that are more than a day will NOT do this behavior by default
+                        // so, we need to explicitly enable it
+                        //groupByResource: true
+
+                        //// uncomment this line to group by day FIRST with resources underneath
+                        //groupByDateAndResource: true
+                    },
+                    agendaWeek: {
+                        titleFormat: 'MMMM',
+                        columnFormat: 'dddd'
+                    }
+                },
+                //// uncomment this line to hide the all-day slot
+                allDaySlot: false
+            });
+            //$("#calendar").fullCalendar('renderEvents', events, true);
+
+        </script>
+    }
+</div>

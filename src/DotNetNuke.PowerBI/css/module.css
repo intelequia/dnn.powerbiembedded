@@ -216,3 +216,12 @@
     .powerbiContentView .pbitoolbar .print:hover {
         background-color: #f4f4f4;
     }
+
+.fc-header-toolbar {
+    display: none;
+}
+
+.drop {
+    margin: 15px;
+    max-width: 10%;
+}
