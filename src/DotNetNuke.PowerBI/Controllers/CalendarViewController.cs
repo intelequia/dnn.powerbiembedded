@@ -22,15 +22,29 @@ namespace DotNetNuke.PowerBI.Controllers
         [DnnHandleError]
         public ActionResult Index()
         {
-            var pbiSettings = SharedSettingsRepository.Instance.GetSettings(ModuleContext.PortalId).RemoveUnauthorizedItems(User);
-            var settingsGroupId = pbiSettings.FirstOrDefault(x => !string.IsNullOrEmpty(x.SettingsGroupId))?.SettingsGroupId;
+
+            var settingsGroupId = Request.QueryString["sid"];
+            if (string.IsNullOrEmpty(settingsGroupId))
+            {
+                var defaultPbiSettingsGroupId = (string)ModuleContext.Settings["PowerBIEmbedded_SettingsGroupId"];
+                var pbiSettings = SharedSettingsRepository.Instance.GetSettings(ModuleContext.PortalId).RemoveUnauthorizedItems(User);
+                if (!string.IsNullOrEmpty(defaultPbiSettingsGroupId) && pbiSettings.Any(x => x.SettingsGroupId == defaultPbiSettingsGroupId))
+                {
+                    settingsGroupId = defaultPbiSettingsGroupId;
+                }
+                else
+                {
+                    settingsGroupId = pbiSettings.FirstOrDefault(x => !string.IsNullOrEmpty(x.SettingsGroupId))?.SettingsGroupId;
+                }
+            }
             var embedService = new EmbedService(ModuleContext.PortalId, ModuleContext.TabModuleId, settingsGroupId);
+
 
             List<SelectListItem> lst = new List<SelectListItem>();
             var mode = Request.QueryString["mode"];
             lst.Add(new SelectListItem() { Text = "All Workspaces", Value = "0" });
             lst.Add(new SelectListItem() { Text = "Current Workspace", Value = "1" });
-            ViewBag.Options = new SelectList(lst,"Value","Text", mode ?? "0");
+            ViewBag.Options = new SelectList(lst,"Value","Text", mode ?? "1");
 
             try
             {
