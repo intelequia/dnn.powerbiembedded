@@ -225,3 +225,8 @@
     margin: 15px;
     max-width: 10%;
 }
+
+.pages {
+    display: flex;
+    justify-content: center;
+}

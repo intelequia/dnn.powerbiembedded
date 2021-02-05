@@ -136,6 +136,12 @@ namespace DotNetNuke.PowerBI.Services
 
         public async Task<PowerBICalendarView> GetScheduleInGroup(string mode)
         {
+
+            var model = (PowerBICalendarView)CachingProvider.Instance().GetItem($"PBI_{Settings.PortalId}_{Settings.SettingsId}_{Thread.CurrentThread.CurrentUICulture.Name}_CalendarDataSet_{mode}");
+            if (model != null)
+                return model;
+
+            model = new PowerBICalendarView();
             // Get token credentials for user
             var getCredentialsResult = await GetTokenCredentials();
             if (!getCredentialsResult)
@@ -152,15 +158,18 @@ namespace DotNetNuke.PowerBI.Services
                 "#A993E2",
                 "#7360AA"
             };
-            var model = new PowerBICalendarView();
+            
             // Create a Power BI Client object. It will be used to call Power BI APIs.
             using (var client = new PowerBIClient(new Uri(Settings.ApiUrl), tokenCredentials))
             {
-                if (mode == "0")
+                if (mode == "-1")
                 {
                     //Mode = 0 schedule for all workspaces
-                    var workspaces = GetWorkspaces().Result;
-                    model.Workspaces = workspaces.Select(group => group.Id).ToList();
+                    var pbiSettings = SharedSettingsRepository.Instance.GetSettings(Settings.PortalId);
+                    foreach (var s in pbiSettings)
+                    {
+                        model.Workspaces.Add(s.WorkspaceId);
+                    }
                 }
                 else
                 {
@@ -178,6 +187,27 @@ namespace DotNetNuke.PowerBI.Services
                     for (var x = 0; x < datasets.Count; x++)
                     {
                         var dataset = datasets[x];
+
+                        //Get refreshes history
+                        var history = client.Datasets.GetRefreshHistoryInGroupAsync(Settings.WorkspaceId, dataset.Id,100).GetAwaiter().GetResult().Value.ToList();
+
+                        var group = client.Groups.GetGroupsAsync().GetAwaiter().GetResult().Value.FirstOrDefault(g => g.Id.ToLowerInvariant() == Settings.SettingsGroupId.ToLowerInvariant());
+                        var capacity = client.Capacities.GetCapacitiesAsync().GetAwaiter().GetResult().Value.FirstOrDefault(c => c.Id == group.CapacityId);
+                        foreach (var refresh in history)
+                        {
+                            model.History.Add(new RefreshedDataset
+                            {
+                                Dataset = dataset.Name,
+                                WorkSpaceName = group.Name,
+                                CapacityName = capacity.DisplayName,
+                                StartTime = refresh.StartTime,
+                                EndTime = refresh.EndTime,
+                                RefreshType = refresh.RefreshType,
+                                RequestId = refresh.RequestId,
+                                ServiceExceptionJson = refresh.ServiceExceptionJson,
+                                Status = refresh.Status
+                            });
+                        }
 
                         try
                         {
@@ -254,6 +284,10 @@ namespace DotNetNuke.PowerBI.Services
                         
                     }
                 }
+                //Order history
+                model.History = model.History.OrderByDescending(dataset => dataset.StartTime).ToList();
+
+                CachingProvider.Instance().Insert($"PBI_{Settings.PortalId}_{Settings.SettingsId}_{Thread.CurrentThread.CurrentUICulture.Name}_CalendarDataSet_{mode}", model, null, DateTime.Now.AddMinutes(15), TimeSpan.Zero);
             }
             return model;
         }
@@ -276,23 +310,6 @@ namespace DotNetNuke.PowerBI.Services
 
             return result.ToString("yyyy-MM-ddTHH:mm:ss");
         }
-
-        public async Task<List<Group>> GetWorkspaces()
-        {
-            var getCredentialsResult = await GetTokenCredentials();
-            if (!getCredentialsResult)
-            {
-                // The error message set in GetTokenCredentials
-                return null;
-            }
-
-            using (var client = new PowerBIClient(new Uri(Settings.ApiUrl), tokenCredentials))
-            {
-                var workspaces = client.Groups.GetGroupsAsync().GetAwaiter().GetResult();
-                return workspaces.Value.ToList();
-            }
-        }
-
 
         public async Task<EmbedConfig> GetReportEmbedConfigAsync(int userId, string username, string roles, string reportId)
         {

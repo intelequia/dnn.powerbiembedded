@@ -13,9 +13,13 @@ namespace DotNetNuke.PowerBI.Models
     [DataContract]
     public class PowerBICalendarView
     {
+        
+
         public PowerBICalendarView()
         {
             RefreshSchedules = new List<CalendarItem>();
+            History = new List<RefreshedDataset>();
+            Workspaces = new List<string>();
         }
         [DataMember]
         public List<string> Workspaces { get; set; }
@@ -24,8 +28,14 @@ namespace DotNetNuke.PowerBI.Models
         [DataMember]
         public List<CalendarItem> RefreshSchedules { get; set; }
         [DataMember]
-        public List<SelectListItem> Options { get; set; }
-        public int SelectedOption { get; set; }
+        public List<RefreshedDataset> History { get; set; }
+
+        public int CurrentPage { get; set; } = 1;
+        public int Count { get; set; }
+        public int PageSize { get; set; } = 10;
+
+        public int TotalPages => (int)Math.Ceiling(decimal.Divide(Count, PageSize));
+
 
     }
 
@@ -43,5 +53,12 @@ namespace DotNetNuke.PowerBI.Models
     {
         public string start { get; set; }
         public string end { get; set; }
+    }
+
+    public class RefreshedDataset : Refresh
+    {
+        public string Dataset { get; set; }
+        public string WorkSpaceName { get; set; }
+        public string CapacityName { get; set; }
     }
 }

@@ -1,15 +1,17 @@
 ﻿@inherits DotNetNuke.Web.Mvc.Framework.DnnWebViewPage<DotNetNuke.PowerBI.Models.PowerBICalendarView>
 @using System.Web.Mvc
 @using System.Web.WebPages.Html
+@using DotNetNuke.PowerBI.Models
 @using DotNetNuke.Web.Mvc.Helpers
 @using DotNetNuke.Web.Client.ClientResourceManagement
 @using SelectListItem = System.Web.Mvc.SelectListItem
 @{
     ClientResourceManager.RegisterStyleSheet(Dnn.DnnPage, "https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/3.9.0/fullcalendar.min.css", 10, "DnnPageHeaderProvider");
+    ClientResourceManager.RegisterStyleSheet(Dnn.DnnPage, "~/DesktopModules/MVC/PowerBIEmbedded/css/module.css", 10, "DnnPageHeaderProvider");
     ClientResourceManager.RegisterScript(Dnn.DnnPage, "~/DesktopModules/MVC/PowerBIEmbedded/scripts/powerbi.min.js", 20);
     ClientResourceManager.RegisterScript(Dnn.DnnPage, "https://npmcdn.com/es6-promise@3.2.1", 18);
     ClientResourceManager.RegisterScript(Dnn.DnnPage, "https://code.jquery.com/jquery-1.11.2.min.js", 19);
-    //ClientResourceManager.RegisterScript(Dnn.DnnPage, "https://code.jquery.com/ui/1.11.2/jquery-ui.min.js", 19);
+    ClientResourceManager.RegisterScript(Dnn.DnnPage, "https://code.jquery.com/ui/1.11.2/jquery-ui.min.js", 19);
     ClientResourceManager.RegisterScript(Dnn.DnnPage, "https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.21.0/moment.min.js", 20);
     ClientResourceManager.RegisterScript(Dnn.DnnPage, "https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/3.9.0/fullcalendar.min.js", 21);
     ClientResourceManager.RegisterScript(Dnn.DnnPage, "https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/3.9.0/locale-all.js", 22);
@@ -21,25 +23,42 @@
     @Html.DropDownList("Mode", ViewBag.Options as SelectList,new { @class = "form-control drop m-b" })
     @*@Html.DropDownListFor(m => m.SelectedOption, Model.Options, new { @onchange = "callChangefunc(this.value)" })*@
     <script>
-        function addOrUpdateUrlParam(name, value) {
-            var href = window.location.href;
-            var regex = new RegExp("[&\\?]" + name + "=");
-            if (regex.test(href)) {
-                regex = new RegExp("([&\\?])" + name + "=\\d+");
-                window.location.href = href.replace(regex, "$1" + name + "=" + value);
+        function updateUrlParameter(uri, key, value) {
+            // remove the hash part before operating on the uri
+            var i = uri.indexOf('#');
+            var hash = i === -1 ? ''  : uri.substr(i);
+            uri = i === -1 ? uri : uri.substr(0, i);
+
+            var re = new RegExp("([?&])" + key + "=.*?(&|$)", "i");
+            var separator = uri.indexOf('?') !== -1 ? "&" : "?";
+            if (uri.match(re)) {
+                uri = uri.replace(re, '$1' + key + "=" + value + '$2');
+            } else {
+                uri = uri + separator + key + "=" + value;
             }
-            else {
-                if (href.indexOf("?") > -1)
-                    window.location.href = href + "&" + name + "=" + value;
-                else
-                    window.location.href = href + "?" + name + "=" + value;
-            }
+            return uri + hash;  // finally append the hash as well
         }
+
+        //function addOrUpdateUrlParam(name, value) {
+        //    var href = window.location.href;
+        //    var regex = new RegExp("[&\\?]" + name + "=");
+        //    if (regex.test(href)) {
+        //        regex = new RegExp("([&\\?])" + name + "=\\d+");
+        //        window.location.href = href.replace(regex, "$1" + name + "=" + value);
+        //    }
+        //    else {
+        //        if (href.indexOf("?") > -1)
+        //            window.location.href = href + "&" + name + "=" + value;
+        //        else
+        //            window.location.href = href + "?" + name + "=" + value;
+        //    }
+        //}
         $("#Mode").on("change", function () {
             var selectedId = $(this).val();
 
             /**/
-            addOrUpdateUrlParam('mode', selectedId);
+            var url = updateUrlParameter(window.location.href, 'cid', selectedId);
+            window.location.href = url;
             /**/
         });
 
@@ -57,6 +76,47 @@
     else
     {
         <div id="calendar" class="fc fc-unthemed fc-ltr"></div>
+        <div class="history">
+            <h1>Refresh history</h1>
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Dataset</th>
+                        <th>Workspace</th>
+                        <th>Capacity</th>
+                        <th>Start time</th>
+                        <th>End time</th>
+                        <th>Refresh Type</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var refresh in ViewBag.History as List<RefreshedDataset>)
+                    {
+                    <tr>
+                        <td>@refresh.Dataset</td>
+                        <td>@refresh.WorkSpaceName</td>
+                        <td>@refresh.CapacityName</td>
+                        <td>@refresh.StartTime.Value.ToString("g")</td>
+                        <td>@refresh.EndTime.Value.ToString("g")</td>
+                        <td>@refresh.RefreshType</td>
+                        <td>@refresh.Status</td>
+
+                    </tr>
+                    }
+                </tbody>
+            </table>
+            <div class="pages">
+                <ul class="pagination">
+                    @for (var i = 1; i <= Model.TotalPages; i++)
+                    {
+                        <li class="page-item @(i == Model.CurrentPage ? "active" : "")">
+                            <a onclick="changePage(@i)" class="page-link">@i</a>
+                        </li>
+                    }
+                </ul>
+            </div>
+        </div>
         <script>
 
 
@@ -108,6 +168,27 @@
                 allDaySlot: false
             });
             //$("#calendar").fullCalendar('renderEvents', events, true);
+
+            function changePage(page) {
+                var url = updateUrlParameter(window.location.href, 'page', page);
+                window.location.href = url;
+            }
+
+            function updateUrlParameter(uri, key, value) {
+                // remove the hash part before operating on the uri
+                var i = uri.indexOf('#');
+                var hash = i === -1 ? ''  : uri.substr(i);
+                uri = i === -1 ? uri : uri.substr(0, i);
+
+                var re = new RegExp("([?&])" + key + "=.*?(&|$)", "i");
+                var separator = uri.indexOf('?') !== -1 ? "&" : "?";
+                if (uri.match(re)) {
+                    uri = uri.replace(re, '$1' + key + "=" + value + '$2');
+                } else {
+                    uri = uri + separator + key + "=" + value;
+                }
+                return uri + hash;  // finally append the hash as well
+            }
 
         </script>
     }

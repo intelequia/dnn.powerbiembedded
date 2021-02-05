@@ -9,6 +9,7 @@ using DotNetNuke.Web.Mvc.Framework.Controllers;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Web.Mvc;
 
 
@@ -23,11 +24,25 @@ namespace DotNetNuke.PowerBI.Controllers
         public ActionResult Index()
         {
 
-            var settingsGroupId = Request.QueryString["sid"];
-            if (string.IsNullOrEmpty(settingsGroupId))
+
+            List<SelectListItem> lst = new List<SelectListItem>();
+
+            var pbiSettings = SharedSettingsRepository.Instance.GetSettings(ModuleContext.PortalId);
+            foreach (var s in pbiSettings)
+            {
+                lst.Add(new SelectListItem { Text = s.SettingsGroupName, Value = s.WorkspaceId });
+            }
+
+            var cid = Request.QueryString["cid"];
+            lst.Add(new SelectListItem() { Text = "All Workspaces", Value = "-1" });
+            ViewBag.Options = new SelectList(lst, "Value", "Text", cid ?? "-1");
+
+
+            var settingsGroupId = Request.QueryString["cid"];
+            if (string.IsNullOrEmpty(settingsGroupId) || settingsGroupId == "-1")
             {
                 var defaultPbiSettingsGroupId = (string)ModuleContext.Settings["PowerBIEmbedded_SettingsGroupId"];
-                var pbiSettings = SharedSettingsRepository.Instance.GetSettings(ModuleContext.PortalId).RemoveUnauthorizedItems(User);
+                //var pbiSettings = SharedSettingsRepository.Instance.GetSettings(ModuleContext.PortalId).RemoveUnauthorizedItems(User);
                 if (!string.IsNullOrEmpty(defaultPbiSettingsGroupId) && pbiSettings.Any(x => x.SettingsGroupId == defaultPbiSettingsGroupId))
                 {
                     settingsGroupId = defaultPbiSettingsGroupId;
@@ -39,27 +54,31 @@ namespace DotNetNuke.PowerBI.Controllers
             }
             var embedService = new EmbedService(ModuleContext.PortalId, ModuleContext.TabModuleId, settingsGroupId);
 
-
-            List<SelectListItem> lst = new List<SelectListItem>();
-            var mode = Request.QueryString["mode"];
-            lst.Add(new SelectListItem() { Text = "All Workspaces", Value = "0" });
-            lst.Add(new SelectListItem() { Text = "Current Workspace", Value = "1" });
-            ViewBag.Options = new SelectList(lst,"Value","Text", mode ?? "1");
-
             try
             {
                 PowerBICalendarView model;
 
-                if (string.IsNullOrEmpty(mode) || mode == "0")
+                if (string.IsNullOrEmpty(cid) || cid == "-1")
                 {
-                    model = embedService.GetScheduleInGroup(mode).Result;
+                    model = embedService.GetScheduleInGroup("-1").Result;
                 }
                 else
                 {
-                    model = embedService.GetScheduleInGroup(mode).Result;
+                    model = embedService.GetScheduleInGroup(cid).Result;
                 }
-                
 
+
+
+                //pagination
+                model.CurrentPage = Convert.ToInt32(Request.QueryString["page"]) != 0 ? Convert.ToInt32(Request.QueryString["page"]) : 0;
+
+                model.Count = model.History.Count;
+                var skip = (model.CurrentPage - 1) * model.PageSize;
+                var take = model.PageSize;
+
+                var pagedHistory = model.History.Skip(skip).Take(take).ToList();
+
+                ViewBag.History = pagedHistory;
                 if (model != null)
                 {
                     return View(model);
