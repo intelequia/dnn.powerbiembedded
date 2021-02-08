@@ -3,6 +3,7 @@ const webpackExternals = require("@dnnsoftware/dnn-react-common/WebpackExternals
 const path = require("path");
 const packageJson = require("./package.json");
 const isProduction = process.env.NODE_ENV === "production";
+
 const languages = {
     "en": null
     // TODO: create locallizaton files per language 
@@ -40,7 +41,6 @@ module.exports = {
                 loader: 'eslint-loader',
                 options: { fix: true }
             },
-            { test: /\.(js|jsx)$/, exclude: /node_modules/, loader: "babel-loader" },            
             { 
                 test: /\.(less|css)$/,
                 use: [
@@ -49,6 +49,20 @@ module.exports = {
                     { loader: "less-loader" }
                   ]
             },
+            {
+                test: /\.(js|jsx)$/,
+                exclude: [/node_modules/],
+                use: {
+                  loader: "babel-loader",
+                  options: {
+                    presets: ["@babel/preset-env", "@babel/preset-react"],
+                    plugins: [
+                      "@babel/plugin-transform-react-jsx",
+                      "@babel/plugin-proposal-object-rest-spread"
+                    ]
+                  }
+                }
+            },            
             { test: /\.(ttf|woff)$/, loader: "url-loader?limit=8192" },
             { test: /\.(gif|png)$/, loader: "url-loader?mimetype=image/png" }
         ]
