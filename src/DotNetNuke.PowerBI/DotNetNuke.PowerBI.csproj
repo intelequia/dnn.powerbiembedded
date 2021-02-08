@@ -335,7 +335,7 @@
   </UsingTask>
   <Target Name="SampleTarget" BeforeTargets="PackageModule" Condition=" '$(Configuration)' == 'Release' ">
     <SetEnvironmentVariableTask Name="NODE_ENV" Value="production" />
-    <Exec Command="webpack -p" WorkingDirectory="PBIEmbedded.Web" />
+    <Exec Command="webpack --mode production --env production" WorkingDirectory="PBIEmbedded.Web" />
   </Target>
   <Target Name="AfterBuild" DependsOnTargets="PackageModule">
   </Target>
