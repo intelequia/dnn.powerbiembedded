@@ -37,40 +37,20 @@ module.exports = {
                 test: /\.(js|jsx)$/, 
                 exclude: /node_modules/, 
                 enforce: "pre",
+                loader: 'eslint-loader',
+                options: { fix: true }
+            },
+            { test: /\.(js|jsx)$/, exclude: /node_modules/, loader: "babel-loader" },            
+            { 
+                test: /\.(less|css)$/,
                 use: [
-                    'eslint-loader'
-                 ]
+                    { loader: "style-loader" },
+                    { loader: "css-loader", options: { modules: "global" } },
+                    { loader: "less-loader" }
+                  ]
             },
-            { 
-                test: /\.less$/, 
-                use: [{
-                    loader: 'style-loader'  // creates style nodes from JS strings
-                }, {
-                    loader: 'css-loader'    // translates CSS into CommonJS
-                }, {
-                    loader: 'less-loader'   // compiles Less to CSS
-                }] 
-            },
-            { 
-                test: /\.(js|jsx)$/, 
-                exclude: /node_modules/, 
-                use: {
-                    loader: 'babel-loader',
-                    options: {
-                        presets: ['@babel/preset-env','@babel/preset-react']
-                    }
-                }
-            },
-            { 
-                test: /\.(ttf|woff)$/, 
-                use: {
-                    loader: 'url-loader?limit=8192'
-                 }
-            },
-            { 
-                test: /\.(gif|png)$/, 
-                loader: "url-loader?mimetype=image/png" 
-            }
+            { test: /\.(ttf|woff)$/, loader: "url-loader?limit=8192" },
+            { test: /\.(gif|png)$/, loader: "url-loader?mimetype=image/png" }
         ]
     }, 
     externals: webpackExternals,
