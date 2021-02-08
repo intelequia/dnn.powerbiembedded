@@ -131,6 +131,12 @@
                         @Html.DropDownListFor(m => m.UserProperty, userPropertiesItems, "Choose one...")
                     </div>
                 </div>
+                <div class="dnnFormItem">
+                    <div class="leftGroup">
+                        <label>Custom user property</label>
+                        @Html.TextBoxFor(m => m.CustomUserProperty)
+                    </div>
+                </div>
             }
         }
     </fieldset>

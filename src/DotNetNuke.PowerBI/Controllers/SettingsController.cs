@@ -42,6 +42,7 @@ namespace DotNetNuke.PowerBI.Controllers
             public bool PrintVisible { get; set; }
             public string Height { get; set; }
             public string UserProperty { get; set; }
+            public string CustomUserProperty { get; set; }
         }
         private static readonly ILog Logger = LoggerSource.Instance.GetLogger(typeof(SettingsController));
         // GET: Settings
@@ -66,7 +67,8 @@ namespace DotNetNuke.PowerBI.Controllers
                     VisualHeaderVisible = bool.Parse(GetSetting("PowerBIEmbedded_VisualHeaderVisible", "False")),
                     ToolbarVisible = bool.Parse(GetSetting("PowerBIEmbedded_ToolbarVisible", "False")),
                     PrintVisible = bool.Parse(GetSetting("PowerBIEmbedded_PrintVisible", "False")),
-                    UserProperty = GetSetting("PowerBIEmbedded_UserProperty","Username")
+                    UserProperty = GetSetting("PowerBIEmbedded_UserProperty","Username"),
+                    CustomUserProperty = GetSetting("PowerBIEmbedded_CustomUserProperty","")
                 };
 
                 if (model.IsContentView)
@@ -98,6 +100,7 @@ namespace DotNetNuke.PowerBI.Controllers
                     var userProperties = new List<string>
                     {
                         "Username",
+                        "Custom"
                     };
                     var property = ProfileController.GetPropertyDefinitionByName(PortalSettings.PortalId, "PowerBiGroup");
                     if (property !=null && !property.Deleted)
@@ -136,6 +139,7 @@ namespace DotNetNuke.PowerBI.Controllers
                 ModuleController.Instance.UpdateTabModuleSetting(this.ModuleContext.TabModuleId, "PowerBIEmbedded_ToolbarVisible", settings.ToolbarVisible.ToString());
                 ModuleController.Instance.UpdateTabModuleSetting(this.ModuleContext.TabModuleId, "PowerBIEmbedded_PrintVisible", settings.PrintVisible.ToString());
                 ModuleController.Instance.UpdateTabModuleSetting(this.ModuleContext.TabModuleId, "PowerBIEmbedded_UserProperty", settings.UserProperty);
+                ModuleController.Instance.UpdateTabModuleSetting(this.ModuleContext.TabModuleId, "PowerBIEmbedded_CustomUserProperty", settings.CustomUserProperty);
                 return RedirectToDefaultRoute();
             }
             catch (Exception ex)

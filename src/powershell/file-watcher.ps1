@@ -1,8 +1,8 @@
 <#
     Este lo uso para cuando edito ficheros en VS, que se copie en la carpeta que me interese (VS hace que se dispare el evento de los ficheros que estoy guardando)
  #>
-$searchPath = 'C:\dev\dnn.powerbiembedded\src\DotNetNuke.PowerBI'
-$destinationPath = 'C:\Websites\userportal.dnndev.me\DesktopModules\MVC\PowerBIEmbedded'
+$searchPath = 'C:\Desarrollo\dnn.powerbiembedded\src\DotNetNuke.PowerBI'
+$destinationPath = 'C:\Websites\pbiportal.dnndev.me\DesktopModules\MVC\PowerBIEmbedded'
 $filters = @('*.ascx', '*.css', '*.js', '*.resx', '*.cshtml', '*.html')
 
 foreach ($filter in $filters)

@@ -9,6 +9,8 @@ using DotNetNuke.Web.Mvc.Framework.Controllers;
 using System;
 using System.Linq;
 using System.Net;
+using System.Text;
+using System.Text.RegularExpressions;
 using System.Web.Mvc;
 using DotNetNuke.Entities.Profile;
 using DotNetNuke.Entities.Users;
@@ -54,6 +56,22 @@ namespace DotNetNuke.PowerBI.Controllers
                     {
                         user = userProperty.PropertyValue;
                     }
+                }
+                else if (userPropertySetting == "Custom")
+                {
+                    var customProperties = (string) ModuleContext.Settings["PowerBIEmbedded_CustomUserProperty"];
+                    var matches = System.Text.RegularExpressions.Regex.Matches(customProperties, @"\[PROFILE:(?<PROPERTY>[A-z]*)]");
+        
+                    foreach (Match match in matches)
+                    {
+                        var userProperty = PortalSettings.UserInfo.Profile.GetProperty(match.Groups["PROPERTY"].Value);
+                        if (userProperty?.PropertyValue != null)
+                        {
+                            customProperties = customProperties.Replace(match.Value, userProperty.PropertyValue);
+                        }
+                    }
+
+                    user = customProperties;
                 }
 
                 if (!string.IsNullOrEmpty(Request["dashboardId"]))

@@ -73,9 +73,14 @@
 	</p>
 	<p>Filter reports so that they do not show PowerBi internal usage<br /></p>
 
-		<p class="Owner">
+	<p class="Owner">
 	<b>Version 1.0.15</b>
 	</p>
-	<p>A new view has been added to see the update schedule for each dataset<br /></p>
+	<p>A new view has been added to see the update schedule for each dataset and refresh history<br /></p>
+
+	<p class="Owner">
+	<b>Version 1.0.16</b>
+	</p>
+	<p>New Custom settings for RLS have been added, now you can choose between Username, PowerBiGroup, or custom, With this new option you can create a custom string using the user properties e.g. [PROFILE.FirstName]. <br /></p>
 
 </div>
