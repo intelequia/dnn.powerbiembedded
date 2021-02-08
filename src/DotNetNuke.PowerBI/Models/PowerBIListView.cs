@@ -1,4 +1,4 @@
-﻿using Microsoft.PowerBI.Api.V2.Models;
+﻿using Microsoft.PowerBI.Api.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;

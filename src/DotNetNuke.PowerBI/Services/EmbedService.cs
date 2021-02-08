@@ -1,21 +1,18 @@
 ﻿using DotNetNuke.Instrumentation;
+using DotNetNuke.PowerBI.Data.Models;
+using DotNetNuke.PowerBI.Data.SharedSettings;
 using DotNetNuke.PowerBI.Models;
 using DotNetNuke.Services.Cache;
 using Microsoft.IdentityModel.Clients.ActiveDirectory;
-using Microsoft.PowerBI.Api.V2;
-using Microsoft.PowerBI.Api.V2.Models;
+using Microsoft.PowerBI.Api;
+using Microsoft.PowerBI.Api.Models;
 using Microsoft.Rest;
 using System;
 using System.Collections.Generic;
-using System.Collections.Specialized;
-using System.Configuration;
 using System.Globalization;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Web;
-using DotNetNuke.PowerBI.Data.Models;
-using DotNetNuke.PowerBI.Data.SharedSettings;
 
 namespace DotNetNuke.PowerBI.Services
 {
@@ -113,11 +110,11 @@ namespace DotNetNuke.PowerBI.Services
             // Create a Power BI Client object. It will be used to call Power BI APIs.
             using (var client = new PowerBIClient(new Uri(Settings.ApiUrl), tokenCredentials))
             {
-                var dashboards = client.Dashboards.GetDashboardsInGroupAsync(Settings.WorkspaceId).GetAwaiter().GetResult();
+                var dashboards = client.Dashboards.GetDashboardsInGroupAsync(Guid.Parse(Settings.WorkspaceId)).GetAwaiter().GetResult();
                 model.Dashboards.AddRange(dashboards.Value);
 
                 // Get a list of reports.
-                var reports = client.Reports.GetReportsInGroupAsync(Settings.WorkspaceId).GetAwaiter().GetResult();
+                var reports = client.Reports.GetReportsInGroupAsync(Guid.Parse(Settings.WorkspaceId)).GetAwaiter().GetResult();
                 var cleanedReports = CleanUsageReports(reports.Value.ToList());
                 model.Reports.AddRange(cleanedReports);
             }
@@ -180,7 +177,7 @@ namespace DotNetNuke.PowerBI.Services
                 foreach (var workspace in model.Workspaces)
                 {
                     //Get Schedule datasets
-                    var datasets = client.Datasets.GetDatasetsInGroupAsync(workspace).GetAwaiter().GetResult().Value;
+                    var datasets = client.Datasets.GetDatasetsInGroupAsync(Guid.Parse(workspace)).GetAwaiter().GetResult().Value;
                     datasets = CleanUsageDatasets(datasets.ToList());
 
                    
@@ -189,9 +186,9 @@ namespace DotNetNuke.PowerBI.Services
                         var dataset = datasets[x];
 
                         //Get refreshes history
-                        var history = client.Datasets.GetRefreshHistoryInGroupAsync(Settings.WorkspaceId, dataset.Id,100).GetAwaiter().GetResult().Value.ToList();
+                        var history = client.Datasets.GetRefreshHistoryInGroupAsync(Guid.Parse(Settings.WorkspaceId), dataset.Id,100).GetAwaiter().GetResult().Value.ToList();
 
-                        var group = client.Groups.GetGroupsAsync().GetAwaiter().GetResult().Value.FirstOrDefault(g => g.Id.ToLowerInvariant() == Settings.SettingsGroupId.ToLowerInvariant());
+                        var group = client.Groups.GetGroupsAsync().GetAwaiter().GetResult().Value.FirstOrDefault(g => g.Id.ToString() == Settings.SettingsGroupId.ToLowerInvariant());
                         var capacity = client.Capacities.GetCapacitiesAsync().GetAwaiter().GetResult().Value.FirstOrDefault(c => c.Id == group.CapacityId);
                         foreach (var refresh in history)
                         {
@@ -212,7 +209,7 @@ namespace DotNetNuke.PowerBI.Services
                         try
                         {
                             //Get refresh Schedule by dataset and Workspace
-                            var schedule = client.Datasets.GetRefreshScheduleInGroupAsync(Settings.WorkspaceId, dataset.Id)
+                            var schedule = client.Datasets.GetRefreshScheduleInGroupAsync(Guid.Parse(Settings.WorkspaceId), dataset.Id)
                                 .GetAwaiter().GetResult();
                             var timeRange = new List<Schedule>();
                             string startHour = schedule.Times[0];
@@ -258,9 +255,7 @@ namespace DotNetNuke.PowerBI.Services
                             for (var index = 0; index < schedule.Days.Count; index++)
                             {
                                 var day = schedule.Days[index];
-                                var dayOfWeek = (int)day.Value;
-                                int weekDay;
-
+                                var dayOfWeek = day.GetValueOrDefault().ToInteger();
                                 for (var i = 0; i < timeRange.Count; i++)
                                 {
                                     var time = timeRange[i];
@@ -279,6 +274,7 @@ namespace DotNetNuke.PowerBI.Services
                         }
                         catch (Exception e)
                         {
+                            Logger.Warn("Error getting refresh schedule by dataset and workspace", e);
                             continue;
                         }
                         
@@ -332,14 +328,14 @@ namespace DotNetNuke.PowerBI.Services
             using (var client = new PowerBIClient(new Uri(Settings.ApiUrl), tokenCredentials))
             {
                 // Get a list of reports.
-                var reports = await client.Reports.GetReportsInGroupAsync(Settings.WorkspaceId).ConfigureAwait(false);
+                var reports = await client.Reports.GetReportsInGroupAsync(Guid.Parse(Settings.WorkspaceId)).ConfigureAwait(false);
 
                 // No reports retrieved for the given workspace.
                 if (reports.Value.Count() == 0)
                 {
                     model.ErrorMessage = "No reports were found in the workspace";
                 }
-                var report = reports.Value.FirstOrDefault(r => r.Id.Equals(reportId, StringComparison.InvariantCultureIgnoreCase));
+                var report = reports.Value.FirstOrDefault(r => r.Id.ToString().Equals(reportId, StringComparison.InvariantCultureIgnoreCase));
                 if (report == null)
                 {
                     model.ErrorMessage = "No report with the given ID was found in the workspace. Make sure ReportId is valid.";
@@ -350,7 +346,7 @@ namespace DotNetNuke.PowerBI.Services
                 if (!string.IsNullOrWhiteSpace(username))
                 {
                     // Check if the dataset has effective identity required
-                    var dataset = await client.Datasets.GetDatasetByIdAsync(report.DatasetId);
+                    var dataset = await client.Datasets.GetDatasetAsync(report.DatasetId);
 
                     if ((dataset.IsEffectiveIdentityRequired.GetValueOrDefault(false) || dataset.IsEffectiveIdentityRolesRequired.GetValueOrDefault(false))
                         && !dataset.IsOnPremGatewayRequired.GetValueOrDefault(false))
@@ -375,7 +371,7 @@ namespace DotNetNuke.PowerBI.Services
                     // Generate Embed Token for reports without effective identities.
                     generateTokenRequestParameters = new GenerateTokenRequest(accessLevel: "view");
                 }
-                var tokenResponse = await client.Reports.GenerateTokenInGroupAsync(Settings.WorkspaceId, report.Id, generateTokenRequestParameters).ConfigureAwait(false);
+                var tokenResponse = await client.Reports.GenerateTokenInGroupAsync(Guid.Parse(Settings.WorkspaceId), report.Id, generateTokenRequestParameters).ConfigureAwait(false);
                 if (tokenResponse == null)
                 {
                     model.ErrorMessage = "Failed to generate embed token.";
@@ -383,7 +379,7 @@ namespace DotNetNuke.PowerBI.Services
                 // Generate Embed Configuration.
                 model.EmbedToken = tokenResponse;
                 model.EmbedUrl = report.EmbedUrl;
-                model.Id = report.Id;
+                model.Id = report.Id.ToString();
                 model.ContentType = "report";
 
                 CachingProvider.Instance().Insert($"PBI_{Settings.PortalId}_{Settings.SettingsId}_{userId}_{Thread.CurrentThread.CurrentUICulture.Name}_Report_{reportId}", model, null, DateTime.Now.AddSeconds(60), TimeSpan.Zero);
@@ -411,14 +407,14 @@ namespace DotNetNuke.PowerBI.Services
             using (var client = new PowerBIClient(new Uri(Settings.ApiUrl), tokenCredentials))
             {
                 // Get a list of reports.
-                var dashboards = await client.Dashboards.GetDashboardsInGroupAsync(Settings.WorkspaceId).ConfigureAwait(false);
+                var dashboards = await client.Dashboards.GetDashboardsInGroupAsync(Guid.Parse(Settings.WorkspaceId)).ConfigureAwait(false);
 
                 // No dashboards retrieved for the given workspace.
                 if (dashboards.Value.Count() == 0)
                 {
                     model.ErrorMessage = "No dashboards were found in the workspace";
                 }
-                var dashboard = dashboards.Value.FirstOrDefault(r => r.Id.Equals(dashboardId, StringComparison.InvariantCultureIgnoreCase));
+                var dashboard = dashboards.Value.FirstOrDefault(r => r.Id.ToString().Equals(dashboardId, StringComparison.InvariantCultureIgnoreCase));
                 if (dashboard == null)
                 {
                     model.ErrorMessage = "No dashboard with the given ID was found in the workspace. Make sure ReportId is valid.";
@@ -446,7 +442,7 @@ namespace DotNetNuke.PowerBI.Services
                 EmbedToken tokenResponse;
                 try
                 {
-                    tokenResponse = await client.Dashboards.GenerateTokenInGroupAsync(Settings.WorkspaceId, dashboard.Id, generateTokenRequestParameters).ConfigureAwait(false);
+                    tokenResponse = await client.Dashboards.GenerateTokenInGroupAsync(Guid.Parse(Settings.WorkspaceId), dashboard.Id, generateTokenRequestParameters).ConfigureAwait(false);
                 }
                 catch (HttpOperationException ex)
                 {
@@ -455,7 +451,7 @@ namespace DotNetNuke.PowerBI.Services
                         // HACK: Creating embed token for accessing dataset shouldn't have effective identity"
                         // See https://community.powerbi.com/t5/Developer/quot-shouldn-t-have-effective-identity-quot-error-when-passing/m-p/437177
                         generateTokenRequestParameters = new GenerateTokenRequest(accessLevel: "view");
-                        tokenResponse = await client.Dashboards.GenerateTokenInGroupAsync(Settings.WorkspaceId, dashboard.Id, generateTokenRequestParameters).ConfigureAwait(false);
+                        tokenResponse = await client.Dashboards.GenerateTokenInGroupAsync(Guid.Parse(Settings.WorkspaceId), dashboard.Id, generateTokenRequestParameters).ConfigureAwait(false);
                     }
                     else
                         throw;
@@ -467,7 +463,7 @@ namespace DotNetNuke.PowerBI.Services
                 // Generate Embed Configuration.
                 model.EmbedToken = tokenResponse;
                 model.EmbedUrl = dashboard.EmbedUrl;
-                model.Id = dashboard.Id;
+                model.Id = dashboard.Id.ToString();
                 model.ContentType = "dashboard";
 
                 CachingProvider.Instance().Insert($"PBI_{Settings.PortalId}_{Settings.SettingsId}_{userId}_{Thread.CurrentThread.CurrentUICulture.Name}_Dashboard_{dashboardId}", model, null, DateTime.Now.AddSeconds(60), TimeSpan.Zero);
@@ -495,21 +491,21 @@ namespace DotNetNuke.PowerBI.Services
             using (var client = new PowerBIClient(new Uri(Settings.ApiUrl), tokenCredentials))
             {
                 // Get a list of dashboards.
-                var dashboards = await client.Dashboards.GetDashboardsInGroupAsync(Settings.WorkspaceId).ConfigureAwait(false);
+                var dashboards = await client.Dashboards.GetDashboardsInGroupAsync(Guid.Parse(Settings.WorkspaceId)).ConfigureAwait(false);
 
                 // Get the first report in the workspace.
-                var dashboard = dashboards.Value.FirstOrDefault(r => r.Id.Equals(dashboardId, StringComparison.InvariantCultureIgnoreCase));
+                var dashboard = dashboards.Value.FirstOrDefault(r => r.Id.ToString().Equals(dashboardId, StringComparison.InvariantCultureIgnoreCase));
                 if (dashboard == null)
                 {
                     tileEmbedConfig.ErrorMessage = "Workspace has no dashboards.";
                     return model;
                 }
-                var tiles = await client.Dashboards.GetTilesInGroupAsync(Settings.WorkspaceId, dashboardId).ConfigureAwait(false);
+                var tiles = await client.Dashboards.GetTilesInGroupAsync(Guid.Parse(Settings.WorkspaceId), Guid.Parse(dashboardId)).ConfigureAwait(false);
                 // Get the first tile in the workspace.
-                var tile = tiles.Value.FirstOrDefault(x => x.Id == tileId);
+                var tile = tiles.Value.FirstOrDefault(x => x.Id.ToString() == tileId);
                 // Generate Embed Token for a tile.
                 var generateTokenRequestParameters = new GenerateTokenRequest(accessLevel: "view");
-                var tokenResponse = await client.Tiles.GenerateTokenInGroupAsync(Settings.WorkspaceId, dashboard.Id, tile.Id, generateTokenRequestParameters).ConfigureAwait(false);
+                var tokenResponse = await client.Tiles.GenerateTokenInGroupAsync(Guid.Parse(Settings.WorkspaceId), dashboard.Id, tile.Id, generateTokenRequestParameters).ConfigureAwait(false);
                 if (tokenResponse == null)
                 {
                     tileEmbedConfig.ErrorMessage = "Failed to generate embed token.";
@@ -521,8 +517,8 @@ namespace DotNetNuke.PowerBI.Services
                 {
                     EmbedToken = tokenResponse,
                     EmbedUrl = tile.EmbedUrl,
-                    Id = tile.Id,
-                    dashboardId = dashboard.Id,
+                    Id = tile.Id.ToString(),
+                    dashboardId = dashboard.Id.ToString(),
                     ContentType = "tile"
                 };
                 CachingProvider.Instance().Insert($"PBI_{Settings.PortalId}_{Settings.SettingsId}_{userId}_{Thread.CurrentThread.CurrentUICulture.Name}_Dashboard_{dashboardId}_Tile_{tileId}", model, null, DateTime.Now.AddSeconds(60), TimeSpan.Zero);
