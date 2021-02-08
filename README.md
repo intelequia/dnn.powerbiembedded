@@ -1,4 +1,5 @@
-# PowerBI Embedded modules for DNN Platform
+[![Latest release](docs/images/ReleaseBadge.svg)](https://github.com/intelequia/dnn.powerbiembedded/releases) [![Build status](https://intelequia.visualstudio.com/DotNetNuke.PowerBI/_apis/build/status/DotNetNuke.PowerBI-CI)](https://intelequia.visualstudio.com/DotNetNuke.PowerBI/_build/latest?definitionId=44)
+
 A set of modules to embed PowerBI Embedded dashboards and reports into a DNN Platform installation.
 
 # Getting Started
