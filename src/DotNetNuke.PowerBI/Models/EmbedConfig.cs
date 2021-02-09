@@ -1,4 +1,4 @@
-﻿using Microsoft.PowerBI.Api.V2.Models;
+﻿using Microsoft.PowerBI.Api.Models;
 using System;
 
 namespace DotNetNuke.PowerBI.Models
@@ -17,7 +17,7 @@ namespace DotNetNuke.PowerBI.Models
         {
             get
             {
-                var minutesToExpiration = EmbedToken.Expiration.Value - DateTime.UtcNow;
+                var minutesToExpiration = EmbedToken.Expiration - DateTime.UtcNow;
                 return (int)minutesToExpiration.TotalMinutes;
             }
         }

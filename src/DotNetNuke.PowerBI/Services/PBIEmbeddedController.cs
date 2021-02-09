@@ -166,11 +166,11 @@ namespace DotNetNuke.PowerBI.Services
                 // Add report permissions
                 foreach (var report in model.Reports)
                 {
-                    var reportSecurity = ObjectPermissionsRepository.Instance.GetObjectPermissions(report.Id, PortalSettings.PortalId);
+                    var reportSecurity = ObjectPermissionsRepository.Instance.GetObjectPermissions(report.Id.ToString(), PortalSettings.PortalId);
 
                     result.Add(new GetPowerBiObjectListResponse
                     {
-                        Id = report.Id,
+                        Id = report.Id.ToString(),
                         Name = report.Name,
                         PowerBiType = GetPowerBiObjectListResponse.ObjectType.Report,
                         Permissions = GetPowerBiObjectListResponse.DataToPermissions(reportSecurity)
@@ -180,10 +180,10 @@ namespace DotNetNuke.PowerBI.Services
                 // Add dashboard permissions
                 foreach (var dashboard in model.Dashboards)
                 {
-                    var reportSecurity = ObjectPermissionsRepository.Instance.GetObjectPermissions(dashboard.Id, PortalSettings.PortalId);
+                    var reportSecurity = ObjectPermissionsRepository.Instance.GetObjectPermissions(dashboard.Id.ToString(), PortalSettings.PortalId);
                     result.Add(new GetPowerBiObjectListResponse
                     {
-                        Id = dashboard.Id,
+                        Id = dashboard.Id.ToString(),
                         Name = dashboard.DisplayName,
                         PowerBiType = GetPowerBiObjectListResponse.ObjectType.Dashboard,
                         Permissions = GetPowerBiObjectListResponse.DataToPermissions(reportSecurity)

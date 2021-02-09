@@ -51,7 +51,7 @@ namespace DotNetNuke.PowerBI.Models
                     model.Workspaces.FirstOrDefault(c => c.Id == HttpUtility.ParseQueryString((new Uri(x.EmbedUrl)).Query)?.Get("groupId")) == null
                     ||
                     (!model.Workspaces.FirstOrDefault(c => c.Id == HttpUtility.ParseQueryString((new Uri(x.EmbedUrl)).Query)?.Get("groupId")).InheritPermissions
-                        && !permissionsRepo.HasPermissions(x.Id, user.PortalID, 1, user))
+                        && !permissionsRepo.HasPermissions(x.Id.ToString(), user.PortalID, 1, user))
                 );
 
 
@@ -60,7 +60,7 @@ namespace DotNetNuke.PowerBI.Models
                     model.Workspaces.FirstOrDefault(c => c.Id == model.WorkspaceId) == null
                     ||
                     (!model.Workspaces.FirstOrDefault(c => c.Id == model.WorkspaceId).InheritPermissions
-                        && !permissionsRepo.HasPermissions(x.Id, user.PortalID, 1, user))
+                        && !permissionsRepo.HasPermissions(x.Id.ToString(), user.PortalID, 1, user))
                 );
             }
             return model;

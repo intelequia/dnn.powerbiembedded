@@ -13,7 +13,7 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>DotNetNuke.PowerBI</RootNamespace>
     <AssemblyName>DotNetNuke.PowerBI</AssemblyName>
-    <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
     <UseIISExpress>true</UseIISExpress>
     <IISExpressSSLPort />
     <IISExpressAnonymousAuthentication />
@@ -43,42 +43,51 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Dnn.PersonaBar.Library, Version=1.5.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Dnn.PersonaBar.Library.1.5.0.193\lib\net45\Dnn.PersonaBar.Library.dll</HintPath>
+    <Reference Include="Dnn.PersonaBar.Library, Version=9.4.3.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Dnn.PersonaBar.Library.9.4.3\lib\net45\Dnn.PersonaBar.Library.dll</HintPath>
     </Reference>
-    <Reference Include="DotNetNuke, Version=9.3.2.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\DotNetNuke.Core.9.3.2\lib\net45\DotNetNuke.dll</HintPath>
+    <Reference Include="DotNetNuke, Version=9.4.3.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\DotNetNuke.Core.9.4.3\lib\net45\DotNetNuke.dll</HintPath>
     </Reference>
-    <Reference Include="DotNetNuke.Instrumentation, Version=9.3.2.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\DotNetNuke.Instrumentation.9.3.2\lib\net45\DotNetNuke.Instrumentation.dll</HintPath>
+    <Reference Include="DotNetNuke.DependencyInjection, Version=9.4.3.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\DotNetNuke.DependencyInjection.9.4.3\lib\netstandard2.0\DotNetNuke.DependencyInjection.dll</HintPath>
     </Reference>
-    <Reference Include="DotNetNuke.Log4Net, Version=3.0.1.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\DotNetNuke.Instrumentation.9.3.2\lib\net45\DotNetNuke.Log4Net.dll</HintPath>
+    <Reference Include="DotNetNuke.Instrumentation, Version=9.4.3.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\DotNetNuke.Instrumentation.9.4.3\lib\net45\DotNetNuke.Instrumentation.dll</HintPath>
     </Reference>
-    <Reference Include="DotNetNuke.Web, Version=9.3.2.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\DotNetNuke.Web.9.3.2\lib\net45\DotNetNuke.Web.dll</HintPath>
+    <Reference Include="DotNetNuke.log4net, Version=3.0.1.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\DotNetNuke.Instrumentation.9.4.3\lib\net45\DotNetNuke.log4net.dll</HintPath>
     </Reference>
-    <Reference Include="DotNetNuke.Web.Client, Version=9.3.2.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\DotNetNuke.Web.Client.9.3.2\lib\net45\DotNetNuke.Web.Client.dll</HintPath>
+    <Reference Include="DotNetNuke.Web, Version=9.4.3.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\DotNetNuke.Web.9.4.3\lib\net45\DotNetNuke.Web.dll</HintPath>
     </Reference>
-    <Reference Include="DotNetNuke.Web.Mvc, Version=9.3.2.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\DotNetNuke.Web.Mvc.9.3.2\lib\net45\DotNetNuke.Web.Mvc.dll</HintPath>
+    <Reference Include="DotNetNuke.Web.Client, Version=9.4.3.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\DotNetNuke.Web.Client.9.4.3\lib\net45\DotNetNuke.Web.Client.dll</HintPath>
+    </Reference>
+    <Reference Include="DotNetNuke.Web.Mvc, Version=9.4.3.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\DotNetNuke.Web.Mvc.9.4.3\lib\net45\DotNetNuke.Web.Mvc.dll</HintPath>
     </Reference>
     <Reference Include="DotNetNuke.WebUtility, Version=4.2.1.783, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\DotNetNuke.Web.9.3.2\lib\net45\DotNetNuke.WebUtility.dll</HintPath>
+      <HintPath>..\packages\DotNetNuke.Web.9.4.3\lib\net45\DotNetNuke.WebUtility.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.ApplicationBlocks.Data, Version=2.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\DotNetNuke.Core.9.3.2\lib\net45\Microsoft.ApplicationBlocks.Data.dll</HintPath>
+      <HintPath>..\packages\DotNetNuke.Core.9.4.3\lib\net45\Microsoft.ApplicationBlocks.Data.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.CSharp" />
+    <Reference Include="Microsoft.Extensions.DependencyInjection, Version=2.1.1.0, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.Extensions.DependencyInjection.2.1.1\lib\net461\Microsoft.Extensions.DependencyInjection.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Extensions.DependencyInjection.Abstractions, Version=2.1.1.0, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.Extensions.DependencyInjection.Abstractions.2.1.1\lib\netstandard2.0\Microsoft.Extensions.DependencyInjection.Abstractions.dll</HintPath>
+    </Reference>
     <Reference Include="Microsoft.IdentityModel.Clients.ActiveDirectory, Version=5.2.1.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.IdentityModel.Clients.ActiveDirectory.5.2.1\lib\net45\Microsoft.IdentityModel.Clients.ActiveDirectory.dll</HintPath>
     </Reference>
-    <Reference Include="Microsoft.PowerBI.Api, Version=2.10.0.19227, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\packages\Microsoft.PowerBI.Api.2.10.0\lib\netstandard2.0\Microsoft.PowerBI.Api.dll</HintPath>
+    <Reference Include="Microsoft.PowerBI.Api, Version=3.21.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.PowerBI.Api.3.21.0\lib\netstandard2.0\Microsoft.PowerBI.Api.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.Rest.ClientRuntime, Version=2.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\packages\Microsoft.Rest.ClientRuntime.2.3.18\lib\net452\Microsoft.Rest.ClientRuntime.dll</HintPath>
+      <HintPath>..\packages\Microsoft.Rest.ClientRuntime.2.3.22\lib\net461\Microsoft.Rest.ClientRuntime.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.Web.Infrastructure, Version=1.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.Web.Infrastructure.1.0.0.0\lib\net40\Microsoft.Web.Infrastructure.dll</HintPath>
@@ -105,9 +114,12 @@
     <Reference Include="System.Runtime" />
     <Reference Include="System.Runtime.Serialization" />
     <Reference Include="System.Security.Cryptography.Algorithms, Version=4.1.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-      <HintPath>..\packages\System.Security.Cryptography.Algorithms.4.3.0\lib\net461\System.Security.Cryptography.Algorithms.dll</HintPath>
+      <HintPath>..\packages\System.Security.Cryptography.Algorithms.4.3.1\lib\net461\System.Security.Cryptography.Algorithms.dll</HintPath>
       <Private>True</Private>
       <Private>True</Private>
+    </Reference>
+    <Reference Include="System.Security.Cryptography.Cng, Version=4.3.3.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Security.Cryptography.Cng.4.7.0\lib\net461\System.Security.Cryptography.Cng.dll</HintPath>
     </Reference>
     <Reference Include="System.Security.Cryptography.Encoding, Version=4.0.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <HintPath>..\packages\System.Security.Cryptography.Encoding.4.3.0\lib\net46\System.Security.Cryptography.Encoding.dll</HintPath>
@@ -119,8 +131,8 @@
       <Private>True</Private>
       <Private>True</Private>
     </Reference>
-    <Reference Include="System.Security.Cryptography.X509Certificates, Version=4.1.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-      <HintPath>..\packages\System.Security.Cryptography.X509Certificates.4.3.0\lib\net461\System.Security.Cryptography.X509Certificates.dll</HintPath>
+    <Reference Include="System.Security.Cryptography.X509Certificates, Version=4.1.1.2, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Security.Cryptography.X509Certificates.4.3.2\lib\net461\System.Security.Cryptography.X509Certificates.dll</HintPath>
       <Private>True</Private>
       <Private>True</Private>
     </Reference>
@@ -176,6 +188,7 @@
     <Compile Include="Data\ObjectPermissionsRepository.cs" />
     <Compile Include="Data\SharedSettings\SharedSettingsRepository.cs" />
     <Compile Include="Models\EmbedConfig.cs" />
+    <Compile Include="Models\PowerBIApiExtensions.cs" />
     <Compile Include="Models\PowerBICalendarView.cs" />
     <Compile Include="Models\PowerBIListView.cs" />
     <Compile Include="Models\PowerBIListViewExtensions.cs" />
@@ -205,8 +218,6 @@
     <Content Include="css\module.css" />
     <Content Include="ReleaseNotes.txt" />
     <Content Include="scripts\Common.js" />
-    <Content Include="scripts\powerbi.js" />
-    <Content Include="scripts\powerbi.min.js" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="DotNetNuke.PowerBI.dnn" />
@@ -226,9 +237,10 @@
     <Content Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="scripts\powerbi.js" />
+    <Content Include="scripts\powerbi.min.js" />
     <Content Include="scripts\vendors\select2.min.js" />
     <Content Include="web.config" />
-    <Content Include="scripts\powerbi.js.map" />
     <Content Include="Views\_ViewStart.cshtml" />
     <Content Include="Views\Shared\_Layout.cshtml" />
     <Content Include="Views\Settings\Index.cshtml" />
@@ -238,6 +250,7 @@
     <Content Include="Providers\DataProviders\SqlDataProvider\01.00.04.SqlDataProvider" />
     <Content Include="Providers\DataProviders\SqlDataProvider\01.00.06.SqlDataProvider" />
     <Content Include="Views\CalendarView\Index.cshtml" />
+    <Content Include="scripts\powerbi.js.map" />
     <None Include="web.Debug.config">
       <DependentUpon>web.config</DependentUpon>
     </None>
@@ -325,7 +338,7 @@
   </UsingTask>
   <Target Name="SampleTarget" BeforeTargets="PackageModule" Condition=" '$(Configuration)' == 'Release' ">
     <SetEnvironmentVariableTask Name="NODE_ENV" Value="production" />
-    <Exec Command="webpack -p" WorkingDirectory="PBIEmbedded.Web" />
+    <Exec Command="webpack --mode production --env production" WorkingDirectory="PBIEmbedded.Web" />
   </Target>
   <Target Name="AfterBuild" DependsOnTargets="PackageModule">
   </Target>
