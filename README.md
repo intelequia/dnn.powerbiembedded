@@ -1,18 +1,23 @@
 [![Latest release](docs/images/ReleaseBadge.svg)](https://github.com/intelequia/dnn.powerbiembedded/releases) [![Build status](https://intelequia.visualstudio.com/DotNetNuke.PowerBI/_apis/build/status/DotNetNuke.PowerBI-CI)](https://intelequia.visualstudio.com/DotNetNuke.PowerBI/_build/latest?definitionId=44)
 
+# DNN PowerBI Embedded module
+
 A set of modules to embed PowerBI Embedded dashboards and reports into a DNN Platform installation.
 
-# Getting Started
-TODO: Guide users through getting your code up and running on their own system. In this section you can talk about:
-1.	Installation process
-2.	Software dependencies
-3.	Latest releases
-4.	API references
+# Introduction
 
-<a name="building"></a>
+In business environments where you need to offer a business intelligence solution based on data, dashboards and reports, one of the first tools that comes to mind is [PowerBI](https://powerbi.microsoft.com/). Then you realize that you would like those reports to be available embedded within your own application instead of having to license all users because of permissions and sharing restrictions.
+
+It gets even more interesting when your application is used by thousands of users outside your organization. That's where [PowerBI Embedded](https://powerbi.microsoft.com/en-us/power-bi-embedded/) comes into play. A service that allows you to publish PowerBI portal resources under your premises, being able to fully customize the user experience.
+
+The DNN PowerBI Embedded module allows you to embed PowerBI reports and dashboards into your DNN website and secure the access to the reports by using DNN users and roles, including role security level and lots of rich features without the need of coding the PowerBI Embedded integration. 
+
+For a quick overview, check this [demo video](https://www.youtube.com/watch?v=kZzKFqyt88w). 
+
+
 # Building the solution
 ### Requirements
-* Visual Studio 2017 or later (download from https://www.visualstudio.com/downloads/)
+* Visual Studio 2019 or later (download from https://www.visualstudio.com/downloads/)
 * npm package manager (download from https://www.npmjs.com/get-npm)
 
 ### Configure local npm to use the DNN public repository
