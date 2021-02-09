@@ -12,7 +12,11 @@ It gets even more interesting when your application is used by thousands of user
 
 The DNN PowerBI Embedded module allows you to embed PowerBI reports and dashboards into your DNN website and secure the access to the reports by using DNN users and roles, including role security level and lots of rich features without the need of coding the PowerBI Embedded integration. 
 
-For a quick overview, check this [demo video](https://www.youtube.com/watch?v=kZzKFqyt88w). 
+## Resources
+* DEMO VIDEO: For a quick overview, check this [demo video](https://www.youtube.com/watch?v=kZzKFqyt88w). 
+* Documentation: for the full project documentation, please refer the [Wiki](https://github.com/intelequia/dnn.powerbiembedded/wiki)
+
+![Portal architecture](docs/images/Architecture.png  "Portal architecture")
 
 
 # Building the solution
