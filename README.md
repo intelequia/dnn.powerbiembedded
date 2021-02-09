@@ -22,7 +22,7 @@ The DNN PowerBI Embedded module allows you to embed PowerBI reports and dashboar
 * **Documentation**: for the full project documentation, please refer the [Wiki](https://github.com/intelequia/dnn.powerbiembedded/wiki)
 
 ## Architecture
-Reference architecture of a DNN portal deployed on Azure, using App Service and SQL Database under platform as a service. The module is compatible with the use of [Azure AD](https://github.com/davidjrh/dnn.azureadprovider), [Azure AD B2C](https://github.com/intelequia/dnn.azureadb2cprovider) or other authentication providers. Report usage information is sent to Application Insights if the DNN Application Insights is also installed. 
+Reference architecture of a DNN portal deployed on Azure, using App Service and SQL Database under platform as a service. The module is compatible with the use of [Azure AD](https://github.com/davidjrh/dnn.azureadprovider), [Azure AD B2C](https://github.com/intelequia/dnn.azureadb2cprovider) or other authentication providers. Report usage information is sent to Application Insights if the [DNN Application Insights module](https://github.com/davidjrh/dnn.appinsights) is also installed. 
 
 ![Portal architecture](docs/images/Architecture.png  "Portal architecture")
 
