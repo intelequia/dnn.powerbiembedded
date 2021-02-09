@@ -28,10 +28,9 @@ Reference architecture of a DNN portal deployed on Azure, using App Service and 
 
 ## Screenshots
 ![Screenshot 1](docs/images/Screenshot1.png "Screenshot 1")
-![Screenshot 2](docs/images/Screenshot1.png "Screenshot 2")
-![Screenshot 3](docs/images/Screenshot1.png "Screenshot 3")
-![Screenshot 4](docs/images/Screenshot1.png "Screenshot 4")
-![Screenshot 5](docs/images/Screenshot1.png "Screenshot 5")
+![Screenshot 2](docs/images/Screenshot2.png "Screenshot 2")
+![Screenshot 3](docs/images/Screenshot3.png "Screenshot 3")
+![Screenshot 4](docs/images/Screenshot4.png "Screenshot 4")
 
 # Building the solution
 ### Requirements
