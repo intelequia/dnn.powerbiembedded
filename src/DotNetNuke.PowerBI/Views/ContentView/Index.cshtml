@@ -26,7 +26,9 @@
         {
             <a href="#" class="print" title="Print report" onclick="javascript:return pbiprint()" />
         }
+        <a href="#" class="fullscreen" title="Full screen" onclick="javascript:return pbifullscreen()" />
         <a href="#" class="refresh" title="Refresh visual objects and data" onclick="javascript:return pbirefresh()" />
+        <a href="#" class="reload" title="Reload visual and filters" onclick="javascript:return pbireload()" />
     </div>
             }
             <div id="embedContainer" class="mobile-view active"></div>
@@ -93,6 +95,15 @@
                     report.refresh()
                         .catch(error => { console.log(error); });
                 }
+                function pbifullscreen() {
+                    report.fullscreen()
+                        .catch(error => { console.log(error); });
+                }
+                function pbireload() {
+                    report.reload()
+                        .catch(error => { console.log(error); });
+                }
+
                 function pbiprint() {
                     report.print()
                         .catch(error => {console.log(error) });
