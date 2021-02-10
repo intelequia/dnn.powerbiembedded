@@ -21,6 +21,12 @@ class WorkspaceRow extends Component {
         }
     }
 
+    onBrowse() {
+        if ((this.props.settingsGroupId !== "")) {
+            window.open("https://app.powerbi.com/groups/" + this.props.settingsGroupId);
+        }
+    }
+
     /* eslint-disable react/no-danger */
     render() {
         const {props} = this;
@@ -43,6 +49,9 @@ class WorkspaceRow extends Component {
                             {props.editable &&
                                 <div className={opened ? "edit-icon-active" : "edit-icon"} dangerouslySetInnerHTML={{ __html: SvgIcons.EditIcon }} onClick={this.toggle.bind(this)}></div>
                             }
+                            {props.editable && props.settingsGroupId !== "" &&
+                                <div className={opened ? "pbi-icon-hidden" : "pbi-icon"} dangerouslySetInnerHTML={{ __html: SvgIcons.PreviewIcon }} onClick={this.onBrowse.bind(this)}></div>
+                            }                            
                         </div>
                     </div>
                 </div>
