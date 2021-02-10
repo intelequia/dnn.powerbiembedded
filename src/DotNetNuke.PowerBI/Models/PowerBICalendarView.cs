@@ -47,6 +47,7 @@ namespace DotNetNuke.PowerBI.Models
         public string end { get; set; }
         public string title { get; set; }
         public string color { get; set; }
+        public string description { get; set; }
     }
 
     public class Schedule
