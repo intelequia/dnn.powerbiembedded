@@ -208,9 +208,12 @@
     <Content Include="admin\personaBar\scripts\bundles\bundle-en.js" />
     <Content Include="admin\personaBar\scripts\PBIEmbedded.js" />
     <Content Include="css\vendors\select2.min.css" />
+    <Content Include="images\fullscreen.png" />
     <Content Include="images\powerbi.png" />
     <Content Include="images\powerbi.svg" />
+    <Content Include="images\print.png" />
     <Content Include="images\refresh.png" />
+    <Content Include="images\reload.png" />
     <Content Include="License.txt" />
     <Content Include="css\module.css" />
     <Content Include="ReleaseNotes.txt" />

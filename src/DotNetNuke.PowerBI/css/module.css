@@ -7,15 +7,18 @@
     font-size: 13px;
     z-index: 902;
 }
+
 #dnn_Side_Menu .powerbiListView {
     padding: 0px 20px 0px 25px;
 }
+
     #dnn_Side_Menu .powerbiListView li {
         list-style: none;
     }
-    #dnn_Side_Menu .powerbiListView li a {
-        color: #323130;
-    }
+
+        #dnn_Side_Menu .powerbiListView li a {
+            color: #323130;
+        }
 
 
 .powerbiListView h4 {
@@ -28,6 +31,7 @@
     padding: 5px 20px 5px 10px;
     border-left: 4px solid transparent;
 }
+
     .powerbiListView li.normal.active {
         border-left: 4px solid #f2c811;
         transition: all 0.4s;
@@ -39,12 +43,13 @@
     cursor: auto;
     padding: 5px 20px 5px 10px;
 }
+
 .powerbiListView .workspacesSection select.workspace {
     font-weight: bold;
     padding-top: 5px;
     padding-bottom: 10px;
     border: none;
-    padding-left: 0px;  
+    padding-left: 0px;
     margin-left: -4px;
     font-size: 14px;
     outline: none;
@@ -52,10 +57,10 @@
     width: 100%;
 }
 
-.powerbiListView .workspacesSection select.workspace option {
-    outline: none;
-    border: none;
-}
+    .powerbiListView .workspacesSection select.workspace option {
+        outline: none;
+        border: none;
+    }
 
 .powerbiListView .dashboardsSection.workspace, .powerbiListView .reportsSection.workspace {
     margin-left: 10px;
@@ -67,12 +72,15 @@
     height: 16px;
     cursor: pointer;
 }
+
 .permission-allow {
     background-image: url(/icons/Sigma/Grant_16X16_Standard.png);
 }
+
 .permission-deny {
     background-image: url(/icons/Sigma/Deny_16X16_Standard.png);
 }
+
 .permission-delete {
     background-image: url(/icons/Sigma/Delete_16x16_PermissionGrid.png);
 }
@@ -144,21 +152,21 @@
     font: normal 13px Arial, sans-serif;
 }
 
-.zui-table thead th {
-    background-color: #DDEFEF;
-    border: solid 1px #DDEEEE;
-    color: #336B6B;
-    padding: 10px;
-    text-align: left;
-    text-shadow: 1px 1px 1px #fff;
-}
+    .zui-table thead th {
+        background-color: #DDEFEF;
+        border: solid 1px #DDEEEE;
+        color: #336B6B;
+        padding: 10px;
+        text-align: left;
+        text-shadow: 1px 1px 1px #fff;
+    }
 
-.zui-table tbody td {
-    border: solid 1px #DDEEEE;
-    color: #333;
-    padding: 10px;
-    text-shadow: 1px 1px 1px #fff;
-}
+    .zui-table tbody td {
+        border: solid 1px #DDEEEE;
+        color: #333;
+        padding: 10px;
+        text-shadow: 1px 1px 1px #fff;
+    }
 
 #PowerBISettings .number {
     width: 100px;
@@ -188,6 +196,7 @@
     vertical-align: middle;
     text-align: right;
 }
+
     .powerbiContentView .pbitoolbar .print {
         background-image: url('../images/print.png');
         width: 16px;
@@ -212,10 +221,34 @@
         margin-left: 10px;
     }
 
-    .powerbiContentView .pbitoolbar .refresh:hover,
-    .powerbiContentView .pbitoolbar .print:hover {
-        background-color: #f4f4f4;
+    .powerbiContentView .pbitoolbar .reload {
+        background-image: url('../images/reload.png');
+        width: 16px;
+        height: 100%;
+        display: inline-block;
+        background-size: 16px;
+        background-repeat: no-repeat;
+        background-position-y: center;
+        margin-right: 10px;
+        margin-left: 10px;
     }
+
+    .powerbiContentView .pbitoolbar .fullscreen {
+        background-image: url('../images/fullscreen.png');
+        width: 16px;
+        height: 100%;
+        display: inline-block;
+        background-size: 16px;
+        background-repeat: no-repeat;
+        background-position-y: center;
+        margin-right: 10px;
+        margin-left: 10px;
+    }
+
+        .powerbiContentView .pbitoolbar .refresh:hover,
+        .powerbiContentView .pbitoolbar .print:hover {
+            background-color: #f4f4f4;
+        }
 
 .fc-header-toolbar {
     display: none;
