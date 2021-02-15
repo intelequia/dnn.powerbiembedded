@@ -358,9 +358,9 @@ namespace DotNetNuke.PowerBI.Services
                 if (!string.IsNullOrWhiteSpace(username))
                 {
                     // Check if the dataset has effective identity required
-                    Dataset dataset = null;
-                    if (Settings.AuthenticationType == "MasterUser")
-                        dataset = await client.Datasets.GetDatasetAsync(report.DatasetId).ConfigureAwait(false);
+                    // var dataset = await client.Datasets.GetDatasetAsync(report.DatasetId).ConfigureAwait(false);
+                    // The line above returns an unauthorization exception when using "Service Principal" credentials. Seems a bug in the PowerBI API.
+                    var dataset = client.Datasets.GetDatasets(Guid.Parse(Settings.WorkspaceId)).Value.FirstOrDefault(x => x.Id == report.DatasetId);
                     if (dataset != null 
                         && (dataset.IsEffectiveIdentityRequired.GetValueOrDefault(false) || dataset.IsEffectiveIdentityRolesRequired.GetValueOrDefault(false))
                         && !dataset.IsOnPremGatewayRequired.GetValueOrDefault(false))
