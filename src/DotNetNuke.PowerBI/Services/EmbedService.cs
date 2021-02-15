@@ -358,9 +358,11 @@ namespace DotNetNuke.PowerBI.Services
                 if (!string.IsNullOrWhiteSpace(username))
                 {
                     // Check if the dataset has effective identity required
-                    var dataset = await client.Datasets.GetDatasetAsync(report.DatasetId);
-
-                    if ((dataset.IsEffectiveIdentityRequired.GetValueOrDefault(false) || dataset.IsEffectiveIdentityRolesRequired.GetValueOrDefault(false))
+                    Dataset dataset = null;
+                    if (Settings.AuthenticationType == "MasterUser")
+                        dataset = await client.Datasets.GetDatasetAsync(report.DatasetId).ConfigureAwait(false);
+                    if (dataset != null 
+                        && (dataset.IsEffectiveIdentityRequired.GetValueOrDefault(false) || dataset.IsEffectiveIdentityRolesRequired.GetValueOrDefault(false))
                         && !dataset.IsOnPremGatewayRequired.GetValueOrDefault(false))
                     {
                         var rls = new EffectiveIdentity(username, new List<string> { report.DatasetId });
@@ -623,7 +625,7 @@ namespace DotNetNuke.PowerBI.Services
 
                 // Authentication using app credentials
                 var credential = new ClientCredential(Settings.ServicePrincipalApplicationId, Settings.ServicePrincipalApplicationSecret);
-                authenticationResult = await authenticationContext.AcquireTokenAsync(Settings.ResourceUrl, credential);
+                authenticationResult = authenticationContext.AcquireTokenAsync(Settings.ResourceUrl, credential).Result;
             }
 
             return authenticationResult;
