@@ -15,6 +15,7 @@ using System.Web.Mvc;
 using DotNetNuke.Entities.Profile;
 using DotNetNuke.Entities.Users;
 using DotNetNuke.Security.Roles;
+using DotNetNuke.PowerBI.Data.Bookmarks.Models;
 
 namespace DotNetNuke.PowerBI.Controllers
 {
@@ -52,7 +53,7 @@ namespace DotNetNuke.PowerBI.Controllers
                 if (userPropertySetting == "PowerBiGroup")
                 {
                     var userProperty = PortalSettings.UserInfo.Profile.GetProperty("PowerBiGroup");
-                    if (userProperty != null && userProperty.PropertyValue != null)
+                    if (userProperty?.PropertyValue != null)
                     {
                         user = userProperty.PropertyValue;
                     }
@@ -60,7 +61,7 @@ namespace DotNetNuke.PowerBI.Controllers
                 else if (userPropertySetting == "Custom")
                 {
                     var customProperties = (string) ModuleContext.Settings["PowerBIEmbedded_CustomUserProperty"];
-                    var matches = System.Text.RegularExpressions.Regex.Matches(customProperties, @"\[PROFILE:(?<PROPERTY>[A-z]*)]");
+                    var matches = Regex.Matches(customProperties, @"\[PROFILE:(?<PROPERTY>[A-z]*)]");
         
                     foreach (Match match in matches)
                     {
@@ -125,7 +126,6 @@ namespace DotNetNuke.PowerBI.Controllers
                     }
                     ViewBag.ReportsPage = reportsPage;
                 }
-
                 return View(model);
             }
             catch (Exception ex)
