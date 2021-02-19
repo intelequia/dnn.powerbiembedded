@@ -1,21 +1,21 @@
 [![Latest release](docs/images/ReleaseBadge.svg)](https://github.com/intelequia/dnn.powerbiembedded/releases) [![Build status](https://intelequia.visualstudio.com/DotNetNuke.PowerBI/_apis/build/status/DotNetNuke.PowerBI-CI)](https://intelequia.visualstudio.com/DotNetNuke.PowerBI/_build/latest?definitionId=44)
 
-# DNN PowerBI Embedded module
+# DNN Power BI Embedded module
 
-A set of modules to embed PowerBI Embedded dashboards and reports into a DNN Platform installation.
+A set of modules to embed Power BI Embedded dashboards and reports into a DNN Platform installation.
 
 # Introduction
 
-In business environments where you need to offer a business intelligence solution based on data, dashboards and reports, one of the first tools that comes to mind is [PowerBI](https://powerbi.microsoft.com/). Then you realize that you would like those reports to be available embedded within your own application instead of having to license all users because of permissions and sharing restrictions.
+In business environments where you need to offer a business intelligence solution based on data, dashboards and reports, one of the first tools that comes to mind is [Power BI](https://powerbi.microsoft.com/). Then you realize that you would like those reports to be available embedded within your own application instead of having to license all users because of permissions and sharing restrictions.
 
-It gets even more interesting when your application is used by thousands of users outside your organization. That's where [PowerBI Embedded](https://powerbi.microsoft.com/en-us/power-bi-embedded/) comes into play. A service that allows you to publish PowerBI portal resources under your premises, being able to fully customize the user experience.
+It gets even more interesting when your application is used by thousands of users outside your organization. That's where [Power BI Embedded](https://powerbi.microsoft.com/en-us/power-bi-embedded/) comes into play. A service that allows you to publish Power BI portal resources under your premises, being able to fully customize the user experience.
 
-The DNN PowerBI Embedded module allows you to embed PowerBI reports and dashboards into your DNN website and secure the access to the reports by using DNN users and roles, including role security level and lots of rich features without the need of coding the PowerBI Embedded integration. 
+The DNN Power BI Embedded module allows you to embed Power BI reports and dashboards into your DNN website and secure the access to the reports by using DNN users and roles, including role security level and lots of rich features without the need of coding the Power BI Embedded integration. The module is available on English, Spanish and German.
 
 ## Requirements
 * **DNN Platform 9.4.3 or later**
-* PowerBI account for development and test
-* PowerBI Embedded deployment in an active Azure subscription for production workspaces. 
+* Power BI account for development and test
+* Power BI Embedded deployment in an active Azure subscription for production workspaces. 
 
 ## Resources
 * **DEMO VIDEO**: For a quick overview, check this [demo video](https://www.youtube.com/watch?v=kZzKFqyt88w). 

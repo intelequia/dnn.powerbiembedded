@@ -165,7 +165,16 @@
                     }
                 },
                 //// uncomment this line to hide the all-day slot
-                allDaySlot: false
+                allDaySlot: false,
+                eventRender: function (eventObj, $el) {
+                    $el.popover({
+                        title: eventObj.title,
+                        content: eventObj.description.replace('\n', '\n\r'),
+                        trigger: 'hover',
+                        placement: 'top',
+                        container: 'body'
+                    });
+                }
             });
             //$("#calendar").fullCalendar('renderEvents', events, true);
 

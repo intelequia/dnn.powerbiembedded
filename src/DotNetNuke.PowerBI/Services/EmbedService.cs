@@ -176,38 +176,49 @@ namespace DotNetNuke.PowerBI.Services
                     model.Workspaces = new List<string> {Settings.WorkspaceId};
                 }
 
+                var groups = client.Groups.GetGroupsAsync().GetAwaiter().GetResult().Value;
+                var capacities = client.Capacities.GetCapacitiesAsync().GetAwaiter().GetResult().Value;
+
+
                 foreach (var workspace in model.Workspaces)
                 {
                     //Get Schedule datasets
                     var datasets = client.Datasets.GetDatasetsInGroupAsync(Guid.Parse(workspace)).GetAwaiter().GetResult().Value;
                     datasets = CleanUsageDatasets(datasets.ToList());
 
-                   
+                    var group = groups.FirstOrDefault(g => g.Id.ToString() == workspace.ToLowerInvariant());
+                    var capacity = capacities.FirstOrDefault(c => c.Id == group.CapacityId);
+
+
                     for (var x = 0; x < datasets.Count; x++)
                     {
                         var dataset = datasets[x];
 
-                        //Get refreshes history
-                        var history = client.Datasets.GetRefreshHistoryInGroupAsync(Guid.Parse(Settings.WorkspaceId), dataset.Id,100).GetAwaiter().GetResult().Value.ToList();
-
-                        var group = client.Groups.GetGroupsAsync().GetAwaiter().GetResult().Value.FirstOrDefault(g => g.Id.ToString() == Settings.SettingsGroupId.ToLowerInvariant());
-                        var capacity = client.Capacities.GetCapacitiesAsync().GetAwaiter().GetResult().Value.FirstOrDefault(c => c.Id == group.CapacityId);
-                        foreach (var refresh in history)
+                        try
                         {
-                            model.History.Add(new RefreshedDataset
-                            {
-                                Dataset = dataset.Name,
-                                WorkSpaceName = group.Name,
-                                CapacityName = capacity.DisplayName,
-                                StartTime = refresh.StartTime,
-                                EndTime = refresh.EndTime,
-                                RefreshType = refresh.RefreshType,
-                                RequestId = refresh.RequestId,
-                                ServiceExceptionJson = refresh.ServiceExceptionJson,
-                                Status = refresh.Status
-                            });
-                        }
+                            //Get refreshes history
+                            var history = client.Datasets.GetRefreshHistoryAsync(Guid.Parse(Settings.WorkspaceId), dataset.Id, 100).GetAwaiter().GetResult().Value.ToList();
 
+                            foreach (var refresh in history)
+                            {
+                                model.History.Add(new RefreshedDataset
+                                {
+                                    Dataset = dataset.Name,
+                                    WorkSpaceName = group.Name,
+                                    CapacityName = capacity.DisplayName,
+                                    StartTime = refresh.StartTime,
+                                    EndTime = refresh.EndTime,
+                                    RefreshType = refresh.RefreshType,
+                                    RequestId = refresh.RequestId,
+                                    ServiceExceptionJson = refresh.ServiceExceptionJson,
+                                    Status = refresh.Status
+                                });
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            // TODO: Getting "UnsupportedMediaType"
+                        }
                         try
                         {
                             //Get refresh Schedule by dataset and Workspace
@@ -268,8 +279,9 @@ namespace DotNetNuke.PowerBI.Services
                                         color = colours[x < datasets.Count ? x : 0],
                                         start = getCalendarDateTime(dayOfWeek, time.start),
                                         end = getCalendarDateTime(dayOfWeek, time.end),
-                                        title = dataset.Name
+                                        title = dataset.Name,                                        
                                     };
+                                    item.description = $"Workspace: {group.Name}; Capacity: {capacity.DisplayName}; Dataset: {dataset.Name}; Start: {time.start}";
                                     model.RefreshSchedules.Add(item);
                                 }
                             }
