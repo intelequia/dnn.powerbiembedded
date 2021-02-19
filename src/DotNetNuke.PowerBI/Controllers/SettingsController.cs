@@ -30,6 +30,8 @@ namespace DotNetNuke.PowerBI.Controllers
                 IsContentView = false;
                 ToolbarVisible = false;
                 PrintVisible = false;
+                BookmarksVisible = false;
+                FullScreenVisible = false;
                 Height = "";
             }
             public string SettingsGroupId { get; set; }
@@ -42,6 +44,8 @@ namespace DotNetNuke.PowerBI.Controllers
             public bool VisualHeaderVisible { get; set; }
             public bool ToolbarVisible { get; set; }
             public bool PrintVisible { get; set; }
+            public bool FullScreenVisible { get; set; }
+            public bool BookmarksVisible { get; set; }
             public string Height { get; set; }
             public string UserProperty { get; set; }
             public string CustomUserProperty { get; set; }
@@ -70,6 +74,8 @@ namespace DotNetNuke.PowerBI.Controllers
                     OverrideFilterPaneVisibility = bool.Parse(GetSetting("PowerBIEmbedded_OverrideFilterPaneVisibility", "False")),
                     ToolbarVisible = bool.Parse(GetSetting("PowerBIEmbedded_ToolbarVisible", "False")),
                     PrintVisible = bool.Parse(GetSetting("PowerBIEmbedded_PrintVisible", "False")),
+                    BookmarksVisible = bool.Parse(GetSetting("PowerBIEmbedded_BookmarksVisible", "False")),
+                    FullScreenVisible = bool.Parse(GetSetting("PowerBIEmbedded_FullScreenVisible", "False")),
                     UserProperty = GetSetting("PowerBIEmbedded_UserProperty","Username"),
                     CustomUserProperty = GetSetting("PowerBIEmbedded_CustomUserProperty","")
                 };
@@ -142,6 +148,8 @@ namespace DotNetNuke.PowerBI.Controllers
                 ModuleController.Instance.UpdateTabModuleSetting(this.ModuleContext.TabModuleId, "PowerBIEmbedded_VisualHeaderVisible", settings.VisualHeaderVisible.ToString());
                 ModuleController.Instance.UpdateTabModuleSetting(this.ModuleContext.TabModuleId, "PowerBIEmbedded_ToolbarVisible", settings.ToolbarVisible.ToString());
                 ModuleController.Instance.UpdateTabModuleSetting(this.ModuleContext.TabModuleId, "PowerBIEmbedded_PrintVisible", settings.PrintVisible.ToString());
+                ModuleController.Instance.UpdateTabModuleSetting(this.ModuleContext.TabModuleId, "PowerBIEmbedded_FullScreenVisible", settings.FullScreenVisible.ToString());
+                ModuleController.Instance.UpdateTabModuleSetting(this.ModuleContext.TabModuleId, "PowerBIEmbedded_BookmarksVisible", settings.BookmarksVisible.ToString());
                 ModuleController.Instance.UpdateTabModuleSetting(this.ModuleContext.TabModuleId, "PowerBIEmbedded_UserProperty", settings.UserProperty);
                 ModuleController.Instance.UpdateTabModuleSetting(this.ModuleContext.TabModuleId, "PowerBIEmbedded_CustomUserProperty", settings.CustomUserProperty);
                 return RedirectToDefaultRoute();

@@ -37,9 +37,15 @@
                 {
                     <a href="#" class="print" title="Print report" onclick="return pbiprint()"></a>
                 }
-               
-                <a href="#" class="bookmarks" title="Bookmarks" onclick="return openNav()"></a>
-                <a href="#" class="fullscreen" title="Full screen" onclick="return pbifullscreen()"></a>
+
+                @if (ViewBag.BookmarksVisible)
+                {
+                    <a href="#" class="bookmarks" title="Bookmarks" onclick="return openNav()"></a>
+                }
+                @if (ViewBag.FullScreenVisible)
+                {
+                    <a href="#" class="fullscreen" title="Full screen" onclick="return pbifullscreen()"></a>
+                }
                 <a href="#" class="refresh" title="Refresh visual objects and data" onclick="return pbirefresh()"></a>
                 <a href="#" class="reload" title="Reload visual and filters" onclick="return pbireload()"></a>
             </div>
