@@ -181,6 +181,9 @@
     <Compile Include="Controllers\ContentViewController.cs" />
     <Compile Include="Controllers\ListViewController.cs" />
     <Compile Include="Controllers\SettingsController.cs" />
+    <Compile Include="Data\Bookmarks\BookmarksRepository.cs" />
+    <Compile Include="Data\Bookmarks\IBookmarksRepository.cs" />
+    <Compile Include="Data\Bookmarks\Models\Bookmark.cs" />
     <Compile Include="Data\IObjectPermissionsRepository.cs" />
     <Compile Include="Data\Models\ObjectPermission.cs" />
     <Compile Include="Data\SharedSettings\ISharedSettingsRepository.cs" />
@@ -195,6 +198,7 @@
     <Compile Include="Models\TileEmbedConfig.cs" />
     <Compile Include="Models\Workspace.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Services\BookmarksController.cs" />
     <Compile Include="Services\EmbedService.cs" />
     <Compile Include="Services\IEmbedService.cs" />
     <Compile Include="Services\Models\GetPowerBiObjectListResponse.cs" />
@@ -208,6 +212,9 @@
     <Content Include="admin\personaBar\scripts\bundles\bundle-en.js" />
     <Content Include="admin\personaBar\scripts\PBIEmbedded.js" />
     <Content Include="css\vendors\select2.min.css" />
+    <Content Include="images\addbookmark.png" />
+    <Content Include="images\bookmark.png" />
+    <Content Include="images\delete.png" />
     <Content Include="images\fullscreen.png" />
     <Content Include="images\powerbi.png" />
     <Content Include="images\powerbi.svg" />
@@ -251,6 +258,7 @@
     <Content Include="Providers\DataProviders\SqlDataProvider\01.00.06.SqlDataProvider" />
     <Content Include="Views\CalendarView\Index.cshtml" />
     <Content Include="scripts\powerbi.js.map" />
+    <Content Include="Providers\DataProviders\SqlDataProvider\01.00.07.SqlDataProvider" />
     <None Include="web.Debug.config">
       <DependentUpon>web.config</DependentUpon>
     </None>
