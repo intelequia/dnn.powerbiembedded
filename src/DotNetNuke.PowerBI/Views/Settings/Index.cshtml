@@ -69,6 +69,12 @@
                 </div>
                 <div class="dnnFormItem">
                     <div class="leftGroup">
+                        <label>Override Filter Pane Visibility</label>
+                        @Html.CheckBoxFor(m => m.OverrideFilterPaneVisibility, true)
+                    </div>
+                </div>
+                <div class="dnnFormItem">
+                    <div class="leftGroup">
                         <label>Filter Pane Visible</label>
                         @Html.CheckBoxFor(m => m.FilterPaneVisible, true)
                     </div>
@@ -85,7 +91,6 @@
                         @Html.CheckBoxFor(m => m.OverrideVisualHeaderVisibility, true)
                     </div>
                 </div>
-
                 <div class="dnnFormItem">
                     <div class="leftGroup">
                         <label>Visual Header Visible</label>

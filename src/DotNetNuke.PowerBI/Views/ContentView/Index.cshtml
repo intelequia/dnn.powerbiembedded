@@ -79,6 +79,7 @@
             var isLandscape = window.innerWidth > window.innerHeight;
             var defaultHeight = '@ViewBag.Height';
             var overrideVisualHeaderVisibility =  @ViewBag.OverrideVisualHeaderVisibility.ToString().ToLowerInvariant();
+            var overrideFilterPaneVisibility =  @ViewBag.OverrideFilterPaneVisibility.ToString().ToLowerInvariant();
             var config = {
                 type: '@Model.ContentType',
                 tokenType: models.TokenType.Embed,
@@ -91,9 +92,7 @@
                     //panes: {
                     //    bookmarks: {
                     //        visible: true
-                    //    }
                     //},
-                    filterPaneEnabled: @ViewBag.FilterPaneVisible.ToString().ToLowerInvariant() && !isMobile,
                     navContentPaneEnabled: @ViewBag.NavPaneVisible.ToString().ToLowerInvariant(),
                     localeSettings: {
                         language: "@ViewBag.Locale",
@@ -116,6 +115,10 @@
                     ]
                 };
             }
+            //override filter pane
+            if (overrideFilterPaneVisibility) {
+                config.settings.filterPaneEnabled = @ViewBag.FilterPaneVisible.ToString().ToLowerInvariant() && !isMobile;
+            }
 
             // Get a reference to the embedded report HTML element
             var reportContainer = $('#embedContainer')[0];
@@ -126,13 +129,27 @@
 
             // Embed the report and display it within the div container.
             var report = powerbi.embed(reportContainer, config);
+
+
+            if (overrideFilterPaneVisibility) {
+                const newSettings = {
+                  panes: {
+                    filters :{
+                      visible:  @ViewBag.FilterPaneVisible.ToString().ToLowerInvariant() && !isMobile, // hide filter pane
+                    }
+                  }
+                };
+                report.updateSettings(newSettings)
+                  .catch(error => { console.log(error) });
+            }
+
             $(document).ready(function () {
                 service = {
                     path: "Bookmarks",
                     framework: $.ServicesFramework(@Dnn.ActiveModule.ModuleID,@Dnn.ActiveModule.TabID)
                 }
                 service.baseUrl = service.framework.getServiceRoot(service.path);
-                
+
                 createBookmarksList();
             });
 
@@ -144,11 +161,11 @@
 
             function  createBookmarksList() {
                 service.controller = "Bookmarks";
-                                
+
                 let params = {
                     reportId: "@Model.Id"
                 }
-                
+
                 Common.Call("GET", "GetBookmarks", service, params,
                     function (data) {
                         if (data.Success) {
@@ -173,7 +190,7 @@
                     function () {
                     });
             }
-            
+
             function updateBookmarksList(bookmarks) {
                 // Set bookmarks array to the report's fetched bookmarks
                 BookmarkShowcaseState.bookmarksArray = bookmarks;
@@ -262,7 +279,7 @@
                 report.bookmarksManager.capture().then(function (capturedBookmark) {
 
                     var name = $("#bookmarkName").val();
-                    
+
                     // Build bookmark element
                     let bookmark = {
                         name: "bookmark_" + name,
@@ -327,7 +344,7 @@
                     },
                     function () {
                     }
-                ); 
+                );
 
             }
 
@@ -397,6 +414,6 @@
 
 
 
-            </script>
+        </script>
     }
 </div>
