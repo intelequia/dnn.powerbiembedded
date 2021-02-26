@@ -58,7 +58,7 @@
 
             <div class="reportsSection @(Model.Workspaces.Count > 1 ? "workspace": "")">
                 <h4>@Dnn.LocalizeString("Reports")</h4>
-                <ul>
+                <ul class="scrollableList">
                     @if (Model.Reports.Count == 0)
                     {
                         <li class='empty'>@Dnn.LocalizeString("ReportsEmpty")</li>
