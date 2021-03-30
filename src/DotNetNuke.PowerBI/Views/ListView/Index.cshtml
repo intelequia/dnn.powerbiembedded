@@ -58,7 +58,7 @@
 
             <div class="reportsSection @(Model.Workspaces.Count > 1 ? "workspace": "")">
                 <h4>@Dnn.LocalizeString("Reports")</h4>
-                <ul>
+                <ul class="scrollableList">
                     @if (Model.Reports.Count == 0)
                     {
                         <li class='empty'>@Dnn.LocalizeString("ReportsEmpty")</li>
@@ -76,3 +76,15 @@
         }
 
     </div>
+    <script>
+        window.onload = function () {
+            document.getElementsByClassName('scrollableList')[0].scrollTop = 0;
+            var menus = document.getElementsByClassName('normal');
+            for (var i = 0; i < menus.length; i++) {
+                if (menus[i].classList.contains('active')) {
+                    document.getElementsByClassName('scrollableList')[0].scrollTop = menus[i].offsetTop;
+                }
+            }
+        }
+
+    </script>

@@ -245,6 +245,40 @@
         margin-left: 10px;
     }
 
+    .powerbiContentView .pbitoolbar .bookmarks {
+        background-image: url('../images/bookmark.png');
+        width: 16px;
+        height: 100%;
+        display: inline-block;
+        background-size: 16px;
+        background-repeat: no-repeat;
+        background-position-y: center;
+        margin-right: 10px;
+        margin-left: 10px;
+    }
+
+    .createBookmarks {
+        background-image: url('../images/addbookmark.png');
+        width: 16px;
+        display: inline-block !important;
+        background-size: 16px;
+        background-repeat: no-repeat;
+        background-position-y: center;
+        margin-right: 10px;
+        margin-left: 10px;
+    }
+
+.deletebookmark {
+    background-image: url('../images/delete.png');
+    width: 16px;
+    display: inline-block !important;
+    background-size: 16px;
+    background-repeat: no-repeat;
+    background-position-y: center;
+    margin-right: 10px;
+    margin-left: 10px;
+}
+
         .powerbiContentView .pbitoolbar .refresh:hover,
         .powerbiContentView .pbitoolbar .print:hover {
             background-color: #f4f4f4;
@@ -263,3 +297,79 @@
     display: flex;
     justify-content: center;
 }
+
+.sidenav {
+    height: 91%;
+    width: 0;
+    position: absolute;
+    z-index: 1;
+    top: 41px;
+    left: 0;
+    background-color: #FFFFFF;
+    overflow-x: hidden;
+    padding-top: 27px;
+    border-right: solid 1px #C8C8C8
+}
+
+    .sidenav a {
+        padding: 8px 8px 8px 32px;
+        text-decoration: none;
+        font-size: 25px;
+        color: #818181;
+        display: block;
+    }
+
+        .sidenav a:hover {
+            color: #f1f1f1;
+        }
+
+    .sidenav .closebtn {
+        position: absolute;
+        top: 0;
+        right: 25px;
+        font-size: 36px;
+        margin-left: 50px;
+    }
+
+@media screen and (max-height: 450px) {
+    .sidenav {
+        padding-top: 15px;
+    }
+
+        .sidenav a {
+            font-size: 18px;
+        }
+}
+
+.scrollableList{
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+/*Bookmarks*/
+.showcaseRadioContainer {
+    display: block;
+    position: relative;
+    padding-left: 26px;
+    margin: 4px 0;
+    cursor: pointer;
+    font-weight: normal;
+    height: 40px;
+    padding: 8px 8px 8px 40px;
+}
+
+.navheader {
+    padding-bottom: 20px;
+    margin-left:30px;
+    font-size: 17px;
+    font-weight:bold;
+}
+.addbookmarks{
+    margin-left: 20px;
+}
+
+#deleteBookmark {
+    float: right;
+    position: relative;
+}
+

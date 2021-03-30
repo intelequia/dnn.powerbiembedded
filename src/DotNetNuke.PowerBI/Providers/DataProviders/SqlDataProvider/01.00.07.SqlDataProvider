@@ -1,0 +1,19 @@
+﻿IF (NOT EXISTS(SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'PBI_Bookmarks'))
+BEGIN
+	CREATE TABLE {databaseOwner}[{objectQualifier}PBI_Bookmarks](
+		[Id] [int] IDENTITY(1,1) NOT NULL,
+		[PortalId] [int] NOT NULL,
+		[ReportId] [nvarchar](100) NOT NULL,
+		[DisplayName] [nvarchar](100) NOT NULL,
+		[Name] [nvarchar](100) NOT NULL,
+		[State] [nvarchar](max) NOT NULL,
+		[CreatedOn] [date] NOT NULL,
+		[CreatedBy] [int] NOT NULL
+	 CONSTRAINT [PK_PBI_Bookmarks] PRIMARY KEY CLUSTERED 
+	(
+		[Id] ASC
+	) 
+	) 
+END
+
+

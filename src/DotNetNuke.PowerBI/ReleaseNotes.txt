@@ -87,4 +87,9 @@
 	</p>
 	<p>Fix for Service Principal workspace registration</p>
 
+	<b>Version 1.0.18</b>
+	<p>Added the feature to create and delete personal bookmarks.</p>
+
+	<b>Version 1.0.19</b>
+	<p>Merge fix</p>
 </div>

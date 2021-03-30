@@ -1,4 +1,5 @@
 ﻿@inherits DotNetNuke.Web.Mvc.Framework.DnnWebViewPage<DotNetNuke.PowerBI.Controllers.SettingsController.SettingsModel>
+@using System.Web.Mvc
 @using DotNetNuke.Web.Mvc.Helpers
 @using DotNetNuke.Web.Client.ClientResourceManagement
 @{
@@ -68,6 +69,12 @@
                 </div>
                 <div class="dnnFormItem">
                     <div class="leftGroup">
+                        <label>Override Filter Pane Visibility</label>
+                        @Html.CheckBoxFor(m => m.OverrideFilterPaneVisibility, true)
+                    </div>
+                </div>
+                <div class="dnnFormItem">
+                    <div class="leftGroup">
                         <label>Filter Pane Visible</label>
                         @Html.CheckBoxFor(m => m.FilterPaneVisible, true)
                     </div>
@@ -84,7 +91,6 @@
                         @Html.CheckBoxFor(m => m.OverrideVisualHeaderVisibility, true)
                     </div>
                 </div>
-
                 <div class="dnnFormItem">
                     <div class="leftGroup">
                         <label>Visual Header Visible</label>
@@ -101,6 +107,18 @@
                     <div class="leftGroup">
                         <label>Print Visible</label>
                         @Html.CheckBoxFor(m => m.PrintVisible, true)
+                    </div>
+                </div>
+                <div class="dnnFormItem">
+                    <div class="leftGroup">
+                        <label>Full Screen Visible</label>
+                        @Html.CheckBoxFor(m => m.FullScreenVisible, true)
+                    </div>
+                </div>
+                <div class="dnnFormItem">
+                    <div class="leftGroup">
+                        <label>Bookmarks Visible</label>
+                        @Html.CheckBoxFor(m => m.BookmarksVisible, true)
                     </div>
                 </div>
             }

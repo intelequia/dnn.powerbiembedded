@@ -6,8 +6,9 @@ namespace DotNetNuke.PowerBI.Components
     {
         public void RegisterRoutes(IMapRoute routeManager)
         {
-            //routeManager.MapHttpRoute("PowerBI", "default", "{controller}/{action}", new[] { "DotNetNuke.PowerBI.Controllers.Api" });
+            //routeManager.MapHttpRoute("PowerBI", "default", "{controller}/{action}", new[] { "DotNetNuke.PowerBI.Controllers" });
             routeManager.MapHttpRoute("PowerBI/UI", "default", "{controller}/{action}", new[] { "DotNetNuke.PowerBI.Controllers.Api.Admin" });
+            routeManager.MapHttpRoute("Bookmarks", "default", "{controller}/{action}", new[] { "DotNetNuke.PowerBI.Services" });
         }
 
     }

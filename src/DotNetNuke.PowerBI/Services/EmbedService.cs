@@ -13,6 +13,8 @@ using System.Globalization;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using DotNetNuke.Entities.Portals;
+using DotNetNuke.PowerBI.Data.Bookmarks;
 
 namespace DotNetNuke.PowerBI.Services
 {
@@ -352,6 +354,10 @@ namespace DotNetNuke.PowerBI.Services
                 {
                     model.ErrorMessage = "No report with the given ID was found in the workspace. Make sure ReportId is valid.";
                 }
+
+                //Delete bookmarks is report is modified
+                CheckBookmarks(report,Settings.PortalId);
+
                 // Generate Embed Token for reports without effective identities.
                 GenerateTokenRequest generateTokenRequestParameters;
                 // This is how you create embed token with effective identities
@@ -399,6 +405,22 @@ namespace DotNetNuke.PowerBI.Services
                 CachingProvider.Instance().Insert($"PBI_{Settings.PortalId}_{Settings.SettingsId}_{userId}_{Thread.CurrentThread.CurrentUICulture.Name}_Report_{reportId}", model, null, DateTime.Now.AddSeconds(60), TimeSpan.Zero);
             }
             return model;
+        }
+
+        private void CheckBookmarks(Report report, int portalId)
+        {
+            var bookmarks = BookmarksRepository.Instance.GetBookmarks(report.Id.ToString(), portalId);
+            foreach (var bookmark in bookmarks)
+            {
+                if (report.ModifiedDateTime != null && bookmark.CreatedOn < report.ModifiedDateTime)
+                {
+                    BookmarksRepository.Instance.DeleteBookmark(bookmark.Id);
+                }
+                else if(bookmark.CreatedOn < DateTime.Now.AddDays(-30))
+                {
+                    BookmarksRepository.Instance.DeleteBookmark(bookmark.Id);
+                }
+            }
         }
 
         public async Task<EmbedConfig> GetDashboardEmbedConfigAsync(int userId, string username, string roles, string dashboardId)
