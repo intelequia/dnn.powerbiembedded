@@ -3,12 +3,14 @@ using System.Linq;
 using Dnn.PersonaBar.Library.Helper;
 using DotNetNuke.Entities.Portals;
 using DotNetNuke.Entities.Users;
+using DotNetNuke.Instrumentation;
 using DotNetNuke.Security.Roles;
 
 namespace DotNetNuke.PowerBI.Services.Models
 {
     public class GetPowerBiObjectListResponse
     {
+        private static readonly ILog Logger = LoggerSource.Instance.GetLogger(typeof(GetPowerBiObjectListResponse));
         public enum ObjectType
         {
             Report = 0,
@@ -65,6 +67,11 @@ namespace DotNetNuke.PowerBI.Services.Models
                 else
                 {
                     var user = UserController.Instance.GetUserById(PortalSettings.Current.PortalId, permission.UserID.Value);
+                    if (user == null)
+                    {
+                        Logger.Warn($"Detected misconfigured permission for user {permission.UserID.Value} and portal {PortalSettings.Current.PortalId}. Ensure the user has logged in at least one time on the portal (missing record in UserPortals table).");
+                        continue;
+                    }
                     var permissions = new List<Dnn.PersonaBar.Library.DTO.Permission>();
                     permissions.Add(new Dnn.PersonaBar.Library.DTO.Permission()
                     {
