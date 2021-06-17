@@ -149,14 +149,8 @@ namespace DotNetNuke.PowerBI.Services
                 return null;
             }
 
-            var colours = new List<string>
-            {
-                "#1ab394",
-                "#364B45",
-                "#98B0A9",
-                "#A993E2",
-                "#7360AA"
-            };
+            var random = new Random();            
+            var colours = new List<string>();
             
             // Create a Power BI Client object. It will be used to call Power BI APIs.
             using (var client = new PowerBIClient(new Uri(Settings.ApiUrl), tokenCredentials))
@@ -182,9 +176,19 @@ namespace DotNetNuke.PowerBI.Services
 
                 foreach (var workspace in model.Workspaces)
                 {
+                    IList<Dataset> datasets;
                     //Get Schedule datasets
-                    var datasets = client.Datasets.GetDatasetsInGroupAsync(Guid.Parse(workspace)).GetAwaiter().GetResult().Value;
-                    datasets = CleanUsageDatasets(datasets.ToList());
+                    try
+                    {
+                        datasets = client.Datasets.GetDatasetsInGroupAsync(Guid.Parse(workspace)).GetAwaiter().GetResult().Value;
+                        datasets = CleanUsageDatasets(datasets.ToList());
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.Warn($"Error getting datasets in workspace {workspace}", ex);
+                        continue;
+                    }
+
 
                     var group = groups.FirstOrDefault(g => g.Id.ToString() == workspace.ToLowerInvariant());
                     var capacity = capacities.FirstOrDefault(c => c.Id == group.CapacityId);
@@ -193,6 +197,8 @@ namespace DotNetNuke.PowerBI.Services
                     for (var x = 0; x < datasets.Count; x++)
                     {
                         var dataset = datasets[x];
+                        var color = String.Format("#{0:X6}", random.Next(0x1000000)); // = "#A197B9"
+                        colours.Add(color);
 
                         try
                         {
