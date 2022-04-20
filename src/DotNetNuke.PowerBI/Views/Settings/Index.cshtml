@@ -110,7 +110,7 @@
                     </div>
                 </div>
                 <div class="dnnFormItem">
-                    <div class="leftGroup">
+                    <div class="leftGroup"> 
                         <label>Full Screen Visible</label>
                         @Html.CheckBoxFor(m => m.FullScreenVisible, true)
                     </div>
@@ -119,6 +119,12 @@
                     <div class="leftGroup">
                         <label>Bookmarks Visible</label>
                         @Html.CheckBoxFor(m => m.BookmarksVisible, true)
+                    </div>
+                </div>
+                <div class="dnnFormItem">
+                    <div class="leftGroup">
+                        <label>Enable Application Insights (require AppInsights module enabled)</label>
+                        @Html.CheckBoxFor(m => m.ApplicationInsightsEnabled, true)
                     </div>
                 </div>
             }

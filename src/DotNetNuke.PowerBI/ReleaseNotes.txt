@@ -92,4 +92,8 @@
 
 	<b>Version 1.0.19</b>
 	<p>Merge fix</p>
+
+	<b>Version 1.0.20</b>
+	<p>Added Application Insights option to send usage telemetry (requires Application Insights module installed)</p>
+	<p>Refactorized client side script code to allow hosting more than one content view module per page</p>
 </div>

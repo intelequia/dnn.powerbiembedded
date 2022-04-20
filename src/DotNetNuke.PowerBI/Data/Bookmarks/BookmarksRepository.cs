@@ -63,8 +63,6 @@ namespace DotNetNuke.PowerBI.Data.Bookmarks
 
                 return bookmark.Id;
             }
-
-            return -1;
         }
 
         protected override Func<IBookmarksRepository> GetFactory()

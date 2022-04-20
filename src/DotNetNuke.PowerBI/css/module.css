@@ -277,6 +277,8 @@
     background-position-y: center;
     margin-right: 10px;
     margin-left: 10px;
+    float: right;
+    position: relative;
 }
 
         .powerbiContentView .pbitoolbar .refresh:hover,
@@ -308,7 +310,7 @@
     background-color: #FFFFFF;
     overflow-x: hidden;
     padding-top: 27px;
-    border-right: solid 1px #C8C8C8
+    border-right: solid 0px #C8C8C8
 }
 
     .sidenav a {
@@ -354,22 +356,17 @@
     margin: 4px 0;
     cursor: pointer;
     font-weight: normal;
-    height: 40px;
-    padding: 8px 8px 8px 40px;
 }
+    .showcaseRadioContainer.selected {
+        font-weight: bold;
+    }
 
-.navheader {
-    padding-bottom: 20px;
-    margin-left:30px;
-    font-size: 17px;
-    font-weight:bold;
-}
+    .navheader {
+        padding-bottom: 20px;
+        margin-left: 30px;
+        font-size: 17px;
+        font-weight: bold;
+    }
 .addbookmarks{
     margin-left: 20px;
 }
-
-#deleteBookmark {
-    float: right;
-    position: relative;
-}
-

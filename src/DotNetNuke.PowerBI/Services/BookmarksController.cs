@@ -7,10 +7,12 @@ using DotNetNuke.Web.Api;
 using System.Web.Http;
 using DotNetNuke.Entities.Users;
 using DotNetNuke.PowerBI.Data.Bookmarks;
+using DotNetNuke.Security;
 
 namespace DotNetNuke.PowerBI.Services
 {
     [SupportedModules("DotNetNuke.PowerBI.ContentView")]
+    [DnnModuleAuthorize(AccessLevel = SecurityAccessLevel.View)]
     public class BookmarksController : DnnApiController
     {
         public class BookmarkViewModel

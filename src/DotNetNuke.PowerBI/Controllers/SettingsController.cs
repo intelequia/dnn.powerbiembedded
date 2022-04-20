@@ -32,6 +32,7 @@ namespace DotNetNuke.PowerBI.Controllers
                 PrintVisible = false;
                 BookmarksVisible = false;
                 FullScreenVisible = false;
+                ApplicationInsightsEnabled = false;
                 Height = "";
             }
             public string SettingsGroupId { get; set; }
@@ -46,6 +47,7 @@ namespace DotNetNuke.PowerBI.Controllers
             public bool PrintVisible { get; set; }
             public bool FullScreenVisible { get; set; }
             public bool BookmarksVisible { get; set; }
+            public bool ApplicationInsightsEnabled { get; set; }
             public string Height { get; set; }
             public string UserProperty { get; set; }
             public string CustomUserProperty { get; set; }
@@ -77,7 +79,8 @@ namespace DotNetNuke.PowerBI.Controllers
                     BookmarksVisible = bool.Parse(GetSetting("PowerBIEmbedded_BookmarksVisible", "False")),
                     FullScreenVisible = bool.Parse(GetSetting("PowerBIEmbedded_FullScreenVisible", "False")),
                     UserProperty = GetSetting("PowerBIEmbedded_UserProperty","Username"),
-                    CustomUserProperty = GetSetting("PowerBIEmbedded_CustomUserProperty","")
+                    CustomUserProperty = GetSetting("PowerBIEmbedded_CustomUserProperty",""),
+                    ApplicationInsightsEnabled = bool.Parse(GetSetting("PowerBIEmbedded_ApplicationInsightsEnabled", "False"))
                 };
 
                 if (model.IsContentView)
@@ -152,6 +155,7 @@ namespace DotNetNuke.PowerBI.Controllers
                 ModuleController.Instance.UpdateTabModuleSetting(this.ModuleContext.TabModuleId, "PowerBIEmbedded_BookmarksVisible", settings.BookmarksVisible.ToString());
                 ModuleController.Instance.UpdateTabModuleSetting(this.ModuleContext.TabModuleId, "PowerBIEmbedded_UserProperty", settings.UserProperty);
                 ModuleController.Instance.UpdateTabModuleSetting(this.ModuleContext.TabModuleId, "PowerBIEmbedded_CustomUserProperty", settings.CustomUserProperty);
+                ModuleController.Instance.UpdateTabModuleSetting(this.ModuleContext.TabModuleId, "PowerBIEmbedded_ApplicationInsightsEnabled", settings.ApplicationInsightsEnabled.ToString());
                 return RedirectToDefaultRoute();
             }
             catch (Exception ex)

@@ -1,21 +1,24 @@
-﻿using DotNetNuke.Common;
+﻿using DotNetNuke.Framework;
+using DotNetNuke.Framework.JavaScriptLibraries;
 using DotNetNuke.Instrumentation;
+using DotNetNuke.PowerBI.Components;
 using DotNetNuke.PowerBI.Data;
 using DotNetNuke.PowerBI.Data.SharedSettings;
 using DotNetNuke.PowerBI.Models;
 using DotNetNuke.PowerBI.Services;
+using DotNetNuke.Services.Localization;
+using DotNetNuke.UI.Utilities;
 using DotNetNuke.Web.Mvc.Framework.ActionFilters;
 using DotNetNuke.Web.Mvc.Framework.Controllers;
+using Newtonsoft.Json;
 using System;
+using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Net;
-using System.Text;
 using System.Text.RegularExpressions;
 using System.Web.Mvc;
-using DotNetNuke.Entities.Profile;
-using DotNetNuke.Entities.Users;
-using DotNetNuke.Security.Roles;
-using DotNetNuke.PowerBI.Data.Bookmarks.Models;
+using DotNetNuke.Framework.JavaScriptLibraries;
 
 namespace DotNetNuke.PowerBI.Controllers
 {
@@ -117,6 +120,7 @@ namespace DotNetNuke.PowerBI.Controllers
                 ViewBag.ToolbarVisible = bool.Parse(GetSetting("PowerBIEmbedded_ToolbarVisible", "false"));
                 ViewBag.FullScreenVisible = bool.Parse(GetSetting("PowerBIEmbedded_FullScreenVisible", "false"));
                 ViewBag.BookmarksVisible = bool.Parse(GetSetting("PowerBIEmbedded_BookmarksVisible", "false"));
+                ViewBag.ApplicationInsightsEnabled = bool.Parse(GetSetting("PowerBIEmbedded_ApplicationInsightsEnabled", "false"));
                 ViewBag.Height = GetSetting("PowerBIEmbedded_Height");
 
                 // Sets the reports page on the viewbag
@@ -125,10 +129,44 @@ namespace DotNetNuke.PowerBI.Controllers
                     var reportsPage = embedService.Settings.ContentPageUrl;
                     if (reportsPage != null && !reportsPage.StartsWith("http"))
                     {
-                        reportsPage = Globals.AddHTTP(PortalSettings.PortalAlias.HTTPAlias) + reportsPage;
+                        reportsPage = Common.Globals.AddHTTP(PortalSettings.PortalAlias.HTTPAlias) + reportsPage;
                     }
                     ViewBag.ReportsPage = reportsPage;
                 }
+
+                var currentLocale = LocaleController.Instance.GetLocale(ModuleContext.PortalId, CultureInfo.CurrentCulture.Name);
+
+                var context = new
+                {
+                    ModuleContext.PortalId,
+                    ModuleContext.TabId,
+                    ModuleContext.ModuleId,
+                    CurrentLocale = new Culture()
+                    {
+                        LanguageId = currentLocale.LanguageId,
+                        Code = currentLocale.Code,
+                        Name = currentLocale.NativeName.Split('(')[0].Trim()
+                    },
+                    ViewBag.OverrideVisualHeaderVisibility,
+                    ViewBag.OverrideFilterPaneVisibility,
+                    ViewBag.ApplicationInsightsEnabled,
+                    ViewBag.NavPaneVisible,
+                    ViewBag.Locale,
+                    ViewBag.FilterPaneVisible,
+                    ViewBag.ReportsPage,
+                    ViewBag.Height,
+                    model.ContentType,
+                    Token = model.EmbedToken?.Token,
+                    model.EmbedUrl,
+                    model.Id
+                };
+                ServicesFramework.Instance.RequestAjaxScriptSupport();
+                ServicesFramework.Instance.RequestAjaxAntiForgerySupport();
+                DotNetNuke.Framework.JavaScriptLibraries.JavaScript.RequestRegistration(CommonJs.DnnPlugins);
+                ClientAPI.RegisterClientVariable(DnnPage, $"ViewContext_{ModuleContext.ModuleId}", 
+                    JsonConvert.SerializeObject(context, Formatting.None), true);
+              
+
                 return View(model);
             }
             catch (Exception ex)

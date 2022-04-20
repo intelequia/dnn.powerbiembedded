@@ -1,15 +1,15 @@
 <#
     Este lo uso para cuando edito ficheros en VS, que se copie en la carpeta que me interese (VS hace que se dispare el evento de los ficheros que estoy guardando)
  #>
-$searchPath = 'C:\Desarrollo\dnn.powerbiembedded\src\DotNetNuke.PowerBI'
-$destinationPath = 'C:\Websites\pbiportal.dnndev.me\DesktopModules\MVC\PowerBIEmbedded'
+$searchPath = 'C:\dev\dnn.powerbiembedded\src\DotNetNuke.PowerBI'
+$destinationPath = 'C:\Websites\funcatra.dnndev.me\DesktopModules\MVC\PowerBIEmbedded'
 $filters = @('*.ascx', '*.css', '*.js', '*.resx', '*.cshtml', '*.html')
 
 foreach ($filter in $filters)
 {
     $watcher = New-Object System.IO.FileSystemWatcher
     $watcher.Path = $searchPath
-    $watcher.Filter = $filter
+    $watcher.Filter = $filter 
     $watcher.IncludeSubdirectories = $true
     $watcher.EnableRaisingEvents = $true
 

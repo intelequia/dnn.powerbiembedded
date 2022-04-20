@@ -1,23 +1,15 @@
 ﻿@inherits DotNetNuke.Web.Mvc.Framework.DnnWebViewPage<DotNetNuke.PowerBI.Models.EmbedConfig>
 @using DotNetNuke.Web.Client.ClientResourceManagement
-@using DotNetNuke.Framework
-
 @{
-    ClientResourceManager.RegisterScript(Dnn.DnnPage, "~/DesktopModules/MVC/PowerBIEmbedded/scripts/powerbi.min.js",
-        20);
-    ClientResourceManager.RegisterScript(Dnn.DnnPage, "~/DesktopModules/MVC/PowerBIEmbedded/scripts/Common.js",
-        20);
+    ClientResourceManager.RegisterScript(Dnn.DnnPage, "~/DesktopModules/MVC/PowerBIEmbedded/scripts/vendors/knockout.min.js", 21);
+    ClientResourceManager.RegisterScript(Dnn.DnnPage, "~/DesktopModules/MVC/PowerBIEmbedded/scripts/powerbi.min.js", 20);
+    ClientResourceManager.RegisterScript(Dnn.DnnPage, "~/DesktopModules/MVC/PowerBIEmbedded/scripts/Common.js", 20);
     ClientResourceManager.RegisterScript(Dnn.DnnPage, "https://npmcdn.com/es6-promise@3.2.1", 20);
-    ClientResourceManager.RegisterStyleSheet(Dnn.DnnPage, "~/DesktopModules/MVC/PowerBIEmbedded/Css/module.css", 10,
-        "DnnPageHeaderProvider");
-
-
-    ServicesFramework.Instance.RequestAjaxScriptSupport();
-    ServicesFramework.Instance.RequestAjaxAntiForgerySupport();
-
+    ClientResourceManager.RegisterScript(Dnn.DnnPage, "~/DesktopModules/MVC/PowerBIEmbedded/scripts/ContentView.js", 25);
+    ClientResourceManager.RegisterStyleSheet(Dnn.DnnPage, "~/DesktopModules/MVC/PowerBIEmbedded/Css/module.css", 10, "DnnPageHeaderProvider");
 }
 
-<div class="powerbiContentView">
+<div id="powerbiContentView_@Dnn.ActiveModule.ModuleID" class="powerbiContentView">
     @if (Model == null || string.IsNullOrEmpty(Model.Id))
     {
     }
@@ -35,391 +27,43 @@
             <div class="pbitoolbar">
                 @if (ViewBag.PrintVisible)
                 {
-                    <a href="#" class="print" title="Print report" onclick="return pbiprint()"></a>
+                    <a href="#" class="print" title="Print report" data-bind="click: pbiprint"></a>
                 }
 
                 @if (ViewBag.BookmarksVisible)
                 {
-                    <a href="#" class="bookmarks" title="Bookmarks" onclick="return openNav()"></a>
+                    <a href="#" class="bookmarks" title="Bookmarks" data-bind="click: openNav"></a>
                 }
                 @if (ViewBag.FullScreenVisible)
                 {
-                    <a href="#" class="fullscreen" title="Full screen" onclick="return pbifullscreen()"></a>
+                    <a href="#" class="fullscreen" title="Full screen" data-bind="click: pbifullscreen"></a>
                 }
-                <a href="#" class="refresh" title="Refresh visual objects and data" onclick="return pbirefresh()"></a>
-                <a href="#" class="reload" title="Reload visual and filters" onclick="return pbireload()"></a>
+                <a href="#" class="refresh" title="Refresh visual objects and data" data-bind="click: pbirefresh"></a>
+                <a href="#" class="reload" title="Reload visual and filters" data-bind="click: pbireload"></a>
             </div>
         }
 
-        
-<div id="mySidenav" class="sidenav">
-    <div class="navheader">
-        <div class="editorTitle">Bookmarks</div>
-        <a href="javascript:void(0)" class="closebtn" onclick="closeNav()">&times;</a>
-    </div>
-    <div class="addBookmarks">
-        <input type="text" id="bookmarkName">
-        <a href="#" class="createBookmarks" title="Create bookmark" onclick="return onBookmarkCaptureClicked()"></a>
-    </div>
-    <hr>
-    <div id="bookmarksWrapper">
-        <div id="bookmarksList">
+
+        <div id="mySidenav_@Dnn.ActiveModule.ModuleID" class="sidenav">
+            <div class="navheader">
+                <div class="editorTitle">Bookmarks</div>
+                <a href="javascript:void(0)" class="closebtn" data-bind="click: closeNav()">&times;</a>
+            </div>
+            <div class="addBookmarks">
+                <input type="text" id="bookmarkName" data-bind="value: newBookmarkName">
+                <a href="#" class="createBookmarks" title="Create bookmark" data-bind="click: onBookmarkCaptureClicked"></a>
+            </div>
+            <hr>
+            <div id="bookmarksWrapper">
+                <div id="bookmarksList" data-bind="foreach: bookmarksArray">
+                    <div class="showcaseRadioContainer" data-bind="click: $parent.onBookmarkClicked, class: bookmarkClass">
+                        <span class="radioTitle" data-bind="text: displayName"></span>
+                        <a class="deletebookmark" data-bind="click: $parent.deleteBookmark"></a>
+                    </div>
+
+                </div>
+            </div>
         </div>
-    </div>
-</div>
-
-        <div id="embedContainer" class="mobile-view active"></div>
-        <script>
-
-            //Bookmarks
-            var BookmarkShowcaseState = {
-                bookmarksArray: [],
-                selectedBookmark: "",
-            }
-            var service = {}
-
-
-            // Get models. models contains enums that can be used.
-            var models = window['powerbi-client'].models;
-            var isMobile = window.innerWidth < 425 || window.innerHeight < 425;
-            var isLandscape = window.innerWidth > window.innerHeight;
-            var defaultHeight = '@ViewBag.Height';
-            var overrideVisualHeaderVisibility =  @ViewBag.OverrideVisualHeaderVisibility.ToString().ToLowerInvariant();
-            var overrideFilterPaneVisibility =  @ViewBag.OverrideFilterPaneVisibility.ToString().ToLowerInvariant();
-            var config = {
-                type: '@Model.ContentType',
-                tokenType: models.TokenType.Embed,
-                accessToken: "@Model.EmbedToken.Token",
-                embedUrl: "@Model.EmbedUrl",
-                id: "@Model.Id",
-                permissions: models.Permissions.Read,
-                viewMode: models.ViewMode.View,
-                settings: {
-                    //panes: {
-                    //    bookmarks: {
-                    //        visible: true
-                    //},
-                    navContentPaneEnabled: @ViewBag.NavPaneVisible.ToString().ToLowerInvariant(),
-                    localeSettings: {
-                        language: "@ViewBag.Locale",
-                        formatLocale: "@ViewBag.Locale"
-                    },
-            //background: models.BackgroundType.Transparent,
-                    layoutType: isMobile ? (isLandscape ? models.LayoutType.MobileLandscape : models.LayoutType.MobilePortrait) : null
-                },
-
-            };
-
-            if (overrideVisualHeaderVisibility) {
-                config.settings.visualSettings = {
-                    visualHeaders: [
-                        {
-                            settings: {
-                                visible: @ViewBag.VisualHeaderVisible.ToString().ToLowerInvariant()
-                            }
-                        }
-                    ]
-                };
-            }
-            //override filter pane
-            if (overrideFilterPaneVisibility) {
-                config.settings.filterPaneEnabled = @ViewBag.FilterPaneVisible.ToString().ToLowerInvariant() && !isMobile;
-            }
-
-            // Get a reference to the embedded report HTML element
-            var reportContainer = $('#embedContainer')[0];
-            if (!isMobile && isLandscape) {
-                var h = defaultHeight !== '' ? defaultHeight : window.innerHeight - 50 - 20 - 39 - 20 - 10;
-                $('#embedContainer').css("height", h + "px");
-            }
-
-            // Embed the report and display it within the div container.
-            var report = powerbi.embed(reportContainer, config);
-
-
-            if (overrideFilterPaneVisibility) {
-                const newSettings = {
-                  panes: {
-                    filters :{
-                      visible:  @ViewBag.FilterPaneVisible.ToString().ToLowerInvariant() && !isMobile, // hide filter pane
-                    }
-                  }
-                };
-                report.updateSettings(newSettings)
-                  .catch(error => { console.log(error) });
-            }
-
-            $(document).ready(function () {
-                service = {
-                    path: "Bookmarks",
-                    framework: $.ServicesFramework(@Dnn.ActiveModule.ModuleID,@Dnn.ActiveModule.TabID)
-                }
-                service.baseUrl = service.framework.getServiceRoot(service.path);
-
-                createBookmarksList();
-            });
-
-            //Getreport bookmarks
-            report.bookmarksManager.getBookmarks().then(function (bookmarks) {
-                // Create bookmarks list from the existing report bookmarks
-                updateBookmarksList(bookmarks);
-            });
-
-            function  createBookmarksList() {
-                service.controller = "Bookmarks";
-
-                let params = {
-                    reportId: "@Model.Id"
-                }
-
-                Common.Call("GET", "GetBookmarks", service, params,
-                    function (data) {
-                        if (data.Success) {
-                            data.Data.forEach(bookmark => {
-                                var b = {
-                                    id: bookmark.Id,
-                                    name: "bookmark_"+bookmark.Id,
-                                    displayName: bookmark.DisplayName,
-                                    state: bookmark.State
-                                }
-                                BookmarkShowcaseState.bookmarksArray.push(b);
-                            });
-                            var bookmarksList = $('#bookmarksList');
-                            for (let i = 0; i < BookmarkShowcaseState.bookmarksArray.length; i++) {
-                                bookmarksList.append(buildBookmarkElement(BookmarkShowcaseState.bookmarksArray[i]));
-                            }
-                        }
-                    },
-                    function (error) {
-                        console.log("error");
-                    },
-                    function () {
-                    });
-            }
-
-            function updateBookmarksList(bookmarks) {
-                // Set bookmarks array to the report's fetched bookmarks
-                BookmarkShowcaseState.bookmarksArray = bookmarks;
-
-                // Build the bookmarks list HTML code
-                var bookmarksList = $('#bookmarksList');
-                for (let i = 0; i < BookmarkShowcaseState.bookmarksArray.length; i++) {
-                    bookmarksList.append(buildBookmarkElement(BookmarkShowcaseState.bookmarksArray[i]));
-                }
-
-                // Set first bookmark active
-                if (bookmarksList.length) {
-                    let firstBookmark = $('#' + BookmarkShowcaseState.bookmarksArray[0].name);
-
-                    // Apply first bookmark state
-                    onBookmarkClicked(firstBookmark[0]);
-                }
-            }
-
-            function onBookmarkClicked(element) {
-
-                // Set the clicked bookmark as active
-                setBookmarkActive($(element));
-
-                // Get bookmark Id from HTML
-                const bookmarkId = $(element).attr('id');
-
-                // Find the bookmark in the bookmarks array
-                let currentBookmark = getBookmarkByID(bookmarkId);
-
-                // Apply the bookmark state
-                report.bookmarksManager.applyState(currentBookmark.state);
-            }
-
-             //Get the bookmark with bookmarkId name
-            function getBookmarkByID(bookmarkId) {
-                return jQuery.grep(BookmarkShowcaseState.bookmarksArray, function (bookmark) { return bookmark.name === bookmarkId })[0];
-            }
-
-            // Set the bookmark as the active bookmark on the list
-            function setBookmarkActive(bookmarkSelector) {
-
-                // Remove share boomark icon
-                $('#deleteBookmark').remove();
-
-                BookmarkShowcaseState.selectedBookmark = bookmarkSelector
-
-                let parentNode = (bookmarkSelector[0]).parentNode;
-
-                // Add delete bookmark icon to bookmark's line
-                $(parentNode).append(buildDeleteElement());
-
-                // Set bookmark radio button to checked
-                bookmarkSelector.attr('checked', true);
-            }
-
-            // Build bookmark radio button HTML element
-            function buildBookmarkElement(bookmark) {
-                let labelElement = document.createElement("label");
-                labelElement.setAttribute("class", "showcaseRadioContainer");
-
-                let inputElement = document.createElement("input");
-                inputElement.setAttribute("type", "radio");
-                inputElement.setAttribute("name", "bookmark");
-                inputElement.setAttribute("id", bookmark.name);
-                inputElement.setAttribute("onclick", "onBookmarkClicked(this);");
-                labelElement.appendChild(inputElement);
-
-                let spanElement = document.createElement("span");
-                spanElement.setAttribute("class", "showcaseRadioCheckmark");
-                labelElement.appendChild(spanElement);
-
-                let secondSpanElement = document.createElement("span");
-                secondSpanElement.setAttribute("class", "radioTitle");
-                let radioTitleElement = document.createTextNode(bookmark.displayName);
-                secondSpanElement.appendChild(radioTitleElement);
-                labelElement.appendChild(secondSpanElement);
-
-                return labelElement;
-            }
-
-            // Capture new bookmark of the current state and update the bookmarks list
-            function onBookmarkCaptureClicked() {
-
-                // Capture the report's current state
-                report.bookmarksManager.capture().then(function (capturedBookmark) {
-
-                    var name = $("#bookmarkName").val();
-
-                    // Build bookmark element
-                    let bookmark = {
-                        name: "bookmark_" + name,
-                        displayName: name,
-                        state: capturedBookmark.state,
-                        reportId: "@Model.Id"
-                    }
-
-                    service.controller = "Bookmarks";
-
-                    Common.Call("POST", "SaveBookmark", service, bookmark,
-                        function (data) {
-                            if (data.Success) {
-                                bookmark.id = data.Data;
-                                bookmark.name = "bookmark_" + bookmark.id;
-
-                                // Add the new bookmark to the HTML list
-                                $('#bookmarksList').append(buildBookmarkElement(bookmark));
-
-                                // Set the captured bookmark as active
-                                setBookmarkActive($('#bookmark_' + bookmark.id));
-
-                                // Add the bookmark to the bookmarks array and increase the bookmarks number counter
-                                BookmarkShowcaseState.bookmarksArray.push(bookmark);
-                            }
-                        },
-                        function (error) {
-                            console.log("error");
-                        },
-                        function () {
-                        });
-                });
-            }
-
-            // Build share icon HTML element
-            function buildDeleteElement() {
-                var imgElement = document.createElement("a");
-                imgElement.setAttribute("class", "deletebookmark");
-                imgElement.setAttribute("id", "deleteBookmark");
-                imgElement.setAttribute("onclick", "deleteBookmark(this);");
-                return imgElement;
-            }
-
-            function deleteBookmark(element) {
-
-                // Get bookmark Id from HTML
-                const bookmarkId = $($(element).siblings('input')).attr('id');
-                let bookmark = getBookmarkByID(bookmarkId);
-
-                $('#bookmarksList').empty()
-
-                service.controller = "Bookmarks";
-                Common.Call("POST", "DeleteBookmark", service, bookmark,
-                    function (data) {
-                        if (data.Success) {
-                            BookmarkShowcaseState.bookmarksArray = [];
-                            createBookmarksList();
-                        }
-                    },
-                    function (error) {
-                        console.log("error");
-                    },
-                    function () {
-                    }
-                );
-
-            }
-
-            function getParameterByName(name, url) {
-                if (!url) url = window.location.href;
-                name = name.replace(/[\[\]]/g, '\\$&');
-                var regex = new RegExp('[?&]' + name + '(=([^&#]*)|&|#|$)'),
-                    results = regex.exec(url);
-                if (!results) return null;
-                if (!results[2]) return '';
-                return decodeURIComponent(results[2].replace(/\+/g, ' '));
-            }
-
-            function pbirefresh() {
-                report.refresh()
-                    .catch(error => { console.log(error); });
-            }
-            function pbifullscreen() {
-                report.fullscreen()
-                    .catch(error => { console.log(error); });
-            }
-            function pbireload() {
-                report.reload()
-                    .catch(error => { console.log(error); });
-            }
-
-            function pbiprint() {
-                report.print()
-                    .catch(error => { console.log(error) });
-            }
-
-            function openNav() {
-                document.getElementById("mySidenav").style.width = "250px";
-            }
-
-            function closeNav() {
-                document.getElementById("mySidenav").style.width = "0";
-                BookmarkShowcaseState.selectedBookmark.removeAttr('checked');
-            }
-
-
-
-
-            window.onresize = function () {
-                isMobile = window.innerWidth < 425 || window.innerHeight < 425;
-                isLandscape = window.innerWidth > window.innerHeight;
-                if (!isMobile && isLandscape) {
-                    var h = defaultHeight !== '' ? defaultHeight : window.innerHeight - 50 - 20 - 39 - 20 - 10;
-                    $('#embedContainer').css("height", h + "px");
-                }
-            }
-            window.onmessage = function (m) {
-                if (m && m.isTrusted
-                    && m.origin === "https://app.powerbi.com"
-                    && m.type === "message"
-                    && m.data.body) {
-                    switch (m.data.body.event) {
-                        case "tileClicked":
-                            var reportId = getParameterByName("reportId", m.data.body.reportEmbedUrl);
-                            if (reportId && reportId !== "")
-                                window.location = '@ViewBag.ReportsPage?reportId=' + reportId;
-                            break;
-                        default: break;
-                    }
-                }
-            }
-
-
-
-        </script>
+        <div id="embedContainer_@Dnn.ActiveModule.ModuleID" class="mobile-view active"></div>
     }
 </div>
