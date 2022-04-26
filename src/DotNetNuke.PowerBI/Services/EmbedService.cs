@@ -374,8 +374,8 @@ namespace DotNetNuke.PowerBI.Services
                     // The line above returns an unauthorization exception when using "Service Principal" credentials. Seems a bug in the PowerBI API.
                     var dataset = client.Datasets.GetDatasets(Guid.Parse(Settings.WorkspaceId)).Value.FirstOrDefault(x => x.Id == report.DatasetId);
                     if (dataset != null 
-                        && (dataset.IsEffectiveIdentityRequired.GetValueOrDefault(false) || dataset.IsEffectiveIdentityRolesRequired.GetValueOrDefault(false))
-                        && !dataset.IsOnPremGatewayRequired.GetValueOrDefault(false))
+                        && (dataset.IsEffectiveIdentityRequired.GetValueOrDefault(false) || dataset.IsEffectiveIdentityRolesRequired.GetValueOrDefault(false)))
+                        //&& !dataset.IsOnPremGatewayRequired.GetValueOrDefault(false))
                     {
                         var rls = new EffectiveIdentity(username, new List<string> { report.DatasetId });
                         if (!string.IsNullOrWhiteSpace(roles) && dataset.IsEffectiveIdentityRolesRequired.GetValueOrDefault(false))
