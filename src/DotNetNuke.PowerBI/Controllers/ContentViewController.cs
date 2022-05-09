@@ -151,6 +151,7 @@ namespace DotNetNuke.PowerBI.Controllers
                     ViewBag.OverrideFilterPaneVisibility,
                     ViewBag.ApplicationInsightsEnabled,
                     ViewBag.NavPaneVisible,
+                    ViewBag.VisualHeaderVisible,
                     ViewBag.Locale,
                     ViewBag.FilterPaneVisible,
                     ViewBag.ReportsPage,
