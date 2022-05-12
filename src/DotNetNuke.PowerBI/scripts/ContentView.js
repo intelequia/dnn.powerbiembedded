@@ -43,6 +43,7 @@
         this.isMobile = window.innerWidth < 425 || window.innerHeight < 425;
         this.isLandscape = window.innerWidth > window.innerHeight;
         this.defaultHeight = context.Height.toString();
+        this.pageName = context.PageName;
         this.overrideVisualHeaderVisibility = context.OverrideVisualHeaderVisibility;
         this.overrideFilterPaneVisibility = context.OverrideFilterPaneVisibility;
         this.applicationInsightsEnabled = context.ApplicationInsightsEnabled;
@@ -67,7 +68,7 @@
                 //background: models.BackgroundType.Transparent,
                 layoutType: that.isMobile ? (that.isLandscape ? that.models.LayoutType.MobileLandscape : that.models.LayoutType.MobilePortrait) : null
             },
-
+            pageName: context.PageName
         };
 
         if (this.overrideVisualHeaderVisibility) {
@@ -96,7 +97,6 @@
 
         // Embed the report and display it within the div container.
         this.report = powerbi.embed(that.reportContainer, that.config);
-
 
         if (this.overrideFilterPaneVisibility) {
             const newSettings = {

@@ -122,6 +122,7 @@ namespace DotNetNuke.PowerBI.Controllers
                 ViewBag.BookmarksVisible = bool.Parse(GetSetting("PowerBIEmbedded_BookmarksVisible", "false"));
                 ViewBag.ApplicationInsightsEnabled = bool.Parse(GetSetting("PowerBIEmbedded_ApplicationInsightsEnabled", "false"));
                 ViewBag.Height = GetSetting("PowerBIEmbedded_Height");
+                ViewBag.PageName = GetSetting("PowerBIEmbedded_PageName");
 
                 // Sets the reports page on the viewbag
                 if (embedService != null)
@@ -156,6 +157,7 @@ namespace DotNetNuke.PowerBI.Controllers
                     ViewBag.FilterPaneVisible,
                     ViewBag.ReportsPage,
                     ViewBag.Height,
+                    ViewBag.PageName,
                     model.ContentType,
                     Token = model.EmbedToken?.Token,
                     model.EmbedUrl,
