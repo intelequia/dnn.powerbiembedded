@@ -63,6 +63,13 @@
                 </div>
                 <div class="dnnFormItem">
                     <div class="leftGroup">
+                        <label>Page Name</label>
+                        @Html.TextBoxFor(m => m.PageName)
+                    </div>
+                </div>
+
+                <div class="dnnFormItem">
+                    <div class="leftGroup">
                         <label>Height</label>
                         @Html.TextBoxFor(m => m.Height, new { @class = "number" })
                     </div>
@@ -110,7 +117,7 @@
                     </div>
                 </div>
                 <div class="dnnFormItem">
-                    <div class="leftGroup"> 
+                    <div class="leftGroup">
                         <label>Full Screen Visible</label>
                         @Html.CheckBoxFor(m => m.FullScreenVisible, true)
                     </div>
@@ -172,7 +179,7 @@
     jQuery(function ($) {
         var setupModule = function () {
             $('#PowerBISettings').dnnPanels();
-            $('#PowerBISettings .dnnFormExpandContent a').dnnExpandAll({
+            $('#PowerBISettings .dnnFormExpandContent a').dnnExpandAll({ 
                 targetArea: '#PowerBISettings'
             });
         };

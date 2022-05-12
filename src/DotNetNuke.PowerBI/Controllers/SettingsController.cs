@@ -37,6 +37,7 @@ namespace DotNetNuke.PowerBI.Controllers
             }
             public string SettingsGroupId { get; set; }
             public string ContentItemId { get; set; }
+            public string PageName { get; set; }
             public bool IsContentView { get; set; }
             public bool FilterPaneVisible { get; set; }
             public bool NavPaneVisible { get; set; }
@@ -67,6 +68,7 @@ namespace DotNetNuke.PowerBI.Controllers
                 {
                     SettingsGroupId = GetSetting("PowerBIEmbedded_SettingsGroupId"),
                     ContentItemId = GetSetting("PowerBIEmbedded_ContentItemId"),
+                    PageName = GetSetting("PowerBIEmbedded_PageName"),
                     IsContentView = ModuleContext.Configuration.ModuleDefinition.DefinitionName == "PowerBI Embedded Content View",
                     FilterPaneVisible = bool.Parse(GetSetting("PowerBIEmbedded_FilterPaneVisible", "True")),
                     NavPaneVisible = bool.Parse(GetSetting("PowerBIEmbedded_NavPaneVisible", "True")),
@@ -143,6 +145,7 @@ namespace DotNetNuke.PowerBI.Controllers
             {
                 ModuleController.Instance.UpdateTabModuleSetting(this.ModuleContext.TabModuleId, "PowerBIEmbedded_SettingsGroupId", settings.SettingsGroupId);
                 ModuleController.Instance.UpdateTabModuleSetting(this.ModuleContext.TabModuleId, "PowerBIEmbedded_ContentItemId", settings.ContentItemId);
+                ModuleController.Instance.UpdateTabModuleSetting(this.ModuleContext.TabModuleId, "PowerBIEmbedded_PageName", settings.PageName);
                 ModuleController.Instance.UpdateTabModuleSetting(this.ModuleContext.TabModuleId, "PowerBIEmbedded_FilterPaneVisible", settings.FilterPaneVisible.ToString());
                 ModuleController.Instance.UpdateTabModuleSetting(this.ModuleContext.TabModuleId, "PowerBIEmbedded_NavPaneVisible", settings.NavPaneVisible.ToString());
                 ModuleController.Instance.UpdateTabModuleSetting(this.ModuleContext.TabModuleId, "PowerBIEmbedded_Height", settings.Height);
