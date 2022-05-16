@@ -108,17 +108,21 @@ namespace DotNetNuke.PowerBI.Services
                     InheritPermissions = s.InheritPermissions
                 });
             }
+            if (model.Workspaces.Count > 0)
+            {
+                model.Workspaces = model.Workspaces.OrderBy(x => x.Name).ToList();
+            }
 
             // Create a Power BI Client object. It will be used to call Power BI APIs.
             using (var client = new PowerBIClient(new Uri(Settings.ApiUrl), tokenCredentials))
             {
                 var dashboards = client.Dashboards.GetDashboardsInGroupAsync(Guid.Parse(Settings.WorkspaceId)).GetAwaiter().GetResult();
-                model.Dashboards.AddRange(dashboards.Value);
+                model.Dashboards.AddRange(dashboards.Value?.OrderBy(x => x.DisplayName));
 
                 // Get a list of reports.
                 var reports = client.Reports.GetReportsInGroupAsync(Guid.Parse(Settings.WorkspaceId)).GetAwaiter().GetResult();
                 var cleanedReports = CleanUsageReports(reports.Value.ToList());
-                model.Reports.AddRange(cleanedReports);
+                model.Reports.AddRange(cleanedReports?.OrderBy(x => x.Name));
             }
             CachingProvider.Instance().Insert($"PBI_{Settings.PortalId}_{Settings.SettingsId}_{userId}_{Thread.CurrentThread.CurrentUICulture.Name}_PowerBIListView", model, null, DateTime.Now.AddSeconds(60), TimeSpan.Zero);
             return model;
