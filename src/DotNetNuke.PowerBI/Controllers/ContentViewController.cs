@@ -53,7 +53,11 @@ namespace DotNetNuke.PowerBI.Controllers
 
                 var user = ModuleContext.PortalSettings.UserInfo.Username;
                 var userPropertySetting = (string)ModuleContext.Settings["PowerBIEmbedded_UserProperty"];
-                if (userPropertySetting == "PowerBiGroup")
+                if (userPropertySetting.ToLowerInvariant() == "email")
+                {
+                    user = ModuleContext.PortalSettings.UserInfo.Email;
+                }
+                else if (userPropertySetting == "PowerBiGroup")
                 {
                     var userProperty = PortalSettings.UserInfo.Profile.GetProperty("PowerBiGroup");
                     if (userProperty?.PropertyValue != null)

@@ -114,6 +114,7 @@ namespace DotNetNuke.PowerBI.Controllers
                     var userProperties = new List<string>
                     {
                         "Username",
+                        "Email",
                         "Custom"
                     };
                     var property = ProfileController.GetPropertyDefinitionByName(PortalSettings.PortalId, "PowerBiGroup");

@@ -98,4 +98,7 @@
 	<p>Refactorized client side script code to allow hosting more than one content view module per page</p>
 	<p>Removed IsOnPremGatewayRequired check to pass user and roles to the Power BI report</p>
 	<p>Added support to set the initial page name through settings (this is the report section id)</p>
+	<p>Added posibility to use the user Email address for Row Level Security</p>
+	<p>Fix to add the PowerBIGroup profile property not being added on latest version for all portals</p>
+	<p>Workspaces and report items are now sorted alphabetically</p>
 </div>

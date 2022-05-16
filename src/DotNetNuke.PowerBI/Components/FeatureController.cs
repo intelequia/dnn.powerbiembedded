@@ -178,43 +178,45 @@ namespace DotNetNuke.PowerBI
         {
             try
             {
-                switch (version)
+                // Add PowerBiGroup profile property
+                var portalController = new PortalController();
+                var portals = portalController.GetPortals();
+                foreach (PortalInfo portal in portals)
                 {
-                    case "01.00.13":
-                    case "01.00.14":
-                        var portalController = new PortalController();
-                        var portals = portalController.GetPortals();
-                        foreach (PortalInfo portal in portals)
+                    var property = ProfileController.GetPropertyDefinitionByName(portal.PortalID, "PowerBiGroup");
+                    if (property == null)
+                    {
+                        var propertyDefinition = new ProfilePropertyDefinition
                         {
-                            var property = ProfileController.GetPropertyDefinitionByName(portal.PortalID, "PowerBiGroup");
-                            if (property == null)
+                            PortalId = portal.PortalID,
+                            PropertyCategory = "PowerBi Embedded RLS",
+                            PropertyName = "PowerBiGroup",
+                            DataType = 349,
+                            DefaultVisibility = UserVisibilityMode.AdminOnly,
+                            Deleted = false,
+                            ProfileVisibility = new ProfileVisibility
                             {
-                                var propertyDefinition = new ProfilePropertyDefinition
-                                {
-                                    PortalId = portal.PortalID,
-                                    PropertyCategory = "PowerBi Embedded RLS",
-                                    PropertyName = "PowerBiGroup",
-                                    DataType = 349,
-                                    DefaultVisibility = UserVisibilityMode.AdminOnly,
-                                    Deleted = false,
-                                    ProfileVisibility = new ProfileVisibility
-                                    {
-                                        VisibilityMode = UserVisibilityMode.AdminOnly,
-                                        RelationshipVisibilities = new List<Relationship>(),
-                                        RoleVisibilities = new List<RoleInfo>()
-                                    },
-                                    Length = 100,
-                                    ReadOnly = false,
-                                    Visible = false,
-                                };
+                                VisibilityMode = UserVisibilityMode.AdminOnly,
+                                RelationshipVisibilities = new List<Relationship>(),
+                                RoleVisibilities = new List<RoleInfo>()
+                            },
+                            Length = 100,
+                            ReadOnly = false,
+                            Visible = false,
+                        };
 
-                                ProfileController.AddPropertyDefinition(propertyDefinition);
-                            }
-                        }
+                        ProfileController.AddPropertyDefinition(propertyDefinition);
+                    }
+                }
+                return "success";
+
+                /*switch (version)
+                {
+                    case "01.00.20":
                         return "success";
                     default:
                         return "success";
-                }
+                }*/
             }
             catch
             {
