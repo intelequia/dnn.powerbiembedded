@@ -12,13 +12,11 @@ using DotNetNuke.Web.Mvc.Framework.ActionFilters;
 using DotNetNuke.Web.Mvc.Framework.Controllers;
 using Newtonsoft.Json;
 using System;
-using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Net;
 using System.Text.RegularExpressions;
 using System.Web.Mvc;
-using DotNetNuke.Framework.JavaScriptLibraries;
 
 namespace DotNetNuke.PowerBI.Controllers
 {
@@ -53,7 +51,7 @@ namespace DotNetNuke.PowerBI.Controllers
 
                 var user = ModuleContext.PortalSettings.UserInfo.Username;
                 var userPropertySetting = (string)ModuleContext.Settings["PowerBIEmbedded_UserProperty"];
-                if (userPropertySetting.ToLowerInvariant() == "email")
+                if (userPropertySetting?.ToLowerInvariant() == "email")
                 {
                     user = ModuleContext.PortalSettings.UserInfo.Email;
                 }
@@ -121,7 +119,8 @@ namespace DotNetNuke.PowerBI.Controllers
                 ViewBag.OverrideFilterPaneVisibility = bool.Parse(GetSetting("PowerBIEmbedded_OverrideFilterPaneVisibility", "false"));
                 ViewBag.VisualHeaderVisible = bool.Parse(GetSetting("PowerBIEmbedded_VisualHeaderVisible", "false"));
                 ViewBag.PrintVisible = bool.Parse(GetSetting("PowerBIEmbedded_PrintVisible", "false"));
-                ViewBag.ToolbarVisible = bool.Parse(GetSetting("PowerBIEmbedded_ToolbarVisible", "false"));
+                ViewBag.ToolbarVisible = bool.Parse(GetSetting("PowerBIEmbedded_ToolbarVisible", "false"))
+                    && model.ContentType == "report" && model.ReportType == "PowerBIReport";
                 ViewBag.FullScreenVisible = bool.Parse(GetSetting("PowerBIEmbedded_FullScreenVisible", "false"));
                 ViewBag.BookmarksVisible = bool.Parse(GetSetting("PowerBIEmbedded_BookmarksVisible", "false"));
                 ViewBag.ApplicationInsightsEnabled = bool.Parse(GetSetting("PowerBIEmbedded_ApplicationInsightsEnabled", "false"));

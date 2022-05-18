@@ -47,13 +47,25 @@ namespace DotNetNuke.PowerBI.Models
                     !permissionsRepo.HasPermissions(x.Id, user.PortalID, 1, user));
 
                 // Remove unauthorized reports
-                model.Reports.RemoveAll(x => 
-                    model.Workspaces.FirstOrDefault(c => c.Id == HttpUtility.ParseQueryString((new Uri(x.EmbedUrl)).Query)?.Get("groupId")) == null
-                    ||
-                    (!model.Workspaces.FirstOrDefault(c => c.Id == HttpUtility.ParseQueryString((new Uri(x.EmbedUrl)).Query)?.Get("groupId")).InheritPermissions
-                        && !permissionsRepo.HasPermissions(x.Id.ToString(), user.PortalID, 1, user))
-                );
-
+                string guidPattern = "[{(]?[0-9A-F]{8}[-]?(?:[0-9A-F]{4}[-]?){3}[0-9A-F]{12}[)}]?";
+                string urlPattern = $"https://app.powerbi.com/groups/(?<groupId>{guidPattern})/(reports|rdlreports)/(?<reportId>{guidPattern}).*";
+                List<Microsoft.PowerBI.Api.Models.Report> reportsToRemove = new List<Microsoft.PowerBI.Api.Models.Report>();
+                foreach (var report in model.Reports)
+                {
+                    var match = Regex.Match(report.WebUrl, urlPattern, RegexOptions.IgnoreCase);
+                    if (!match.Success)
+                    {
+                        reportsToRemove.Add(report);
+                    }
+                    else if (model.Workspaces.FirstOrDefault(c => c.Id == match.Groups["groupId"]?.Value) == null
+                        ||
+                        (!model.Workspaces.FirstOrDefault(c => c.Id == match.Groups["groupId"]?.Value).InheritPermissions
+                            && !permissionsRepo.HasPermissions(report.Id.ToString(), user.PortalID, 1, user)))
+                    {
+                        reportsToRemove.Add(report);
+                    }
+                }
+                model.Reports.RemoveAll(x => reportsToRemove.Contains(x));
 
                 // Remove unauthorized dashboards
                 model.Dashboards.RemoveAll(x =>

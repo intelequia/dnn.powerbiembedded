@@ -365,9 +365,27 @@ namespace DotNetNuke.PowerBI.Services
                     model.ErrorMessage = "No report with the given ID was found in the workspace. Make sure ReportId is valid.";
                 }
 
-                //Delete bookmarks is report is modified
-                CheckBookmarks(report,Settings.PortalId);
+                EmbedToken tokenResponse = await GenerateTokenAsync(username, roles, client, report).ConfigureAwait(false);
+                if (tokenResponse == null)
+                {
+                    model.ErrorMessage = "Failed to generate embed token.";
+                }
+                // Generate Embed Configuration.
+                model.EmbedToken = tokenResponse;
+                model.EmbedUrl = report.EmbedUrl;
+                model.Id = report.Id.ToString();
+                model.ReportType = report.ReportType;
+                model.ContentType = "report";
 
+                CachingProvider.Instance().Insert($"PBI_{Settings.PortalId}_{Settings.SettingsId}_{userId}_{Thread.CurrentThread.CurrentUICulture.Name}_Report_{reportId}", model, null, DateTime.Now.AddSeconds(60), TimeSpan.Zero);
+            }
+            return model;
+        }
+
+        private async Task<EmbedToken> GenerateTokenAsync(string username, string roles, PowerBIClient client, Report report)
+        {
+            try
+            {
                 // Generate Embed Token for reports without effective identities.
                 GenerateTokenRequest generateTokenRequestParameters;
                 // This is how you create embed token with effective identities
@@ -377,9 +395,9 @@ namespace DotNetNuke.PowerBI.Services
                     // var dataset = await client.Datasets.GetDatasetAsync(report.DatasetId).ConfigureAwait(false);
                     // The line above returns an unauthorization exception when using "Service Principal" credentials. Seems a bug in the PowerBI API.
                     var dataset = client.Datasets.GetDatasets(Guid.Parse(Settings.WorkspaceId)).Value.FirstOrDefault(x => x.Id == report.DatasetId);
-                    if (dataset != null 
+                    if (dataset != null
                         && (dataset.IsEffectiveIdentityRequired.GetValueOrDefault(false) || dataset.IsEffectiveIdentityRolesRequired.GetValueOrDefault(false)))
-                        //&& !dataset.IsOnPremGatewayRequired.GetValueOrDefault(false))
+                    //&& !dataset.IsOnPremGatewayRequired.GetValueOrDefault(false))
                     {
                         var rls = new EffectiveIdentity(username, new List<string> { report.DatasetId });
                         if (!string.IsNullOrWhiteSpace(roles) && dataset.IsEffectiveIdentityRolesRequired.GetValueOrDefault(false))
@@ -402,34 +420,12 @@ namespace DotNetNuke.PowerBI.Services
                     generateTokenRequestParameters = new GenerateTokenRequest(accessLevel: "view");
                 }
                 var tokenResponse = await client.Reports.GenerateTokenInGroupAsync(Guid.Parse(Settings.WorkspaceId), report.Id, generateTokenRequestParameters).ConfigureAwait(false);
-                if (tokenResponse == null)
-                {
-                    model.ErrorMessage = "Failed to generate embed token.";
-                }
-                // Generate Embed Configuration.
-                model.EmbedToken = tokenResponse;
-                model.EmbedUrl = report.EmbedUrl;
-                model.Id = report.Id.ToString();
-                model.ContentType = "report";
-
-                CachingProvider.Instance().Insert($"PBI_{Settings.PortalId}_{Settings.SettingsId}_{userId}_{Thread.CurrentThread.CurrentUICulture.Name}_Report_{reportId}", model, null, DateTime.Now.AddSeconds(60), TimeSpan.Zero);
+                return tokenResponse;
             }
-            return model;
-        }
-
-        private void CheckBookmarks(Report report, int portalId)
-        {
-            var bookmarks = BookmarksRepository.Instance.GetBookmarks(report.Id.ToString(), portalId);
-            foreach (var bookmark in bookmarks)
+            catch (Exception ex)
             {
-                if (report.ModifiedDateTime != null && bookmark.CreatedOn < report.ModifiedDateTime)
-                {
-                    BookmarksRepository.Instance.DeleteBookmark(bookmark.Id);
-                }
-                else if(bookmark.CreatedOn < DateTime.Now.AddDays(-30))
-                {
-                    BookmarksRepository.Instance.DeleteBookmark(bookmark.Id);
-                }
+                Logger.Error(ex);
+                return null;
             }
         }
 

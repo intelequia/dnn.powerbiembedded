@@ -9,6 +9,7 @@ namespace DotNetNuke.PowerBI.Models
         public EmbedConfig()
         {
             ContentType = "report";
+            ReportType = "PowerBIReport";
         }
         public string Id { get; set; }
         public string EmbedUrl { get; set; }
@@ -28,5 +29,6 @@ namespace DotNetNuke.PowerBI.Models
         public string Roles { get; set; }
         public string ErrorMessage { get; internal set; }
         public string ContentType { get; set; }
+        public string ReportType { get; set; }
     }
 }

@@ -101,4 +101,7 @@
 	<p>Added posibility to use the user Email address for Row Level Security</p>
 	<p>Fix to add the PowerBIGroup profile property not being added on latest version for all portals</p>
 	<p>Workspaces and report items are now sorted alphabetically</p>
+	<p>Updated PowerBI Client libraries<p>
+	<p>User bookmarks are no longer deleted after 30 days</p>
+	<p>Added support for paginated reports (mandatory use of Service Principals)</p>
 </div>
