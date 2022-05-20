@@ -34,7 +34,7 @@ namespace DotNetNuke.PowerBI.Controllers
                     }
                     else
                     {
-                        settingsGroupId = pbiSettings.FirstOrDefault(x => !string.IsNullOrEmpty(x.SettingsGroupId))?.SettingsGroupId;
+                        settingsGroupId = pbiSettings.OrderBy(x => x.SettingsGroupName).FirstOrDefault(x => !string.IsNullOrEmpty(x.SettingsGroupId))?.SettingsGroupId;
                     }
                 }
                 var embedService = new EmbedService(ModuleContext.PortalId, ModuleContext.TabModuleId, settingsGroupId);
