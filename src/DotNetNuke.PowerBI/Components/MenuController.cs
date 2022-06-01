@@ -48,7 +48,7 @@ namespace DotNetNuke.PowerBI.Components
 
         public IDictionary<string, object> GetSettings(int portalId)
         {
-#if DEBUG
+#if DEBUGPERSONABAR
             var uiUrl = "http://localhost:8080/dist";
 #else
             var uiUrl = "/DesktopModules/Admin/Dnn.PersonaBar/Modules/Dnn.PowerBI";
