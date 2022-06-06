@@ -131,7 +131,18 @@
                         groupId: that.report.config.groupId,
                         userId: userId,
                         url: document.URL,
-                        data: data
+                        data: eventName === "pageChanged" && data.newPage ?
+                            {
+                                report: {
+                                    id: that.report.config.id,
+                                    displayName: ""                                    
+                                },
+                                page: {
+                                    name: data.newPage.name,
+                                    displayName: data.newPage.displayName
+                                }
+                            }
+                            : data
                     }
                 });
             }
