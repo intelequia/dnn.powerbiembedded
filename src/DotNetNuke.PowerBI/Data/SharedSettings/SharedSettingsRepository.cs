@@ -94,6 +94,7 @@ namespace DotNetNuke.PowerBI.Data.SharedSettings
                 current.ApplicationId = settings.ApplicationId;
                 current.WorkspaceId = settings.WorkspaceId;
                 current.ContentPageUrl = settings.ContentPageUrl;
+                current.DisabledCapacityMessage = settings.DisabledCapacityMessage;
                 current.ModifiedOn = DateTime.Now;
                 current.ModifiedBy = Components.Common.CurrentUser.UserID;
                 current.InheritPermissions = settings.InheritPermissions;

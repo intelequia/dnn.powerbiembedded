@@ -168,6 +168,7 @@ class Workspaces extends Component {
                             applicationId={item.ApplicationId}
                             workspaceId={item.WorkspaceId}
                             contentPageUrl={item.ContentPageUrl}
+                            disabledCapacityMessage={item.DisabledCapacityMessage}
                             inheritPermissions={item.InheritPermissions}
                             Collapse={this.collapse.bind(this)}
                             onUpdate={this.onUpdateWorkspaceSetting.bind(this)}
@@ -196,6 +197,7 @@ class Workspaces extends Component {
             ServicePrincipalApplicationSecret: "",
             ServicePrincipalTenant: "",
             ContentPageUrl: "",
+            DisabledCapacityMessage: "",
             InheritPermissions: false
         };
         return (

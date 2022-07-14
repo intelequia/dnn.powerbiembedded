@@ -30,5 +30,6 @@ namespace DotNetNuke.PowerBI.Models
         public string ErrorMessage { get; internal set; }
         public string ContentType { get; set; }
         public string ReportType { get; set; }
+        public bool IsCapacityDisabled { get; set; }
     }
 }

@@ -262,6 +262,7 @@
     <Content Include="Views\CalendarView\Index.cshtml" />
     <Content Include="Providers\DataProviders\SqlDataProvider\01.00.07.SqlDataProvider" />
     <Content Include="scripts\powerbi.js.map" />
+    <Content Include="Providers\DataProviders\SqlDataProvider\01.00.21.SqlDataProvider" />
     <None Include="web.Debug.config">
       <DependentUpon>web.config</DependentUpon>
     </None>
@@ -306,7 +307,7 @@
   <PropertyGroup>
     <RunPostBuildEvent>OnBuildSuccess</RunPostBuildEvent>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug PersonaBar|AnyCPU'">
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'DebugPersonaBar|AnyCPU'">
     <DebugSymbols>true</DebugSymbols>
     <OutputPath>..\..\bin\</OutputPath>
     <DefineConstants>TRACE;DEBUG;DEBUGPERSONABAR</DefineConstants>
