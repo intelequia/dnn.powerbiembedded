@@ -228,6 +228,7 @@ namespace DotNetNuke.PowerBI.Services
                         catch (Exception ex)
                         {
                             // TODO: Getting "UnsupportedMediaType"
+                            Logger.Warn($"Error getting refresh history for dataset {dataset.Name}", ex);
                         }
                         try
                         {
@@ -331,6 +332,58 @@ namespace DotNetNuke.PowerBI.Services
             return result.ToString("yyyy-MM-ddTHH:mm:ss");
         }
 
+        private async Task<Capacity> GetCapacityAsync(PowerBIClient client, Guid capacityId)
+        {
+            if (capacityId == null)
+                return null;
+            var capacities = (Capacities) CachingProvider.Instance().GetItem($"PBI_{Settings.PortalId}_{Settings.SettingsId}_Capacities");
+            if (capacities == null)
+            {
+                capacities = await client.Capacities.GetCapacitiesAsync().ConfigureAwait(false);
+                CachingProvider.Instance().Insert($"PBI_{Settings.PortalId}_{Settings.SettingsId}_Capacities", capacities, null, DateTime.Now.AddMinutes(5), TimeSpan.Zero);
+            }
+            return capacities?.Value?.FirstOrDefault(c => c.Id == capacityId);
+        }
+
+        private async Task<Group> GetGroupAsync(PowerBIClient client, Guid workspaceId)
+        {
+            if (workspaceId == null)
+                return null;
+            var groups = (Groups)CachingProvider.Instance().GetItem($"PBI_{Settings.PortalId}_{Settings.SettingsId}_Groups");
+            if (groups == null)
+            {
+                groups = await client.Groups.GetGroupsAsync().ConfigureAwait(false);
+                CachingProvider.Instance().Insert($"PBI_{Settings.PortalId}_{Settings.SettingsId}_Groups", groups, null, DateTime.Now.AddMinutes(5), TimeSpan.Zero);
+            }
+            return groups?.Value?.FirstOrDefault(g => g.Id == workspaceId);
+        }
+
+        private async Task<bool> ValidateWorkspaceAndCapacity(PowerBIClient client, EmbedConfig model)
+        {
+            var workspace = await GetGroupAsync(client, Guid.Parse(Settings.WorkspaceId)).ConfigureAwait(false);
+            if (workspace == null)
+            {
+                model.ErrorMessage = "No workspace with the given ID was found. Please make sure you have the correct workspace ID.";
+            }
+            else
+            {
+                // Check dedicated capacity status
+                if (workspace.IsOnDedicatedCapacity.GetValueOrDefault())
+                {
+                    var capacity = await GetCapacityAsync(client, workspace.CapacityId.GetValueOrDefault()).ConfigureAwait(false);
+                    if (capacity != null
+                        && !(capacity.State == CapacityState.Active || capacity.State == CapacityState.UpdatingSku))
+                    {
+                        model.IsCapacityDisabled = true;
+                        model.ErrorMessage = string.IsNullOrEmpty(Settings.DisabledCapacityMessage)
+                            ? model.ErrorMessage = "The workspace is on a dedicated capacity, but the capacity is not active."
+                            : Settings.DisabledCapacityMessage;
+                    }
+                }
+                return true;
+            }
+            return false;
+        }
         public async Task<EmbedConfig> GetReportEmbedConfigAsync(int userId, string username, string roles, string reportId)
         {
             var model = (EmbedConfig)CachingProvider.Instance().GetItem($"PBI_{Settings.PortalId}_{Settings.SettingsId}_{userId}_{Thread.CurrentThread.CurrentUICulture.Name}_Report_{reportId}");
@@ -338,7 +391,6 @@ namespace DotNetNuke.PowerBI.Services
                 return model;
 
             model = new EmbedConfig();
-
             // Get token credentials for user
             var getCredentialsResult = await GetTokenCredentials();
             if (!getCredentialsResult)
@@ -347,36 +399,38 @@ namespace DotNetNuke.PowerBI.Services
                 model.ErrorMessage = "Authentication failed.";
                 return model;
             }
+            
 
             // Create a Power BI Client object. It will be used to call Power BI APIs.
             using (var client = new PowerBIClient(new Uri(Settings.ApiUrl), tokenCredentials))
             {
-                // Get a list of reports.
-                var reports = await client.Reports.GetReportsInGroupAsync(Guid.Parse(Settings.WorkspaceId)).ConfigureAwait(false);
+                if (await ValidateWorkspaceAndCapacity(client, model).ConfigureAwait(false))
+                {
+                    // Get a list of reports for the given workspace.
+                    var reports = await client.Reports.GetReportsInGroupAsync(Guid.Parse(Settings.WorkspaceId)).ConfigureAwait(false);
+                    if (reports.Value.Count() == 0)
+                    {
+                        model.ErrorMessage = "No reports were found in the workspace";
+                    }
 
-                // No reports retrieved for the given workspace.
-                if (reports.Value.Count() == 0)
-                {
-                    model.ErrorMessage = "No reports were found in the workspace";
+                    Report report = reports.Value.FirstOrDefault(r => r.Id.ToString().Equals(reportId, StringComparison.InvariantCultureIgnoreCase));
+                    if (report == null)
+                    {
+                        model.ErrorMessage = "No report with the given ID was found in the workspace. Make sure ReportId is valid.";
+                    }
+                    else
+                    {
+                        model.EmbedToken = await GenerateTokenAsync(username, roles, client, report).ConfigureAwait(false);
+                        model.EmbedUrl = report?.EmbedUrl;
+                        model.Id = string.IsNullOrEmpty(report?.Id.ToString()) ? reportId : report?.Id.ToString();
+                        model.ReportType = report?.ReportType;
+                        if (model.EmbedToken == null)
+                        {
+                            model.ErrorMessage = "Failed to generate embed token.";
+                        }
+                    }
                 }
-                var report = reports.Value.FirstOrDefault(r => r.Id.ToString().Equals(reportId, StringComparison.InvariantCultureIgnoreCase));
-                if (report == null)
-                {
-                    model.ErrorMessage = "No report with the given ID was found in the workspace. Make sure ReportId is valid.";
-                }
-
-                EmbedToken tokenResponse = await GenerateTokenAsync(username, roles, client, report).ConfigureAwait(false);
-                if (tokenResponse == null)
-                {
-                    model.ErrorMessage = "Failed to generate embed token.";
-                }
-                // Generate Embed Configuration.
-                model.EmbedToken = tokenResponse;
-                model.EmbedUrl = report.EmbedUrl;
-                model.Id = report.Id.ToString();
-                model.ReportType = report.ReportType;
                 model.ContentType = "report";
-
                 CachingProvider.Instance().Insert($"PBI_{Settings.PortalId}_{Settings.SettingsId}_{userId}_{Thread.CurrentThread.CurrentUICulture.Name}_Report_{reportId}", model, null, DateTime.Now.AddSeconds(60), TimeSpan.Zero);
             }
             return model;
@@ -448,64 +502,65 @@ namespace DotNetNuke.PowerBI.Services
             // Create a Power BI Client object. It will be used to call Power BI APIs.
             using (var client = new PowerBIClient(new Uri(Settings.ApiUrl), tokenCredentials))
             {
-                // Get a list of reports.
-                var dashboards = await client.Dashboards.GetDashboardsInGroupAsync(Guid.Parse(Settings.WorkspaceId)).ConfigureAwait(false);
-
-                // No dashboards retrieved for the given workspace.
-                if (dashboards.Value.Count() == 0)
+                if (await ValidateWorkspaceAndCapacity(client, model).ConfigureAwait(false))
                 {
-                    model.ErrorMessage = "No dashboards were found in the workspace";
-                }
-                var dashboard = dashboards.Value.FirstOrDefault(r => r.Id.ToString().Equals(dashboardId, StringComparison.InvariantCultureIgnoreCase));
-                if (dashboard == null)
-                {
-                    model.ErrorMessage = "No dashboard with the given ID was found in the workspace. Make sure ReportId is valid.";
-                }
-                // Generate Embed Token for reports without effective identities.
-                GenerateTokenRequest generateTokenRequestParameters;
-                // This is how you create embed token with effective identities
-                if (!string.IsNullOrWhiteSpace(username))
-                {
-                    var rls = new EffectiveIdentity(username, new List<string> { dashboardId });
-                    if (!string.IsNullOrWhiteSpace(roles))
+                    // Get a list of reports for the given workspace.
+                    var dashboards = await client.Dashboards.GetDashboardsInGroupAsync(Guid.Parse(Settings.WorkspaceId)).ConfigureAwait(false);
+                    if (dashboards.Value.Count() == 0)
                     {
-                        var rolesList = new List<string>();
-                        rolesList.AddRange(roles.Split(','));
-                        rls.Roles = rolesList;
+                        model.ErrorMessage = "No dashboards were found in the workspace";
                     }
-                    // Generate Embed Token with effective identities.
-                    generateTokenRequestParameters = new GenerateTokenRequest(accessLevel: "view", identities: new List<EffectiveIdentity> { rls });
-                }
-                else
-                {
-                    // Generate Embed Token for reports without effective identities.
-                    generateTokenRequestParameters = new GenerateTokenRequest(accessLevel: "view");
-                }
-                EmbedToken tokenResponse;
-                try
-                {
-                    tokenResponse = await client.Dashboards.GenerateTokenInGroupAsync(Guid.Parse(Settings.WorkspaceId), dashboard.Id, generateTokenRequestParameters).ConfigureAwait(false);
-                }
-                catch (HttpOperationException ex)
-                {
-                    if (ex.Response.Content.Contains("shouldn't have effective identity"))
+                    var dashboard = dashboards.Value.FirstOrDefault(r => r.Id.ToString().Equals(dashboardId, StringComparison.InvariantCultureIgnoreCase));
+                    if (dashboard == null)
                     {
-                        // HACK: Creating embed token for accessing dataset shouldn't have effective identity"
-                        // See https://community.powerbi.com/t5/Developer/quot-shouldn-t-have-effective-identity-quot-error-when-passing/m-p/437177
-                        generateTokenRequestParameters = new GenerateTokenRequest(accessLevel: "view");
-                        tokenResponse = await client.Dashboards.GenerateTokenInGroupAsync(Guid.Parse(Settings.WorkspaceId), dashboard.Id, generateTokenRequestParameters).ConfigureAwait(false);
+                        model.ErrorMessage = "No dashboard with the given ID was found in the workspace. Make sure ReportId is valid.";
+                    }
+                    // Generate Embed Token for reports without effective identities.
+                    GenerateTokenRequest generateTokenRequestParameters;
+                    // This is how you create embed token with effective identities
+                    if (!string.IsNullOrWhiteSpace(username))
+                    {
+                        var rls = new EffectiveIdentity(username, new List<string> { dashboardId });
+                        if (!string.IsNullOrWhiteSpace(roles))
+                        {
+                            var rolesList = new List<string>();
+                            rolesList.AddRange(roles.Split(','));
+                            rls.Roles = rolesList;
+                        }
+                        // Generate Embed Token with effective identities.
+                        generateTokenRequestParameters = new GenerateTokenRequest(accessLevel: "view", identities: new List<EffectiveIdentity> { rls });
                     }
                     else
-                        throw;
+                    {
+                        // Generate Embed Token for reports without effective identities.
+                        generateTokenRequestParameters = new GenerateTokenRequest(accessLevel: "view");
+                    }
+                    EmbedToken tokenResponse;
+                    try
+                    {
+                        tokenResponse = await client.Dashboards.GenerateTokenInGroupAsync(Guid.Parse(Settings.WorkspaceId), dashboard.Id, generateTokenRequestParameters).ConfigureAwait(false);
+                    }
+                    catch (HttpOperationException ex)
+                    {
+                        if (ex.Response.Content.Contains("shouldn't have effective identity"))
+                        {
+                            // HACK: Creating embed token for accessing dataset shouldn't have effective identity"
+                            // See https://community.powerbi.com/t5/Developer/quot-shouldn-t-have-effective-identity-quot-error-when-passing/m-p/437177
+                            generateTokenRequestParameters = new GenerateTokenRequest(accessLevel: "view");
+                            tokenResponse = await client.Dashboards.GenerateTokenInGroupAsync(Guid.Parse(Settings.WorkspaceId), dashboard.Id, generateTokenRequestParameters).ConfigureAwait(false);
+                        }
+                        else
+                            throw;
+                    }
+                    if (tokenResponse == null)
+                    {
+                        model.ErrorMessage = "Failed to generate embed token.";
+                    }
+                    // Generate Embed Configuration.
+                    model.EmbedToken = tokenResponse;
+                    model.EmbedUrl = dashboard.EmbedUrl;
+                    model.Id = dashboard.Id.ToString();
                 }
-                if (tokenResponse == null)
-                {
-                    model.ErrorMessage = "Failed to generate embed token.";
-                }
-                // Generate Embed Configuration.
-                model.EmbedToken = tokenResponse;
-                model.EmbedUrl = dashboard.EmbedUrl;
-                model.Id = dashboard.Id.ToString();
                 model.ContentType = "dashboard";
 
                 CachingProvider.Instance().Insert($"PBI_{Settings.PortalId}_{Settings.SettingsId}_{userId}_{Thread.CurrentThread.CurrentUICulture.Name}_Dashboard_{dashboardId}", model, null, DateTime.Now.AddSeconds(60), TimeSpan.Zero);
@@ -655,6 +710,7 @@ namespace DotNetNuke.PowerBI.Services
                 var credential = new ClientCredential(Settings.ServicePrincipalApplicationId, Settings.ServicePrincipalApplicationSecret);
                 authenticationResult = authenticationContext.AcquireTokenAsync(Settings.ResourceUrl, credential).Result;
             }
+            await Task.CompletedTask;
 
             return authenticationResult;
         }

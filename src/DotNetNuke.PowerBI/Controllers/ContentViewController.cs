@@ -111,7 +111,7 @@ namespace DotNetNuke.PowerBI.Controllers
                     return new HttpStatusCodeResult(HttpStatusCode.Forbidden, "User doesn't have permissions for this resource");
                 }
 
-                ViewBag.Locale = System.Threading.Thread.CurrentThread.CurrentUICulture.Name.Substring(0, 2);
+                ViewBag.Locale = System.Threading.Thread.CurrentThread.CurrentUICulture.Name.Substring(0, 2);                
 
                 ViewBag.FilterPaneVisible = bool.Parse(GetSetting("PowerBIEmbedded_FilterPaneVisible", "true"));
                 ViewBag.NavPaneVisible = bool.Parse(GetSetting("PowerBIEmbedded_NavPaneVisible", "true"));
@@ -136,6 +136,7 @@ namespace DotNetNuke.PowerBI.Controllers
                         reportsPage = Common.Globals.AddHTTP(PortalSettings.PortalAlias.HTTPAlias) + reportsPage;
                     }
                     ViewBag.ReportsPage = reportsPage;
+                    ViewBag.DisabledCapacityMessage = embedService.Settings.DisabledCapacityMessage;
                 }
 
                 var currentLocale = LocaleController.Instance.GetLocale(ModuleContext.PortalId, CultureInfo.CurrentCulture.Name);

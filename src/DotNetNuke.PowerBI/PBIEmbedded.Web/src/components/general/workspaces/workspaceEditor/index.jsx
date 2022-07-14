@@ -25,6 +25,7 @@ class WorkspaceEditor extends Component {
                 ServicePrincipalApplicationSecret: "",
                 ServicePrincipalTenant: "",
                 ContentPageUrl: "",
+                DisabledCapacityMessage: "",
                 InheritPermissions: false
             },
             error: {
@@ -37,7 +38,8 @@ class WorkspaceEditor extends Component {
                 ServicePrincipalApplicationId: false,
                 ServicePrincipalApplicationSecret: false,
                 ServicePrincipalTenant: false,
-                ContentPageUrl: false
+                ContentPageUrl: false,
+                DisabledCapacityMessage: false
             },
             triedToSubmit: false
         };
@@ -58,6 +60,7 @@ class WorkspaceEditor extends Component {
         state.workspaceDetail["ServicePrincipalApplicationSecret"] = props.servicePrincipalApplicationSecret || "";
         state.workspaceDetail["ServicePrincipalTenant"] = props.servicePrincipalTenant || "";
         state.workspaceDetail["ContentPageUrl"] = props.contentPageUrl || "";
+        state.workspaceDetail["DisabledCapacityMessage"] = props.disabledCapacityMessage || "";
         state.workspaceDetail["InheritPermissions"] = props.inheritPermissions;
 
         state.error["SettingsGroupName"] = (props.settingsGroupName === null);
@@ -70,6 +73,7 @@ class WorkspaceEditor extends Component {
         state.error["ServicePrincipalApplicationSecret"] = (props.servicePrincipalApplicationSecret === null);
         state.error["ServicePrincipalTenant"] = (props.servicePrincipalTenant === null);
         state.error["ContentPageUrl"] = (props.contentPageUrl === null);
+        state.error["DisabledCapacityMessage"] = false; // (props.disabledCapacityMessage === null);
 
     }
 
@@ -87,7 +91,7 @@ class WorkspaceEditor extends Component {
             state.error["ServicePrincipalApplicationSecret"] = props.workspaceDetail["AuthenticationType"] === "ServicePrincipal" && (!props.workspaceDetail["ServicePrincipalApplicationSecret"] || props.workspaceDetail["ServicePrincipalApplicationSecret"] === "");
             state.error["ServicePrincipalTenant"] = props.workspaceDetail["AuthenticationType"] === "ServicePrincipal" && (!props.workspaceDetail["ServicePrincipalTenant"] || props.workspaceDetail["ServicePrincipalTenant"] === "");
             state.error["ContentPageUrl"] = !props.workspaceDetail["ContentPageUrl"] || props.workspaceDetail["ContentPageUrl"] === "";
-    
+            state.error["DisabledCapacityMessage"] = false; //!props.workspaceDetail["DisabledCapacityMessage"] || props.workspaceDetail["DisabledCapacityMessage"] === "";
             this.setState({
                 workspaceDetail: Object.assign({}, props.workspaceDetail),
                 triedToSubmit: false,
@@ -113,6 +117,7 @@ class WorkspaceEditor extends Component {
             case "ServicePrincipalTenant":
                 state.error[key] = workspaceDetail["AuthenticationType"] === "ServicePrincipal" && event.target.value === "";
                 break;
+            case "DisabledCapacityMessage":
             case "AuthenticationType":
                 break;
             case "AppicationId":
@@ -133,7 +138,8 @@ class WorkspaceEditor extends Component {
             case "ServicePrincipalApplicationId":
             case "ServicePrincipalApplicationSecret":
             case "ServicePrincipalTenant":
-            case "ContentPageUrl":                
+            case "ContentPageUrl":      
+            case "DisabledCapacityMessage":          
                 workspaceDetail[key] = event.target.value;
                 break;
             case "AuthenticationType":
@@ -182,7 +188,8 @@ class WorkspaceEditor extends Component {
                 && (state.error.ServicePrincipalApplicationId
                     || state.error.ServicePrincipalApplicationSecret
                     || state.error.ServicePrincipalTenant))
-            || state.error.ContentPageUrl) {
+            || state.error.ContentPageUrl
+            || state.error.DisabledCapacityMessage) {
             return;
         }
 
@@ -335,7 +342,18 @@ class WorkspaceEditor extends Component {
                         errorMessage={resx.get("lblContentPageUrl.Error")}
                         value={this.state.workspaceDetail.ContentPageUrl}
                         onChange={this.onSettingChange.bind(this, "ContentPageUrl")}
-                    />                    
+                    />      
+
+                    <SingleLineInputWithError
+                        withLabel={true}
+                        label={resx.get("lblDisabledCapacityMessage")}
+                        tooltipMessage={resx.get("lblDisabledCapacityMessage.Help")}
+                        inputStyle={{ margin: "0" }}
+                        error={this.state.error.DisabledCapacityMessage}
+                        errorMessage={resx.get("lblDisabledCapacityMessage.Error")}
+                        value={this.state.workspaceDetail.DisabledCapacityMessage}
+                        onChange={this.onSettingChange.bind(this, "DisabledCapacityMessage")}
+                    />                                    
 
                 </InputGroup>
             </div>;
@@ -375,6 +393,7 @@ WorkspaceEditor.propTypes = {
     servicePrincipalApplicationSecret: PropTypes.string,
     servicePrincipalTenant: PropTypes.string,
     contentPageUrl: PropTypes.string,
+    disabledCapacityMessage: PropTypes.string,
     inheritPermissions: PropTypes.bool,
     Collapse: PropTypes.func,
     onUpdate: PropTypes.func,

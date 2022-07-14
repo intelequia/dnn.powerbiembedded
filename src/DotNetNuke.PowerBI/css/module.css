@@ -370,3 +370,11 @@
 .addbookmarks{
     margin-left: 20px;
 }
+
+.powerbiContentView .errorWrapper {
+    padding: 20px;
+}
+
+.powerbiContentView .disabledCapacityMessage {
+    padding: 20px;
+} 

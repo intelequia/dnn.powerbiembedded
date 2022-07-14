@@ -104,4 +104,7 @@
 	<p>Updated PowerBI Client libraries<p>
 	<p>User bookmarks are no longer deleted after 30 days</p>
 	<p>Added support for paginated reports (mandatory use of Service Principals)</p>
+
+	<b>Version 1.0.21</b>
+	<p>Added support for displaying a message when the PBI Embedded capacity has been paused or is not active of other reasons.</p>
 </div>

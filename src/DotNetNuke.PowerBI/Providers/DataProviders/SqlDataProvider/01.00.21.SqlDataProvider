@@ -1,0 +1,7 @@
+﻿IF (NOT EXISTS(SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = '{objectQualifier}PBI_Settings' AND COLUMN_NAME='DisabledCapacityMessage'))
+BEGIN
+	ALTER TABLE {databaseOwner}[{objectQualifier}PBI_Settings]
+		ADD DisabledCapacityMessage nvarchar(max) NOT NULL CONSTRAINT [DF_PBI_Settings_DisabledCapacityMessage]  DEFAULT ((''))	
+END
+
+

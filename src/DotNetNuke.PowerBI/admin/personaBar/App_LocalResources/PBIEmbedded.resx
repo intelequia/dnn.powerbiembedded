@@ -326,4 +326,13 @@ To integrate a PowerBI workspace into DNN, you need to setup a set of properties
   <data name="NoWorkspaces.Text" xml:space="preserve">
     <value>No workspaces to show</value>
   </data>
+  <data name="lblDisabledCapacityMessage.Error" xml:space="preserve">
+    <value>The message is not valid.</value>
+  </data>
+  <data name="lblDisabledCapacityMessage.Help" xml:space="preserve">
+    <value>Message to show instead of the report, when a capacity supporting the workspace has been paused or is not active for some reason</value>
+  </data>
+  <data name="lblDisabledCapacityMessage.Text" xml:space="preserve">
+    <value>Paused Capacity Message</value>
+  </data>
 </root>

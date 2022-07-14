@@ -13,12 +13,18 @@
     @if (Model == null || string.IsNullOrEmpty(Model.Id))
     {
     }
+    else if (Model.IsCapacityDisabled)
+    {
+        <div id="disabledCapacityMessage">
+            @Html.Raw(@Model.ErrorMessage)
+        </div>
+    }
     else if (!string.IsNullOrEmpty(Model.ErrorMessage))
     {
         <div id="errorWrapper">
             <h2>@Dnn.LocalizeString("ErrorTitle")</h2>
             <p>@Model.ErrorMessage</p>
-        </div>
+        </div> 
     }
     else
     {
