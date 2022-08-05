@@ -748,8 +748,8 @@ namespace DotNetNuke.PowerBI.Services
                 return false;
             }
 
-            tokenCredentials = new TokenCredentials(authenticationResult.AccessToken, "Bearer");
-            CachingProvider.Instance().Insert($"PBI_{Settings.PortalId}_{Settings.SettingsId}_TokenCredentials", tokenCredentials, null, DateTime.Now.AddMinutes(30), TimeSpan.Zero);
+            tokenCredentials = new TokenCredentials(authenticationResult.AccessToken, "Bearer");            
+            CachingProvider.Instance().Insert($"PBI_{Settings.PortalId}_{Settings.SettingsId}_TokenCredentials", tokenCredentials, null, authenticationResult.ExpiresOn.AddMinutes(-2).UtcDateTime, TimeSpan.Zero);
             return true;
         }
     }

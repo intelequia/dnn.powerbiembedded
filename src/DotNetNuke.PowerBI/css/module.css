@@ -371,10 +371,10 @@
     margin-left: 20px;
 }
 
-.powerbiContentView .errorWrapper {
+#errorWrapper {
     padding: 20px;
 }
 
-.powerbiContentView .disabledCapacityMessage {
+#disabledCapacityMessage {
     padding: 20px;
 } 
