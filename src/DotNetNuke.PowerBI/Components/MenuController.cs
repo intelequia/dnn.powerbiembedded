@@ -51,7 +51,7 @@ namespace DotNetNuke.PowerBI.Components
 #if DEBUGPERSONABAR
             var uiUrl = "http://localhost:8080/dist";
 #else
-            var uiUrl = "/DesktopModules/Admin/Dnn.PersonaBar/Modules/Dnn.PowerBI";
+            var uiUrl = "./Modules/Dnn.PowerBI";
 #endif
             var apiUrl = "/DesktopModules/Admin/Dnn.PersonaBar/Modules/Dnn.PowerBI";
             var version = System.Reflection.Assembly.GetExecutingAssembly().GetName().Version.ToString();
