@@ -52,6 +52,7 @@ namespace DotNetNuke.PowerBI.Controllers
             public string Height { get; set; }
             public string UserProperty { get; set; }
             public string CustomUserProperty { get; set; }
+            public string CustomExtensionLibrary { get; set; }
         }
         private static readonly ILog Logger = LoggerSource.Instance.GetLogger(typeof(SettingsController));
         // GET: Settings
@@ -82,6 +83,7 @@ namespace DotNetNuke.PowerBI.Controllers
                     FullScreenVisible = bool.Parse(GetSetting("PowerBIEmbedded_FullScreenVisible", "False")),
                     UserProperty = GetSetting("PowerBIEmbedded_UserProperty","Username"),
                     CustomUserProperty = GetSetting("PowerBIEmbedded_CustomUserProperty",""),
+                    CustomExtensionLibrary = GetSetting("PowerBIEmbedded_CustomExtensionLibrary", ""),
                     ApplicationInsightsEnabled = bool.Parse(GetSetting("PowerBIEmbedded_ApplicationInsightsEnabled", "False"))
                 };
 
@@ -115,7 +117,8 @@ namespace DotNetNuke.PowerBI.Controllers
                     {
                         "Username",
                         "Email",
-                        "Custom"
+                        "Custom User Profile Property",
+                        "Custom Extension Library"
                     };
                     var property = ProfileController.GetPropertyDefinitionByName(PortalSettings.PortalId, "PowerBiGroup");
                     if (property !=null && !property.Deleted)
@@ -159,6 +162,7 @@ namespace DotNetNuke.PowerBI.Controllers
                 ModuleController.Instance.UpdateTabModuleSetting(this.ModuleContext.TabModuleId, "PowerBIEmbedded_BookmarksVisible", settings.BookmarksVisible.ToString());
                 ModuleController.Instance.UpdateTabModuleSetting(this.ModuleContext.TabModuleId, "PowerBIEmbedded_UserProperty", settings.UserProperty);
                 ModuleController.Instance.UpdateTabModuleSetting(this.ModuleContext.TabModuleId, "PowerBIEmbedded_CustomUserProperty", settings.CustomUserProperty);
+                ModuleController.Instance.UpdateTabModuleSetting(this.ModuleContext.TabModuleId, "PowerBIEmbedded_CustomExtensionLibrary", settings.CustomExtensionLibrary);
                 ModuleController.Instance.UpdateTabModuleSetting(this.ModuleContext.TabModuleId, "PowerBIEmbedded_ApplicationInsightsEnabled", settings.ApplicationInsightsEnabled.ToString());
                 return RedirectToDefaultRoute();
             }

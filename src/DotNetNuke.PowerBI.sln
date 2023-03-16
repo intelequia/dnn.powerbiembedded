@@ -10,6 +10,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "watcher", "watcher", "{D8E9
 		powershell\file-watcher.ps1 = powershell\file-watcher.ps1
 	EndProjectSection
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DotNetNuke.PowerBI.Extensibility", "DotNetNuke.PowerBI.Extensibility\DotNetNuke.PowerBI.Extensibility.csproj", "{9F36C975-B6B9-49E8-A98B-5085076E3206}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -23,6 +25,12 @@ Global
 		{7D61A32C-0F21-453F-A981-BD8E5A3A5304}.DebugPersonaBar|Any CPU.Build.0 = DebugPersonaBar|Any CPU
 		{7D61A32C-0F21-453F-A981-BD8E5A3A5304}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{7D61A32C-0F21-453F-A981-BD8E5A3A5304}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9F36C975-B6B9-49E8-A98B-5085076E3206}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9F36C975-B6B9-49E8-A98B-5085076E3206}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9F36C975-B6B9-49E8-A98B-5085076E3206}.DebugPersonaBar|Any CPU.ActiveCfg = Debug|Any CPU
+		{9F36C975-B6B9-49E8-A98B-5085076E3206}.DebugPersonaBar|Any CPU.Build.0 = Debug|Any CPU
+		{9F36C975-B6B9-49E8-A98B-5085076E3206}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9F36C975-B6B9-49E8-A98B-5085076E3206}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

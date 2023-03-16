@@ -11,3 +11,6 @@
 /src/DotNetNuke.PowerBI/.vs/DotNetNuke.PowerBI/v16
 /src/DotNetNuke.PowerBI/.vs
 /src/DotNetNuke.PowerBI.sln.DotSettings.user
+/src/DotNetNuke.PowerBI.Extensibility/bin
+/src/DotNetNuke.PowerBI.Extensibility/obj
+*.user

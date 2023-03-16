@@ -146,7 +146,11 @@
               <name>DotNetNuke.PowerBI.dll</name>
               <path>bin</path>
             </assembly>
-            <assembly>
+			<assembly>
+				<name>DotNetNuke.PowerBI.Extensibility.dll</name>
+				<path>bin</path>
+			</assembly>
+			  <assembly>
               <name>Microsoft.PowerBI.Api.dll</name>
               <path>bin</path>
             </assembly>

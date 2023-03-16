@@ -66,6 +66,7 @@
     </CreateItem>
 
     <Copy SourceFiles="$(MSBuildDnnBinPath)\$(AssemblyName).dll" DestinationFolder="$(MSBuildProjectDirectory)\Package\bin"/>
+	<Copy SourceFiles="$(MSBuildDnnBinPath)\DotNetNuke.PowerBI.Extensibility.dll" DestinationFolder="$(MSBuildProjectDirectory)\Package\bin"/>
     <Copy SourceFiles="$(MSBuildDnnBinPath)\Microsoft.PowerBI.Api.dll" DestinationFolder="$(MSBuildProjectDirectory)\Package\bin"/>
     <Copy SourceFiles="$(MSBuildDnnBinPath)\..\lib\netstandard.dll" DestinationFolder="$(MSBuildProjectDirectory)\Package\bin"/>
     <Copy SourceFiles="$(MSBuildDnnBinPath)\Microsoft.IdentityModel.Clients.ActiveDirectory.dll" DestinationFolder="$(MSBuildProjectDirectory)\Package\bin"/>

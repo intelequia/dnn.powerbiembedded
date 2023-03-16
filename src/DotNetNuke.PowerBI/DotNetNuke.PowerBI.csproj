@@ -296,7 +296,12 @@
   <ItemGroup>
     <Content Include="App_LocalResources\ContentView.de-de.resx" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <ProjectReference Include="..\DotNetNuke.PowerBI.Extensibility\DotNetNuke.PowerBI.Extensibility.csproj">
+      <Project>{9f36c975-b6b9-49e8-a98b-5085076e3206}</Project>
+      <Name>DotNetNuke.PowerBI.Extensibility</Name>
+    </ProjectReference>
+  </ItemGroup>
   <ItemGroup>
     <Content Include="admin\personaBar\App_LocalResources\PBIEmbedded.resx" />
   </ItemGroup>

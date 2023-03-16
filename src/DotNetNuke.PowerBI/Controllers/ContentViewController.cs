@@ -4,6 +4,7 @@ using DotNetNuke.Instrumentation;
 using DotNetNuke.PowerBI.Components;
 using DotNetNuke.PowerBI.Data;
 using DotNetNuke.PowerBI.Data.SharedSettings;
+using DotNetNuke.PowerBI.Extensibility;
 using DotNetNuke.PowerBI.Models;
 using DotNetNuke.PowerBI.Services;
 using DotNetNuke.Services.Localization;
@@ -63,7 +64,7 @@ namespace DotNetNuke.PowerBI.Controllers
                         user = userProperty.PropertyValue;
                     }
                 }
-                else if (userPropertySetting == "Custom")
+                else if (userPropertySetting == "Custom" || userPropertySetting == "Custom User Profile Property")
                 {
                     var customProperties = (string) ModuleContext.Settings["PowerBIEmbedded_CustomUserProperty"];
                     var matches = Regex.Matches(customProperties, @"\[PROFILE:(?<PROPERTY>[A-z]*)]");
@@ -78,6 +79,30 @@ namespace DotNetNuke.PowerBI.Controllers
                     }
 
                     user = customProperties;
+                }
+                else if (userPropertySetting == "Custom Extension Library")
+                {
+                    var customExtensionLibrary = (string)ModuleContext.Settings["PowerBIEmbedded_CustomExtensionLibrary"];
+                    if (!string.IsNullOrEmpty(customExtensionLibrary))
+                    {
+                        try
+                        {
+                            var type = Type.GetType(customExtensionLibrary, true);
+                            if (type.GetInterfaces().Contains(typeof(IRlsCustomExtension)))
+                            {
+                                IRlsCustomExtension extensionInstance = (IRlsCustomExtension)Activator.CreateInstance(type);
+                                user = extensionInstance.GetRlsValue(System.Web.HttpContext.Current);
+                            }
+                            else
+                            {
+                                throw new Exception($"Library '{customExtensionLibrary}' does not implement IRlsCustomExtension");
+                            }
+                        }
+                        catch (Exception cex)
+                        {
+                            Logger.Error($"Error instancing custom extension library '{customExtensionLibrary}'", cex);
+                        }
+                    }
                 }
 
                 if (!string.IsNullOrEmpty(Request["dashboardId"]))
