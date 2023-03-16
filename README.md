@@ -34,20 +34,24 @@ Reference architecture of a DNN portal deployed on Azure, using App Service and 
 
 # Building the solution
 ### Requirements
-* Visual Studio 2019 or later (download from https://www.visualstudio.com/downloads/)
+* Visual Studio 2022 (download from https://www.visualstudio.com/downloads/)
 * npm package manager (download from https://www.npmjs.com/get-npm)
 
-### Configure local npm to use the DNN public repository
-From the command line, the following command must be executed:
-```
-   npm config set registry https://www.myget.org/F/dnn-software-public/npm/
-```
 ### Install package dependencies
 From the command line, enter the `<RepoRoot>\DotNetNuke.PowerBI\PBIEmbedded.Web` and run the following commands:
 ```
   npm install -g webpack
   npm install -g webpack-cli
-  npm install
+  npm install -g webpack-dev-server --force
+  npm install --force
+```
+### Debug the client side app
+To debug the client side, build the module in debug mode and copy the .dll and .pdb files into your site /bin folder (you can tweak the post build event for such purpose). That will try to load the persona bar bundle script from https://localhost:8080. 
+
+The second step is to start the local webpack dev server. To do it, 
+From the command line, enter the `<RepoRoot>\DotNetNuke.PowerBI\PBIEmbedded.Web` and run the following commands:
+```
+  webpack-dev-server
 ```
 
 ### Build the module
