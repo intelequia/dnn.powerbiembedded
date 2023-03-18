@@ -371,8 +371,9 @@ namespace DotNetNuke.PowerBI.Services
                 if (workspace.IsOnDedicatedCapacity.GetValueOrDefault())
                 {
                     var capacity = await GetCapacityAsync(client, workspace.CapacityId.GetValueOrDefault()).ConfigureAwait(false);
-                    if (capacity != null
-                        && !(capacity.State == CapacityState.Active || capacity.State == CapacityState.UpdatingSku))
+                    if (capacity == null 
+                        || (capacity != null
+                        && !(capacity.State == CapacityState.Active || capacity.State == CapacityState.UpdatingSku)))
                     {
                         model.IsCapacityDisabled = true;
                         model.ErrorMessage = string.IsNullOrEmpty(Settings.DisabledCapacityMessage)
