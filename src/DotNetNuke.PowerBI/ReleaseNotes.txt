@@ -107,4 +107,13 @@
 
 	<b>Version 1.0.21</b>
 	<p>Added support for displaying a message when the PBI Embedded capacity has been paused or is not active of other reasons.</p>
+
+	<b>Version 1.0.22</b>
+	<p>Fix: Expire the cached token before it expires to avoid Forbidden error.</p>
+	<p>Fix: change uiUrl path from absolute to relative to allow persona bar working on child portals.</p>
+	<p>feat: Added RLS extensibility library support</p>
+	<p>feat: Updated the project to use the @dnnsoftware/dnn-react-common 9.11</p>
+	<p>fix: resolved caching issue with RLS using custom extension library</p>
+	<p>fix: modified the check for dedicated capacity status</p>
+
 </div>
