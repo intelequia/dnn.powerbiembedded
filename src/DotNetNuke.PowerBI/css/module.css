@@ -257,16 +257,17 @@
         margin-left: 10px;
     }
 
-    .createBookmarks {
-        background-image: url('../images/addbookmark.png');
-        width: 16px;
-        display: inline-block !important;
-        background-size: 16px;
-        background-repeat: no-repeat;
-        background-position-y: center;
-        margin-right: 10px;
-        margin-left: 10px;
-    }
+.createBookmarks {
+    background-image: url('../images/addbookmark.png');
+    width: 16px;
+    display: inline-block !important;
+    background-size: 16px;
+    background-repeat: no-repeat;
+    background-position-y: center;
+    margin-right: 10px;
+    margin-left: 10px;
+    padding: 8px 8px 8px 8px !important
+}
 
 .deletebookmark {
     background-image: url('../images/delete.png');
@@ -279,12 +280,17 @@
     margin-left: 10px;
     float: right;
     position: relative;
+    padding: 8px 8px 8px 8px !important
 }
 
-        .powerbiContentView .pbitoolbar .refresh:hover,
-        .powerbiContentView .pbitoolbar .print:hover {
-            background-color: #f4f4f4;
-        }
+.not-valid {
+    color: red;
+}
+
+.powerbiContentView .pbitoolbar .refresh:hover,
+.powerbiContentView .pbitoolbar .print:hover {
+    background-color: #f4f4f4;
+}
 
 .fc-header-toolbar {
     display: none;

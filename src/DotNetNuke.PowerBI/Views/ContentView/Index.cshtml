@@ -2,6 +2,7 @@
 @using DotNetNuke.Web.Client.ClientResourceManagement
 @{
     ClientResourceManager.RegisterScript(Dnn.DnnPage, "~/DesktopModules/MVC/PowerBIEmbedded/scripts/vendors/knockout.min.js", 21);
+    ClientResourceManager.RegisterScript(Dnn.DnnPage, "~/DesktopModules/MVC/PowerBIEmbedded/scripts/vendors/knockout.validation.min.js", 21);
     ClientResourceManager.RegisterScript(Dnn.DnnPage, "~/DesktopModules/MVC/PowerBIEmbedded/scripts/powerbi.min.js", 20);
     ClientResourceManager.RegisterScript(Dnn.DnnPage, "~/DesktopModules/MVC/PowerBIEmbedded/scripts/Common.js", 20);
     ClientResourceManager.RegisterScript(Dnn.DnnPage, "https://npmcdn.com/es6-promise@3.2.1", 20);
@@ -56,8 +57,9 @@
                 <a href="javascript:void(0)" class="closebtn" data-bind="click: closeNav()">&times;</a>
             </div>
             <div class="addBookmarks">
-                <input type="text" id="bookmarkName" data-bind="value: newBookmarkName">
+                <input type="text" id="bookmarkName" data-bind="value: newBookmarkName" title="Type bookmark name">
                 <a href="#" class="createBookmarks" title="Create bookmark" data-bind="click: onBookmarkCaptureClicked"></a>
+                <div data-bind="validationMessage: newBookmarkName" class="not-valid"></div>
             </div>
             <hr>
             <div id="bookmarksWrapper">

@@ -249,6 +249,7 @@
     <Content Include="scripts\powerbi.js" />
     <Content Include="scripts\powerbi.min.js" />
     <Content Include="scripts\vendors\knockout.min.js" />
+    <Content Include="scripts\vendors\knockout.validation.min.js" />
     <Content Include="scripts\vendors\select2.min.js" />
     <Content Include="web.config" />
     <Content Include="Views\_ViewStart.cshtml" />
