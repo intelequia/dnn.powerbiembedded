@@ -219,7 +219,7 @@
                         function (data) {
                             if (data.Success) {
                                 that.newBookmarkName('');
-                                var b = new BookmarkModel(that, bookmark.id, "bookmark_" + bookmark.id, bookmark.displayName, bookmark.state, bookmark.reportId);
+                                var b = new BookmarkModel(that, data.Data, "bookmark_" + data.Data, bookmark.displayName, bookmark.state, bookmark.reportId);
                                 that.bookmarksArray.push(b);
                                 that.selectedBookmark(b);
                             }
