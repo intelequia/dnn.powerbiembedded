@@ -209,6 +209,7 @@
     <Compile Include="Models\TileEmbedConfig.cs" />
     <Compile Include="Models\Workspace.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Services\ModuleSettingsController.cs" />
     <Compile Include="Services\BookmarksController.cs" />
     <Compile Include="Services\EmbedService.cs" />
     <Compile Include="Services\IEmbedService.cs" />
@@ -257,6 +258,7 @@
     <Content Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="scripts\module-settings.js" />
     <Content Include="scripts\powerbi.js" />
     <Content Include="scripts\powerbi.min.js" />
     <Content Include="scripts\vendors\knockout.min.js" />
