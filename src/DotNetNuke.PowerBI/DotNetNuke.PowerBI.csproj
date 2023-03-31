@@ -29,7 +29,7 @@
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
-    <OutputPath>..\..\bin\</OutputPath>
+    <OutputPath>bin\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -37,7 +37,7 @@
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
-    <OutputPath>..\..\bin\</OutputPath>
+    <OutputPath>bin\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -222,6 +222,7 @@
     <Content Include="admin\personaBar\PBIEmbedded.html" />
     <Content Include="admin\personaBar\scripts\bundles\bundle-en.js" />
     <Content Include="admin\personaBar\scripts\PBIEmbedded.js" />
+    <Content Include="BuildScripts\watch.js" />
     <Content Include="css\vendors\select2.min.css" />
     <Content Include="images\addbookmark.png" />
     <Content Include="images\bookmark.png" />
@@ -274,6 +275,7 @@
     <Content Include="Providers\DataProviders\SqlDataProvider\01.00.07.SqlDataProvider" />
     <Content Include="scripts\powerbi.js.map" />
     <Content Include="Providers\DataProviders\SqlDataProvider\01.00.21.SqlDataProvider" />
+    <Content Include="package.json" />
     <None Include="web.Debug.config">
       <DependentUpon>web.config</DependentUpon>
     </None>
@@ -325,7 +327,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'DebugPersonaBar|AnyCPU'">
     <DebugSymbols>true</DebugSymbols>
-    <OutputPath>..\..\bin\</OutputPath>
+    <OutputPath>bin\</OutputPath>
     <DefineConstants>TRACE;DEBUG;DEBUGPERSONABAR</DefineConstants>
     <DebugType>full</DebugType>
     <PlatformTarget>AnyCPU</PlatformTarget>
