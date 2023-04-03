@@ -29,14 +29,17 @@
 
         //Bookmarks
         this.bookmarksArray = ko.observableArray([]);
-        this.selectedBookmark = ko.observable(null); 
-        this.newBookmarkName = ko.observable('');
+        this.selectedBookmark = ko.observable(null);
+        this.newBookmarkName = ko.observable('').extend({ required: true });
         this.service = {
             path: "Bookmarks",
             controller: "Bookmarks",
             framework: $.ServicesFramework(context.ModuleId)
         }
         this.service.baseUrl = that.service.framework.getServiceRoot(that.service.path);
+
+        // set validation group
+        this.errors = ko.validation.group(that);
 
         // Get models. models contains enums that can be used.
         this.models = window['powerbi-client'].models;
@@ -82,7 +85,7 @@
                 ]
             }
         }
-    
+
         //override filter pane
         if (context.overrideFilterPaneVisibility) {
             this.config.settings.filterPaneEnabled = context.FilterPaneVisible && !that.isMobile;
@@ -104,7 +107,7 @@
                     filters: {
                         visible: context.FilterPaneVisible && !that.isMobile, // hide filter pane
                     }
-                  }
+                }
             }
             that.report.updateSettings(newSettings)
                 .catch(error => { console.log(error) });
@@ -113,8 +116,8 @@
         //Getreport bookmarks
         this.report.bookmarksManager.getBookmarks()
             .then(function (bookmarks) {
-            // Create bookmarks list from the existing report bookmarks 
-            that.updateBookmarksList(bookmarks);
+                // Create bookmarks list from the existing report bookmarks 
+                that.updateBookmarksList(bookmarks);
             });
 
         this.trackEvent = function(eventName, data) {
@@ -135,7 +138,7 @@
                             {
                                 report: {
                                     id: that.report.config.id,
-                                    displayName: ""                                    
+                                    displayName: ""
                                 },
                                 page: {
                                     name: data.newPage.name,
@@ -205,31 +208,37 @@
 
         // Capture new bookmark of the current state and update the bookmarks list
         this.onBookmarkCaptureClicked = function () {
-            // Capture the report's current state
-            that.report.bookmarksManager.capture()
-                .then(function (capturedBookmark) {
-                    // Build bookmark element
-                    let bookmark = {
-                        name: "bookmark_" + that.newBookmarkName(),
-                        displayName: that.newBookmarkName(),
-                        state: capturedBookmark.state,
-                        reportId: context.Id
-                    }
-                    Common.Call("POST", "SaveBookmark", that.service, bookmark,
-                        function (data) {
-                            if (data.Success) {
-                                that.newBookmarkName('');
-                                var b = new BookmarkModel(that, bookmark.id, "bookmark_" + bookmark.id, bookmark.displayName, bookmark.state, bookmark.reportId);
-                                that.bookmarksArray.push(b);
-                                that.selectedBookmark(b);
-                            }
-                        },
-                        function (error) {
-                            console.log("error");
-                        },
-                        function () {
-                        });
-                });
+            // check if the new bookmark name is valid
+            if (that.errors().length > 0) {
+                that.errors.showAllMessages(true);
+            } else {
+                // Capture the report's current state
+                that.report.bookmarksManager.capture()
+                    .then(function (capturedBookmark) {
+                        // Build bookmark element
+                        let bookmark = {
+                            name: "bookmark_" + that.newBookmarkName(),
+                            displayName: that.newBookmarkName(),
+                            state: capturedBookmark.state,
+                            reportId: context.Id
+                        }
+                        Common.Call("POST", "SaveBookmark", that.service, bookmark,
+                            function (data) {
+                                if (data.Success) {
+                                    that.newBookmarkName('');
+                                    that.errors.showAllMessages(false);
+                                    var b = new BookmarkModel(that, data.Data, "bookmark_" + data.Data, bookmark.displayName, bookmark.state, bookmark.reportId);
+                                    that.bookmarksArray.push(b);
+                                    that.selectedBookmark(b);
+                                }
+                            },
+                            function (error) {
+                                console.log("error");
+                            },
+                            function () {
+                            });
+                    });
+            }
         }
 
         this.deleteBookmark = function (element) {
@@ -292,7 +301,7 @@
                 $('#embedContainer_' + context.ModuleId).css("height", h + "px");
             }
         }
-        
+
         window.onmessage = function (m) {
             if (m && m.isTrusted
                 && m.origin === "https://app.powerbi.com"
@@ -313,6 +322,8 @@
             that.createBookmarksList();
         };
     };
+
+    ko.validation.init({ insertMessages: false, decorateElement: false, registerExtenders: true });
 
     // Initialize
     for (var i = 0; i < contexts.length; i++) {

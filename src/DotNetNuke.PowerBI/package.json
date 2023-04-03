@@ -1,0 +1,37 @@
+{
+  "name": "dotnetnuke.powerbi",
+  "version": "00.00.00",
+  "description": "DNN module",
+  "author": "Intelequia",
+  "license": "UNLICENSED",
+  "keywords": [
+    "dnn",
+    "module"
+  ],
+  "main": "index.js",
+  "dnn": {
+    "mode": "module",
+    "copyBin": true,
+    "localhost": "localhost",
+    "dnnRoot": "C:/websites/localhost.dnndev.me",
+    "assemblyName": "DotNetNuke.PowerBI",
+    "folderName": "MVC/PowerBIEmbedded",
+    "owner": {
+      "name": "Intelequia",
+      "organization": "Intelequia",
+      "url": "https://intelequia.com",
+      "email": "support@intelequia.com"
+    }
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "",
+    "watch": "concurrently \"yarn:watch-*\"",
+    "watch-js": "node BuildScripts/watch.js"
+  },
+  "devDependencies": {
+    "chokidar": "^3.5.3",
+    "concurrently": "^7.6.0",
+    "fs-extra": "^11.1.0"
+  }
+}

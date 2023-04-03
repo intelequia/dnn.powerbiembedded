@@ -3,6 +3,7 @@
 @using DotNetNuke.Web.Mvc.Helpers
 @using DotNetNuke.Web.Client.ClientResourceManagement
 @{
+    ClientResourceManager.RegisterScript(Dnn.DnnPage, "~/DesktopModules/MVC/PowerBIEmbedded/scripts/module-settings.js", 25, "DnnPageHeaderProvider");
     ClientResourceManager.RegisterStyleSheet(Dnn.DnnPage, "~/DesktopModules/MVC/PowerBIEmbedded/Css/module.css", 9, "DnnPageHeaderProvider");
 }
 @using DotNetNuke.UI.Utilities
@@ -185,7 +186,7 @@
     jQuery(function ($) {
         var setupModule = function () {
             $('#PowerBISettings').dnnPanels();
-            $('#PowerBISettings .dnnFormExpandContent a').dnnExpandAll({ 
+            $('#PowerBISettings .dnnFormExpandContent a').dnnExpandAll({
                 targetArea: '#PowerBISettings'
             });
         };
@@ -193,7 +194,15 @@
         Sys.WebForms.PageRequestManager.getInstance().add_endRequest(function () {
             setupModule();
         });
+
+        var context = {
+            PortalId: parseInt('@Dnn.ActiveModule.PortalID'),
+            ModuleId: parseInt('@Dnn.ActiveModule.ModuleID'),
+            TabId: parseInt('@Dnn.ActiveModule.TabID'),
+        };
+
+        // Initialize
+        var settings = new app.settings(context);
+        settings.init();
     });
-
 </script>
-
