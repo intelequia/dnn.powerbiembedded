@@ -13,6 +13,7 @@
 <div id="powerbiContentView_@Dnn.ActiveModule.ModuleID" class="powerbiContentView">
     @if (Model == null || string.IsNullOrEmpty(Model.Id))
     {
+        <img src="@Url.Content(ViewBag.BackgroundImageUrl)" />
     }
     else if (Model.IsCapacityDisabled)
     {
