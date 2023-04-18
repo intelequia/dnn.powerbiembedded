@@ -87,7 +87,7 @@ namespace DotNetNuke.PowerBI.Controllers
                     CustomUserProperty = GetSetting("PowerBIEmbedded_CustomUserProperty",""),
                     CustomExtensionLibrary = GetSetting("PowerBIEmbedded_CustomExtensionLibrary", ""),
                     ApplicationInsightsEnabled = bool.Parse(GetSetting("PowerBIEmbedded_ApplicationInsightsEnabled", "False")),
-                    BackgroundImageUrl = GetSetting("PowerBIEmbedded_BackgroundImageUrl", "https://user-images.githubusercontent.com/489976/227270883-7a68e527-5ed3-4c02-9ff3-0fb03d2b5af9.png"),
+                    BackgroundImageUrl = GetSetting("PowerBIEmbedded_BackgroundImageUrl", ""),
                 };
 
                 if (model.IsContentView)

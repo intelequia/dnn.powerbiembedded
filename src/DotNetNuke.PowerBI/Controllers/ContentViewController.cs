@@ -151,7 +151,7 @@ namespace DotNetNuke.PowerBI.Controllers
                 ViewBag.ApplicationInsightsEnabled = bool.Parse(GetSetting("PowerBIEmbedded_ApplicationInsightsEnabled", "false"));
                 ViewBag.Height = GetSetting("PowerBIEmbedded_Height");
                 ViewBag.PageName = GetSetting("PowerBIEmbedded_PageName");
-                ViewBag.BackgroundImageUrl = GetSetting("PowerBIEmbedded_BackgroundImageUrl", "https://user-images.githubusercontent.com/489976/227270883-7a68e527-5ed3-4c02-9ff3-0fb03d2b5af9.png");
+                ViewBag.BackgroundImageUrl = GetSetting("PowerBIEmbedded_BackgroundImageUrl", "");
 
                 // Sets the reports page on the viewbag
                 if (embedService != null)
