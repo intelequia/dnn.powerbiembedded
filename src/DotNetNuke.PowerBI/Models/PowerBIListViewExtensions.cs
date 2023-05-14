@@ -4,6 +4,7 @@ using DotNetNuke.PowerBI.Data.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime;
 using System.Text.RegularExpressions;
 using System.Web;
 
@@ -93,6 +94,13 @@ namespace DotNetNuke.PowerBI.Models
                     !permissionsRepo.HasPermissions(x.SettingsGroupId, user.PortalID, 1, user));
             }
             return settings;
+        }
+
+        public static bool UserHasPermissionsToWorkspace(string settingsGroupId, UserInfo user)
+        {
+            return user.IsSuperUser
+                || user.IsInRole("Administrators")
+                || ObjectPermissionsRepository.Instance.HasPermissions(settingsGroupId, user.PortalID, 1, user);
         }
     }
 }

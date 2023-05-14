@@ -49,7 +49,7 @@ namespace DotNetNuke.PowerBI.Controllers
                 }
                 else
                 {
-                    if (!ObjectPermissionsRepository.Instance.HasPermissions(settingsGroupId, User.PortalID, 1, User))
+                    if (!PowerBIListViewExtensions.UserHasPermissionsToWorkspace(settingsGroupId, User))
                     {
                         Logger.Error($"User {User.Username} doesn't have permissions for settings group {settingsGroupId}");
                         settingsGroupId = null;

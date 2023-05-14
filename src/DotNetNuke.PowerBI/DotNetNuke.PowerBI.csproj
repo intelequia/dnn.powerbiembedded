@@ -384,7 +384,6 @@
   <Target Name="AfterBuild" DependsOnTargets="PackageModule">
   </Target>
   <PropertyGroup>
-    <PostBuildEvent>
-    </PostBuildEvent>
+    <PostBuildEvent>IF $(ConfigurationName)==Debug copy $(TargetDir)$(ProjectName).* C:\Websites\app-powbi-prod-we-01.azurewebsites.net\bin /Y</PostBuildEvent>
   </PropertyGroup>
 </Project>
