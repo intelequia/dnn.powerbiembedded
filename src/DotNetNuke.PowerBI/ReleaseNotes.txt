@@ -116,4 +116,12 @@
 	<p>fix: resolved caching issue with RLS using custom extension library</p>
 	<p>fix: modified the check for dedicated capacity status</p>
 
+	<b>Version 1.0.23</b>	
+	<p>fix: avoid empty bookmark name</p>
+	<p>fix: avoid instantiating a BookmarkModel with an 'undefined' ID.</p>
+	<p>fix: consolidate the version of the target framework used.</p>
+	<p>fix: refresh content items where workspace is selected on content view settings</p>
+	<p>fix: fixed permissions issue for administrators not allowing to access reports</p>
+	<p>feat: show customizable image when content view module has nothing</p>
+	
 </div>
