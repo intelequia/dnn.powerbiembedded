@@ -40,6 +40,9 @@ namespace DotNetNuke.PowerBI.Models
         {
             if (model != null && user != null)
             {
+                if (user.IsSuperUser || user.IsInRole("Administrators")) {
+                    return model;
+                }
                 var permissionsRepo = ObjectPermissionsRepository.Instance;
 
                 // Remove unauthorized workspaces
@@ -80,6 +83,9 @@ namespace DotNetNuke.PowerBI.Models
 
         public static List<PowerBISettings> RemoveUnauthorizedItems(this List<PowerBISettings> settings, UserInfo user)
         {
+            if (user.IsSuperUser || user.IsInRole("Administrators")) {
+                return settings;
+            }
             if (settings != null && user != null)
             {
                 var permissionsRepo = ObjectPermissionsRepository.Instance;

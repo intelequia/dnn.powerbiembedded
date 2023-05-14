@@ -722,6 +722,7 @@ namespace DotNetNuke.PowerBI.Services
             var error = ValidateSettings();
             if (error != null)
             {
+                Logger.Error($"Error in GetTokenCredentials: {error}");
                 embedConfig.ErrorMessage = error;
                 return false;
             }

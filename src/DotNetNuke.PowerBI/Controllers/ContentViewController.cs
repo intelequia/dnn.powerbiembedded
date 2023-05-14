@@ -47,6 +47,14 @@ namespace DotNetNuke.PowerBI.Controllers
                         settingsGroupId = pbiSettings.FirstOrDefault(x => !string.IsNullOrEmpty(x.SettingsGroupId))?.SettingsGroupId;
                     }
                 }
+                else
+                {
+                    if (!ObjectPermissionsRepository.Instance.HasPermissions(settingsGroupId, User.PortalID, 1, User))
+                    {
+                        Logger.Error($"User {User.Username} doesn't have permissions for settings group {settingsGroupId}");
+                        settingsGroupId = null;
+                    }
+                }
                 var embedService = new EmbedService(ModuleContext.PortalId, ModuleContext.TabModuleId, settingsGroupId);
 
 

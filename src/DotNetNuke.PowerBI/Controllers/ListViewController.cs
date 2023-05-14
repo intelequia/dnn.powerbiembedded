@@ -9,6 +9,7 @@ using DotNetNuke.Web.Mvc.Framework.ActionFilters;
 using DotNetNuke.Web.Mvc.Framework.Controllers;
 using System;
 using System.Linq;
+using System.Runtime;
 using System.Text.RegularExpressions;
 using System.Web.Mvc;
 
@@ -35,6 +36,14 @@ namespace DotNetNuke.PowerBI.Controllers
                     else
                     {
                         settingsGroupId = pbiSettings.OrderBy(x => x.SettingsGroupName).FirstOrDefault(x => !string.IsNullOrEmpty(x.SettingsGroupId))?.SettingsGroupId;
+                    }
+                }
+                else
+                {
+                    if (!ObjectPermissionsRepository.Instance.HasPermissions(settingsGroupId, User.PortalID, 1, User))
+                    {
+                        Logger.Error($"User {User.Username} doesn't have permissions for settings group {settingsGroupId}");
+                        settingsGroupId = null;
                     }
                 }
                 var embedService = new EmbedService(ModuleContext.PortalId, ModuleContext.TabModuleId, settingsGroupId);
