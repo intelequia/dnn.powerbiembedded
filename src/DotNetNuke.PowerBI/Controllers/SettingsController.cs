@@ -33,6 +33,7 @@ namespace DotNetNuke.PowerBI.Controllers
                 BookmarksVisible = false;
                 FullScreenVisible = false;
                 ApplicationInsightsEnabled = false;
+                BackgroundImageUrl = "";
                 Height = "";
             }
             public string SettingsGroupId { get; set; }
@@ -49,6 +50,7 @@ namespace DotNetNuke.PowerBI.Controllers
             public bool FullScreenVisible { get; set; }
             public bool BookmarksVisible { get; set; }
             public bool ApplicationInsightsEnabled { get; set; }
+            public string BackgroundImageUrl { get; set; }
             public string Height { get; set; }
             public string UserProperty { get; set; }
             public string CustomUserProperty { get; set; }
@@ -84,7 +86,8 @@ namespace DotNetNuke.PowerBI.Controllers
                     UserProperty = GetSetting("PowerBIEmbedded_UserProperty","Username"),
                     CustomUserProperty = GetSetting("PowerBIEmbedded_CustomUserProperty",""),
                     CustomExtensionLibrary = GetSetting("PowerBIEmbedded_CustomExtensionLibrary", ""),
-                    ApplicationInsightsEnabled = bool.Parse(GetSetting("PowerBIEmbedded_ApplicationInsightsEnabled", "False"))
+                    ApplicationInsightsEnabled = bool.Parse(GetSetting("PowerBIEmbedded_ApplicationInsightsEnabled", "False")),
+                    BackgroundImageUrl = GetSetting("PowerBIEmbedded_BackgroundImageUrl", ""),
                 };
 
                 if (model.IsContentView)
@@ -164,6 +167,7 @@ namespace DotNetNuke.PowerBI.Controllers
                 ModuleController.Instance.UpdateTabModuleSetting(this.ModuleContext.TabModuleId, "PowerBIEmbedded_CustomUserProperty", settings.CustomUserProperty);
                 ModuleController.Instance.UpdateTabModuleSetting(this.ModuleContext.TabModuleId, "PowerBIEmbedded_CustomExtensionLibrary", settings.CustomExtensionLibrary);
                 ModuleController.Instance.UpdateTabModuleSetting(this.ModuleContext.TabModuleId, "PowerBIEmbedded_ApplicationInsightsEnabled", settings.ApplicationInsightsEnabled.ToString());
+                ModuleController.Instance.UpdateTabModuleSetting(this.ModuleContext.TabModuleId, "PowerBIEmbedded_BackgroundImageUrl", settings.BackgroundImageUrl);
                 return RedirectToDefaultRoute();
             }
             catch (Exception ex)
