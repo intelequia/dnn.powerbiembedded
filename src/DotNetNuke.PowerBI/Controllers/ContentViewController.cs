@@ -138,8 +138,8 @@ namespace DotNetNuke.PowerBI.Controllers
                 }
 
                 var permissionsRepo = ObjectPermissionsRepository.Instance;
-                if (!string.IsNullOrEmpty(model.Id) && !permissionsRepo.HasPermissions(embedService.Settings.InheritPermissions ?
-                    embedService.Settings.SettingsGroupId : model.Id, ModuleContext.PortalId, 1, User))
+                if (!string.IsNullOrEmpty(model.Id) && !PowerBIListViewExtensions.UserHasPermissionsToWorkspace(embedService.Settings.InheritPermissions ?
+                    embedService.Settings.SettingsGroupId : model.Id, User))
                 {
                     return new HttpStatusCodeResult(HttpStatusCode.Forbidden, "User doesn't have permissions for this resource");
                 }
