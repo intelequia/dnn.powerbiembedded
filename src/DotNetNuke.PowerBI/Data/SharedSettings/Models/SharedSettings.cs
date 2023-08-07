@@ -1,10 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Web;
-using System.Web.Caching;
-using DotNetNuke.ComponentModel.DataAnnotations;
+﻿using DotNetNuke.ComponentModel.DataAnnotations;
 using DotNetNuke.Entities.Modules;
+using System;
+using System.Web.Caching;
 
 namespace DotNetNuke.PowerBI.Data.Models
 {

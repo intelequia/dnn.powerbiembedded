@@ -1,14 +1,13 @@
 ﻿using DotNetNuke.Common;
 using DotNetNuke.Data;
+using DotNetNuke.Entities.Portals;
 using DotNetNuke.Entities.Users;
 using DotNetNuke.Framework;
 using DotNetNuke.Instrumentation;
 using DotNetNuke.PowerBI.Data.Models;
 using DotNetNuke.Security.Roles;
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using DotNetNuke.Entities.Portals;
 
 namespace DotNetNuke.PowerBI.Data
 {

@@ -1,7 +1,5 @@
 ﻿using DotNetNuke.Common;
-using DotNetNuke.Entities.Modules;
 using DotNetNuke.Instrumentation;
-using DotNetNuke.PowerBI.Data;
 using DotNetNuke.PowerBI.Data.SharedSettings;
 using DotNetNuke.PowerBI.Models;
 using DotNetNuke.PowerBI.Services;
@@ -9,8 +7,6 @@ using DotNetNuke.Web.Mvc.Framework.ActionFilters;
 using DotNetNuke.Web.Mvc.Framework.Controllers;
 using System;
 using System.Linq;
-using System.Runtime;
-using System.Text.RegularExpressions;
 using System.Web.Mvc;
 
 namespace DotNetNuke.PowerBI.Controllers
@@ -48,7 +44,7 @@ namespace DotNetNuke.PowerBI.Controllers
                 }
                 var embedService = new EmbedService(ModuleContext.PortalId, ModuleContext.TabModuleId, settingsGroupId);
 
-                var model = embedService.GetContentListAsync(ModuleContext.PortalSettings.UserId).Result;                
+                var model = embedService.GetContentListAsync(ModuleContext.PortalSettings.UserId).Result;
                 if (model != null)
                 {
                     // Remove other culture contents

@@ -1,12 +1,10 @@
-﻿using System;
-using System.Linq;
+﻿using DotNetNuke.PowerBI.Models;
+using DotNetNuke.Security;
+using DotNetNuke.Web.Api;
+using System;
 using System.Net;
 using System.Net.Http;
-using DotNetNuke.Web.Api;
 using System.Web.Http;
-using DotNetNuke.Security;
-using DotNetNuke.PowerBI.Models;
-using System.Collections.Generic;
 
 namespace DotNetNuke.PowerBI.Services
 {

@@ -1,12 +1,9 @@
 ﻿using DotNetNuke.Entities.Users;
 using DotNetNuke.PowerBI.Data;
 using DotNetNuke.PowerBI.Data.Models;
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime;
 using System.Text.RegularExpressions;
-using System.Web;
 
 namespace DotNetNuke.PowerBI.Models
 {
@@ -41,7 +38,8 @@ namespace DotNetNuke.PowerBI.Models
         {
             if (model != null && user != null)
             {
-                if (user.IsSuperUser || user.IsInRole("Administrators")) {
+                if (user.IsSuperUser || user.IsInRole("Administrators"))
+                {
                     return model;
                 }
                 var permissionsRepo = ObjectPermissionsRepository.Instance;
@@ -84,7 +82,8 @@ namespace DotNetNuke.PowerBI.Models
 
         public static List<PowerBISettings> RemoveUnauthorizedItems(this List<PowerBISettings> settings, UserInfo user)
         {
-            if (user.IsSuperUser || user.IsInRole("Administrators")) {
+            if (user.IsSuperUser || user.IsInRole("Administrators"))
+            {
                 return settings;
             }
             if (settings != null && user != null)

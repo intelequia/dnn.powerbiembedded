@@ -1,8 +1,13 @@
-﻿using DotNetNuke.Instrumentation;
+﻿using DotNetNuke.Entities.Portals;
+using DotNetNuke.Entities.Users;
+using DotNetNuke.Instrumentation;
+using DotNetNuke.PowerBI.Data;
 using DotNetNuke.PowerBI.Data.Models;
 using DotNetNuke.PowerBI.Data.SharedSettings;
 using DotNetNuke.PowerBI.Models;
+using DotNetNuke.Security.Roles;
 using DotNetNuke.Services.Cache;
+using DotNetNuke.Web.Mvc.Framework.Controllers;
 using Microsoft.IdentityModel.Clients.ActiveDirectory;
 using Microsoft.PowerBI.Api;
 using Microsoft.PowerBI.Api.Models;
@@ -13,8 +18,6 @@ using System.Globalization;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using DotNetNuke.Entities.Portals;
-using DotNetNuke.PowerBI.Data.Bookmarks;
 
 namespace DotNetNuke.PowerBI.Services
 {
@@ -25,6 +28,7 @@ namespace DotNetNuke.PowerBI.Services
         private PowerBISettings powerBISettings;
         private TileEmbedConfig tileEmbedConfig;
         private TokenCredentials tokenCredentials;
+
 
         public EmbedConfig EmbedConfig
         {
@@ -153,9 +157,9 @@ namespace DotNetNuke.PowerBI.Services
                 return null;
             }
 
-            var random = new Random();            
+            var random = new Random();
             var colours = new List<string>();
-            
+
             // Create a Power BI Client object. It will be used to call Power BI APIs.
             using (var client = new PowerBIClient(new Uri(Settings.ApiUrl), tokenCredentials))
             {
@@ -171,7 +175,7 @@ namespace DotNetNuke.PowerBI.Services
                 else
                 {
                     //Schedule for currect workspace
-                    model.Workspaces = new List<string> {Settings.WorkspaceId};
+                    model.Workspaces = new List<string> { Settings.WorkspaceId };
                 }
 
                 var groups = client.Groups.GetGroupsAsync().GetAwaiter().GetResult().Value;
@@ -290,7 +294,7 @@ namespace DotNetNuke.PowerBI.Services
                                         color = colours[x < datasets.Count ? x : 0],
                                         start = getCalendarDateTime(dayOfWeek, time.start),
                                         end = getCalendarDateTime(dayOfWeek, time.end),
-                                        title = dataset.Name,                                        
+                                        title = dataset.Name,
                                     };
                                     item.description = $"Workspace: {group.Name}; Capacity: {capacity.DisplayName}; Dataset: {dataset.Name}; Start: {time.start}";
                                     model.RefreshSchedules.Add(item);
@@ -302,7 +306,7 @@ namespace DotNetNuke.PowerBI.Services
                             Logger.Warn("Error getting refresh schedule by dataset and workspace", e);
                             continue;
                         }
-                        
+
                     }
                 }
                 //Order history
@@ -336,7 +340,7 @@ namespace DotNetNuke.PowerBI.Services
         {
             if (capacityId == null)
                 return null;
-            var capacities = (Capacities) CachingProvider.Instance().GetItem($"PBI_{Settings.PortalId}_{Settings.SettingsId}_Capacities");
+            var capacities = (Capacities)CachingProvider.Instance().GetItem($"PBI_{Settings.PortalId}_{Settings.SettingsId}_Capacities");
             if (capacities == null)
             {
                 capacities = await client.Capacities.GetCapacitiesAsync().ConfigureAwait(false);
@@ -371,7 +375,7 @@ namespace DotNetNuke.PowerBI.Services
                 if (workspace.IsOnDedicatedCapacity.GetValueOrDefault())
                 {
                     var capacity = await GetCapacityAsync(client, workspace.CapacityId.GetValueOrDefault()).ConfigureAwait(false);
-                    if (capacity == null 
+                    if (capacity == null
                         || (capacity != null
                         && !(capacity.State == CapacityState.Active || capacity.State == CapacityState.UpdatingSku)))
                     {
@@ -385,7 +389,7 @@ namespace DotNetNuke.PowerBI.Services
             }
             return false;
         }
-        public async Task<EmbedConfig> GetReportEmbedConfigAsync(int userId, string username, string roles, string reportId)
+        public async Task<EmbedConfig> GetReportEmbedConfigAsync(int userId, string username, string roles, string reportId, bool hasEditPermission)
         {
             var model = (EmbedConfig)CachingProvider.Instance().GetItem($"PBI_{Settings.PortalId}_{Settings.SettingsId}_{userId}_{username}_{roles}_{Thread.CurrentThread.CurrentUICulture.Name}_Report_{reportId}");
             if (model != null)
@@ -400,7 +404,7 @@ namespace DotNetNuke.PowerBI.Services
                 model.ErrorMessage = "Authentication failed.";
                 return model;
             }
-            
+
 
             // Create a Power BI Client object. It will be used to call Power BI APIs.
             using (var client = new PowerBIClient(new Uri(Settings.ApiUrl), tokenCredentials))
@@ -421,13 +425,13 @@ namespace DotNetNuke.PowerBI.Services
                     }
                     else
                     {
-                        model.EmbedToken = await GenerateTokenAsync(username, roles, client, report).ConfigureAwait(false);
+                        model.EmbedToken = await GenerateTokenAsync(username, roles, client, report, hasEditPermission).ConfigureAwait(false);
                         model.EmbedUrl = report?.EmbedUrl;
                         model.Id = string.IsNullOrEmpty(report?.Id.ToString()) ? reportId : report?.Id.ToString();
                         model.ReportType = report?.ReportType;
                         if (model.EmbedToken == null)
                         {
-                            model.ErrorMessage = "Failed to generate embed token.";
+                            model.ErrorMessage = "Failed to generate embed token. 2";
                         }
                     }
                 }
@@ -437,10 +441,13 @@ namespace DotNetNuke.PowerBI.Services
             return model;
         }
 
-        private async Task<EmbedToken> GenerateTokenAsync(string username, string roles, PowerBIClient client, Report report)
+        private async Task<EmbedToken> GenerateTokenAsync(string username, string roles, PowerBIClient client, Report report, bool hasEditPermission)
         {
+
             try
             {
+
+
                 // Generate Embed Token for reports without effective identities.
                 GenerateTokenRequest generateTokenRequestParameters;
                 // This is how you create embed token with effective identities
@@ -462,17 +469,44 @@ namespace DotNetNuke.PowerBI.Services
                             rls.Roles = rolesList;
                         }
                         // Generate Embed Token with effective identities.
-                        generateTokenRequestParameters = new GenerateTokenRequest(accessLevel: "view", identities: new List<EffectiveIdentity> { rls });
+
+                        if (hasEditPermission)
+                        {
+                            generateTokenRequestParameters = new GenerateTokenRequest(accessLevel: "edit", identities: new List<EffectiveIdentity> { rls });
+
+                        }
+                        else
+                        {
+                            generateTokenRequestParameters = new GenerateTokenRequest(accessLevel: "view", identities: new List<EffectiveIdentity> { rls });
+
+                        }
+
                     }
                     else
                     {
-                        generateTokenRequestParameters = new GenerateTokenRequest(accessLevel: "view");
+                        if (hasEditPermission)
+                        {
+                            generateTokenRequestParameters = new GenerateTokenRequest(accessLevel: "edit");
+                        }
+                        else
+                        {
+                            generateTokenRequestParameters = new GenerateTokenRequest(accessLevel: "view");
+
+                        }
                     }
                 }
                 else
                 {
                     // Generate Embed Token for reports without effective identities.
-                    generateTokenRequestParameters = new GenerateTokenRequest(accessLevel: "view");
+                    if (hasEditPermission)
+                    {
+                        generateTokenRequestParameters = new GenerateTokenRequest(accessLevel: "edit");
+                    }
+                    else
+                    {
+                        generateTokenRequestParameters = new GenerateTokenRequest(accessLevel: "view");
+
+                    }
                 }
                 var tokenResponse = await client.Reports.GenerateTokenInGroupAsync(Guid.Parse(Settings.WorkspaceId), report.Id, generateTokenRequestParameters).ConfigureAwait(false);
                 return tokenResponse;
@@ -484,8 +518,9 @@ namespace DotNetNuke.PowerBI.Services
             }
         }
 
-        public async Task<EmbedConfig> GetDashboardEmbedConfigAsync(int userId, string username, string roles, string dashboardId)
+        public async Task<EmbedConfig> GetDashboardEmbedConfigAsync(int userId, string username, string roles, string dashboardId, bool hasEditPermission)
         {
+
             var model = (EmbedConfig)CachingProvider.Instance().GetItem($"PBI_{Settings.PortalId}_{Settings.SettingsId}_{userId}_{username}_{roles}_{Thread.CurrentThread.CurrentUICulture.Name}_Dashboard_{dashboardId}");
             if (model != null)
                 return model;
@@ -529,12 +564,27 @@ namespace DotNetNuke.PowerBI.Services
                             rls.Roles = rolesList;
                         }
                         // Generate Embed Token with effective identities.
-                        generateTokenRequestParameters = new GenerateTokenRequest(accessLevel: "view", identities: new List<EffectiveIdentity> { rls });
+                        if (hasEditPermission)
+                        {
+                            generateTokenRequestParameters = new GenerateTokenRequest(accessLevel: "edit", identities: new List<EffectiveIdentity> { rls });
+                        }
+                        else
+                        {
+                            generateTokenRequestParameters = new GenerateTokenRequest(accessLevel: "view", identities: new List<EffectiveIdentity> { rls });
+                        }
                     }
                     else
                     {
                         // Generate Embed Token for reports without effective identities.
-                        generateTokenRequestParameters = new GenerateTokenRequest(accessLevel: "view");
+                        if (hasEditPermission)
+                        {
+                            generateTokenRequestParameters = new GenerateTokenRequest(accessLevel: "edit");
+                        }
+                        else
+                        {
+                            generateTokenRequestParameters = new GenerateTokenRequest(accessLevel: "view");
+
+                        }
                     }
                     EmbedToken tokenResponse;
                     try
@@ -547,7 +597,14 @@ namespace DotNetNuke.PowerBI.Services
                         {
                             // HACK: Creating embed token for accessing dataset shouldn't have effective identity"
                             // See https://community.powerbi.com/t5/Developer/quot-shouldn-t-have-effective-identity-quot-error-when-passing/m-p/437177
-                            generateTokenRequestParameters = new GenerateTokenRequest(accessLevel: "view");
+                            if (hasEditPermission)
+                            {
+                                generateTokenRequestParameters = new GenerateTokenRequest(accessLevel: "edit");
+                            }
+                            else
+                            {
+                                generateTokenRequestParameters = new GenerateTokenRequest(accessLevel: "view");
+                            }
                             tokenResponse = await client.Dashboards.GenerateTokenInGroupAsync(Guid.Parse(Settings.WorkspaceId), dashboard.Id, generateTokenRequestParameters).ConfigureAwait(false);
                         }
                         else
@@ -555,7 +612,7 @@ namespace DotNetNuke.PowerBI.Services
                     }
                     if (tokenResponse == null)
                     {
-                        model.ErrorMessage = "Failed to generate embed token.";
+                        model.ErrorMessage = "Failed to generate embed token. 3";
                     }
                     // Generate Embed Configuration.
                     model.EmbedToken = tokenResponse;
@@ -570,7 +627,7 @@ namespace DotNetNuke.PowerBI.Services
 
         }
 
-        public async Task<TileEmbedConfig> GetTileEmbedConfigAsync(int userId, string tileId, string dashboardId)
+        public async Task<TileEmbedConfig> GetTileEmbedConfigAsync(int userId, string tileId, string dashboardId, bool hasEditPermission)
         {
             var model = (TileEmbedConfig)CachingProvider.Instance().GetItem($"PBI_{Settings.PortalId}_{Settings.SettingsId}_{userId}_{Thread.CurrentThread.CurrentUICulture.Name}_Dashboard_{dashboardId}_Tile_{tileId}");
             if (model != null)
@@ -603,10 +660,16 @@ namespace DotNetNuke.PowerBI.Services
                 var tile = tiles.Value.FirstOrDefault(x => x.Id.ToString() == tileId);
                 // Generate Embed Token for a tile.
                 var generateTokenRequestParameters = new GenerateTokenRequest(accessLevel: "view");
+
+                if (hasEditPermission)
+                {
+                    generateTokenRequestParameters = new GenerateTokenRequest(accessLevel: "edit");
+                }
+
                 var tokenResponse = await client.Tiles.GenerateTokenInGroupAsync(Guid.Parse(Settings.WorkspaceId), dashboard.Id, tile.Id, generateTokenRequestParameters).ConfigureAwait(false);
                 if (tokenResponse == null)
                 {
-                    tileEmbedConfig.ErrorMessage = "Failed to generate embed token.";
+                    tileEmbedConfig.ErrorMessage = "Failed to generate embed token. 1";
                     return model;
                 }
 
@@ -750,9 +813,11 @@ namespace DotNetNuke.PowerBI.Services
                 return false;
             }
 
-            tokenCredentials = new TokenCredentials(authenticationResult.AccessToken, "Bearer");            
+            tokenCredentials = new TokenCredentials(authenticationResult.AccessToken, "Bearer");
             CachingProvider.Instance().Insert($"PBI_{Settings.PortalId}_{Settings.SettingsId}_TokenCredentials", tokenCredentials, null, authenticationResult.ExpiresOn.AddMinutes(-2).UtcDateTime, TimeSpan.Zero);
             return true;
         }
+
+
     }
 }

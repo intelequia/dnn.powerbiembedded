@@ -29,13 +29,32 @@
         <div id="errorWrapper">
             <h2>@Dnn.LocalizeString("ErrorTitle")</h2>
             <p>@Model.ErrorMessage</p>
-        </div> 
+        </div>
     }
     else
     {
+
         if (ViewBag.ToolbarVisible)
         {
             <div class="pbitoolbar">
+                @if (ViewBag.CanEdit)
+                {
+                    if (ViewBag.HideVisualizationData)
+                    {
+                        <a href="#" class="edit" title="Edit" data-bind="click: function() { pbiedit(true); }">
+                            <div class="divImg"></div>&nbsp;Edit
+                        </a>
+                    }
+                    else
+                    {
+                        <a href="#" class="edit" title="Edit" data-bind="click: function() { pbiedit(false); }">
+                            <div class="divImg"></div>&nbsp;Edit
+                        </a>
+
+                    }
+
+                }
+
                 @if (ViewBag.PrintVisible)
                 {
                     <a href="#" class="print" title="Print report" data-bind="click: pbiprint"></a>
@@ -49,6 +68,7 @@
                 {
                     <a href="#" class="fullscreen" title="Full screen" data-bind="click: pbifullscreen"></a>
                 }
+
                 <a href="#" class="refresh" title="Refresh visual objects and data" data-bind="click: pbirefresh"></a>
                 <a href="#" class="reload" title="Reload visual and filters" data-bind="click: pbireload"></a>
             </div>

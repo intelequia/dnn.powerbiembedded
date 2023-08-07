@@ -1,12 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Web;
-using DotNetNuke.Common;
+﻿using DotNetNuke.Common;
 using DotNetNuke.Data;
 using DotNetNuke.Framework;
 using DotNetNuke.PowerBI.Data.Models;
 using DotNetNuke.Services.Exceptions;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace DotNetNuke.PowerBI.Data.SharedSettings
 {

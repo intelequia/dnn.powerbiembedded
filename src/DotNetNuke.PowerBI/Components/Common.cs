@@ -1,5 +1,4 @@
 ﻿using DotNetNuke.Entities.Portals;
-using DotNetNuke.Entities.Tabs;
 using DotNetNuke.Entities.Users;
 using DotNetNuke.Services.Localization;
 using System.Globalization;

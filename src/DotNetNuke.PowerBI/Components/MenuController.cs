@@ -21,15 +21,15 @@
 
 #endregion
 
-using System.Collections.Generic;
 using Dnn.PersonaBar.Library.Controllers;
 using Dnn.PersonaBar.Library.Model;
 using DotNetNuke.Entities.Portals;
 using DotNetNuke.Entities.Users;
+using System.Collections.Generic;
 
 namespace DotNetNuke.PowerBI.Components
 {
-    public class MenuController: IMenuItemController
+    public class MenuController : IMenuItemController
     {
         public void UpdateParameters(MenuItem menuItem)
         {

@@ -1,14 +1,13 @@
-﻿using System;
-using DotNetNuke.ComponentModel.DataAnnotations;
-using System.Web.Caching;
+﻿using DotNetNuke.ComponentModel.DataAnnotations;
 using DotNetNuke.PowerBI.Services;
+using System;
 
 namespace DotNetNuke.PowerBI.Data.Bookmarks.Models
 {
     [TableName("PBI_Bookmarks")]
     //setup the primary key for table
     [PrimaryKey("Id", AutoIncrement = true)]
-      //scope the objects to the ModuleId of a module on a page (or copy of a module on a page)
+    //scope the objects to the ModuleId of a module on a page (or copy of a module on a page)
     [Scope("PortalId")]
     public class Bookmark
     {
@@ -24,12 +23,12 @@ namespace DotNetNuke.PowerBI.Data.Bookmarks.Models
             PortalId = portalId;
         }
         public int Id { get; set; }
-        public int PortalId{get; set; }
+        public int PortalId { get; set; }
         public string ReportId { get; set; }
         public string DisplayName { get; set; }
         public string Name { get; set; }
         public string State { get; set; }
-        public  DateTime CreatedOn { get; set; }
+        public DateTime CreatedOn { get; set; }
         public int CreatedBy { get; set; }
     }
 }

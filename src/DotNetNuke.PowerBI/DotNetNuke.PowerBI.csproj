@@ -228,6 +228,7 @@
     <Content Include="images\addbookmark.png" />
     <Content Include="images\bookmark.png" />
     <Content Include="images\delete.png" />
+    <Content Include="images\edit.png" />
     <Content Include="images\fullscreen.png" />
     <Content Include="images\powerbi.png" />
     <Content Include="images\powerbi.svg" />
@@ -318,7 +319,9 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="admin\personaBar\App_LocalResources\PBIEmbedded.resx" />
+    <Content Include="admin\personaBar\App_LocalResources\PBIEmbedded.resx">
+      <SubType>Designer</SubType>
+    </Content>
   </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>

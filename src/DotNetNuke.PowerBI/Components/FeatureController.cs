@@ -10,8 +10,6 @@
 ' 
 */
 
-using System;
-using System.Collections.Generic;
 using DotNetNuke.Entities.Modules;
 using DotNetNuke.Entities.Portals;
 using DotNetNuke.Entities.Profile;
@@ -19,6 +17,8 @@ using DotNetNuke.Entities.Users;
 using DotNetNuke.Entities.Users.Social;
 using DotNetNuke.Security.Roles;
 using DotNetNuke.Services.Search.Entities;
+using System;
+using System.Collections.Generic;
 
 namespace DotNetNuke.PowerBI
 {

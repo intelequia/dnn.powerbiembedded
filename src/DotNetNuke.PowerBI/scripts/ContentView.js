@@ -56,12 +56,23 @@
             accessToken: context.Token,
             embedUrl: context.EmbedUrl,
             id: context.Id,
-            permissions: that.models.Permissions.Read,
+            permissions: that.models.Permissions.All,
             viewMode: that.models.ViewMode.View,
             settings: {
                 //panes: {
                 //    bookmarks: {
                 //        visible: true
+                //},
+                //panes: {
+                //    filters: {
+                //        visible: false, // Hide the filter pane
+                //    },
+                //    pageNavigation: {
+                //        visible: false, // Hide the page navigation pane
+                //    },
+                //    slicer: {
+                //        visible: false, // Hide the slicer pane
+                //    },
                 //},
                 navContentPaneEnabled: context.NavPaneVisible,
                 localeSettings: {
@@ -101,6 +112,7 @@
         // Embed the report and display it within the div container.
         this.report = powerbi.embed(that.reportContainer, that.config);
 
+
         if (this.overrideFilterPaneVisibility) {
             const newSettings = {
                 panes: {
@@ -119,7 +131,6 @@
                 // Create bookmarks list from the existing report bookmarks 
                 that.updateBookmarksList(bookmarks);
             });
-
         this.trackEvent = function(eventName, data) {
             if (that.applicationInsightsEnabled && typeof appInsights !== "undefined") {
                 let userId = "-1";
@@ -157,6 +168,9 @@
                 that.trackEvent(e, event.detail);
             });
         });
+        //embedContainer_389
+
+
 
         this.createBookmarksList = function() {
             let params = {
@@ -276,6 +290,26 @@
         this.pbifullscreen = function () {
             that.report.fullscreen();
         }
+
+        this.pbiedit = async function (hidePanes) {
+            await that.report.switchMode("edit");
+            if (hidePanes) {
+                const newSettings = {
+                    panes: {
+                        filters: {
+                            visible: true
+                        },
+                        visualizations: {
+                            visible: false
+                        },
+                        fields: {
+                            visible: false
+                        },
+                    }
+                };
+                await that.report.updateSettings(newSettings);
+            }
+        };
         this.pbireload = function () {
             that.report.reload();
         }
@@ -317,6 +351,7 @@
                 }
             }
         }
+
 
         this.Init = function () {
             that.createBookmarksList();

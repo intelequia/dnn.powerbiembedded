@@ -1,6 +1,4 @@
-﻿using DotNetNuke.Common;
-using DotNetNuke.Instrumentation;
-using DotNetNuke.PowerBI.Data;
+﻿using DotNetNuke.Instrumentation;
 using DotNetNuke.PowerBI.Data.SharedSettings;
 using DotNetNuke.PowerBI.Models;
 using DotNetNuke.PowerBI.Services;
@@ -9,7 +7,6 @@ using DotNetNuke.Web.Mvc.Framework.Controllers;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 using System.Web.Mvc;
 
 

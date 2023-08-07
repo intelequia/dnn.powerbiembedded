@@ -74,6 +74,7 @@ class PbiObjectsListView extends Component {
             return (<li className="none">{resx.get(noObjectsResKey)}</li>);
 
         let pbiObjects = state.powerBiObjects.filter(obj => obj.PowerBiType === objType);
+
         if (pbiObjects.length > 0) {
             pbiObjects.forEach(obj => {
                 objects.push(<li><a className={"pbiObject" + (obj.Id === state.selectedObjectId ? " selected": "")} onClick={this.selectObject.bind(this, obj.Id)}>{obj.Name}</a></li>);
@@ -131,36 +132,48 @@ class PbiObjectsListView extends Component {
         const {props,state} = this;
 
         let pbiObjects = JSON.parse(JSON.stringify(state.powerBiObjects));
-
         let selectedObject = this.getSelectedObject(pbiObjects);
+
+
         selectedObject.Permissions.rolePermissions = permissions.rolePermissions;
         selectedObject.Permissions.userPermissions = permissions.userPermissions;
-
         props.dispatch(SettingsActions.permissionsChanged(pbiObjects));        
     }
 
     getPermissions() {
+        let permissionDefinitions = [
+            {
+                allowAccess: false,
+                fullControl: false,
+                permissionCode: null,
+                permissionId: 1,
+                permissionKey: null,
+                permissionName: "View",
+                view: true
+            },
+            {
+                allowAccess: false,
+                fullControl: false,
+                permissionCode: null,
+                permissionId: 2,
+                permissionKey: null,
+                permissionName: "Edit",
+                view: false,
+            }
+        ];
         let permissions = {
-            permissionDefinitions: [
-                {
-                    allowAccess: false,
-                    fullControl: false,
-                    permissionCode: null,
-                    permissionId: 1,
-                    permissionKey: null,
-                    permissionName: "View",
-                    view: true
-                }
-            ],
+            permissionDefinitions,
             rolePermissions: [],
             userPermissions: []
         };
-        let selectedObject = this.getSelectedObject();    
+        let selectedObject = this.getSelectedObject();
+      
         if (selectedObject) {
             permissions = JSON.parse(JSON.stringify(selectedObject.Permissions));
         }
         return permissions;
     }
+      
 
     /* eslint-disable react/no-danger */
     render() {
