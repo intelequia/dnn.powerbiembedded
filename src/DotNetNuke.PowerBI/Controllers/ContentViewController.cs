@@ -251,9 +251,9 @@ namespace DotNetNuke.PowerBI.Controllers
 
             List<ObjectPermission> objectPermissions = ObjectPermissionsRepository.Instance.GetObjectPermissionsByPortal(portalId).ToList();
             IList<UserRoleInfo> userRoles = RoleController.Instance.GetUserRoles(user, true);
-            bool hasRoleWithIdZero = RoleController.Instance.GetUserRoles(user, true).Any(role => role.RoleID == 0);
+            bool isAdmin = RoleController.Instance.GetUserRoles(user, true).Any(role => role.RoleName == "Administrators");
 
-            if (hasRoleWithIdZero)
+            if (isAdmin || user.IsSuperUser)
             {
                 hasEditPermission = true;
             }
@@ -264,7 +264,7 @@ namespace DotNetNuke.PowerBI.Controllers
                 {
                     foreach (var userRole in userRoles)
                     {
-                        if (permission.RoleID == -1)
+                        if (permission.RoleID == -1) // All Users
                         {
                             if (permission.PermissionID == 2 && permission.AllowAccess)
                             {
