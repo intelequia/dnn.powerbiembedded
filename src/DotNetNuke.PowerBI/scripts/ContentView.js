@@ -56,30 +56,14 @@
             accessToken: context.Token,
             embedUrl: context.EmbedUrl,
             id: context.Id,
-            permissions: that.models.Permissions.All,
+            permissions: context.CanEdit ? that.models.Permissions.All : that.models.Permissions.Read,
             viewMode: that.models.ViewMode.View,
             settings: {
-                //panes: {
-                //    bookmarks: {
-                //        visible: true
-                //},
-                //panes: {
-                //    filters: {
-                //        visible: false, // Hide the filter pane
-                //    },
-                //    pageNavigation: {
-                //        visible: false, // Hide the page navigation pane
-                //    },
-                //    slicer: {
-                //        visible: false, // Hide the slicer pane
-                //    },
-                //},
                 navContentPaneEnabled: context.NavPaneVisible,
                 localeSettings: {
                     language: context.Locale,
                     formatLocale: context.Locale
                 },
-                //background: models.BackgroundType.Transparent,
                 layoutType: that.isMobile ? (that.isLandscape ? that.models.LayoutType.MobileLandscape : that.models.LayoutType.MobilePortrait) : null
             },
             pageName: context.PageName
@@ -168,7 +152,6 @@
                 that.trackEvent(e, event.detail);
             });
         });
-        //embedContainer_389
 
 
 
@@ -291,24 +274,22 @@
             that.report.fullscreen();
         }
 
-        this.pbiedit = async function (hidePanes) {
+        this.pbiedit =  async function () {
             await that.report.switchMode("edit");
-            if (hidePanes) {
-                const newSettings = {
-                    panes: {
-                        filters: {
-                            visible: true
-                        },
-                        visualizations: {
-                            visible: false
-                        },
-                        fields: {
-                            visible: false
-                        },
-                    }
-                };
-                await that.report.updateSettings(newSettings);
-            }
+            const newSettings = {
+                panes: {
+                    filters: {
+                        visible: true
+                    },
+                    visualizations: {
+                        visible: !context.HideVisualizationData
+                    },
+                    fields: {
+                        visible: !context.HideVisualizationData
+                    },
+                }
+            };
+            await that.report.updateSettings(newSettings);
         };
         this.pbireload = function () {
             that.report.reload();
