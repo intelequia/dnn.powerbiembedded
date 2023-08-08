@@ -1,5 +1,4 @@
-﻿using Dnn.PersonaBar.Library.Model;
-using DotNetNuke.Entities.Portals;
+﻿using DotNetNuke.Entities.Portals;
 using DotNetNuke.Entities.Users;
 using DotNetNuke.Framework;
 using DotNetNuke.Framework.JavaScriptLibraries;
@@ -254,18 +253,6 @@ namespace DotNetNuke.PowerBI.Controllers
             IList<UserRoleInfo> userRoles = RoleController.Instance.GetUserRoles(user, true);
             bool hasRoleWithIdZero = RoleController.Instance.GetUserRoles(user, true).Any(role => role.RoleID == 0);
 
-            // Check if any object permission has PermissionID equal to 2 and matches the RoleID of any user role
-            //if (hasRoleWithIdZero || ObjectPermissionsRepository.Instance
-            //    .GetObjectPermissionsByPortal(portalId)
-            //.Any(permission =>
-            //        (userRoles.Any(role => role.RoleID == permission.RoleID) || objectPermissions.Any(databaseUserId => databaseUserId.UserID == user.UserID))
-            //        && permission.PermissionID == 2
-            //        && permission.AllowAccess))
-            //{
-            //    hasEditPermission = true;
-
-            //}
-
             if (hasRoleWithIdZero)
             {
                 hasEditPermission = true;
@@ -273,9 +260,9 @@ namespace DotNetNuke.PowerBI.Controllers
             else
             {
                 var list = ObjectPermissionsRepository.Instance.GetObjectPermissionsByPortal(portalId).ToList();
-                foreach ( var permission in list ) 
-                { 
-                    foreach ( var userRole in userRoles)
+                foreach (var permission in list)
+                {
+                    foreach (var userRole in userRoles)
                     {
                         if (permission.RoleID == -1)
                         {

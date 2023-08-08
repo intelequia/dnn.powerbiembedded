@@ -103,27 +103,8 @@ namespace DotNetNuke.PowerBI.Services.Models
                         Username = user.Username,
                     };
 
-                    if (permission.PermissionID == 1)
-                    {
-                        //permissions.Add(new Dnn.PersonaBar.Library.DTO.Permission
-                        //{
-                        //    AllowAccess = permission.AllowAccess,
-                        //    FullControl = false,
-                        //    PermissionId = permission.PermissionID,
-                        //    PermissionName = "View",
-                        //    View = true,
-                        //});
-                    }
                     if (permission.PermissionID == 2)
                     {
-                        //permissions.Add(new Dnn.PersonaBar.Library.DTO.Permission
-                        //{
-                        //    AllowAccess = permission.AllowAccess,
-                        //    FullControl = false,
-                        //    PermissionId = permission.PermissionID,
-                        //    PermissionName = "Edit",
-                        //    View = false,
-                        //});
                         permissionBase = new ModulePermissionInfo
                         {
                             PermissionID = permission.PermissionID,
@@ -132,17 +113,11 @@ namespace DotNetNuke.PowerBI.Services.Models
                             UserID = permission.UserID.Value,
                             DisplayName = user.DisplayName,
                             Username = user.Username,
-                            
                         };
                     }
 
                     result.AddUserPermission(permissionBase);
-                    //result.UserPermissions.Add(new Dnn.PersonaBar.Library.DTO.UserPermission()
-                    //{
-                    //    UserId = user.UserID,
-                    //    DisplayName = user.DisplayName,
-                    //    Permissions = permissions
-                    //});
+
                 }
             }
 

@@ -1,13 +1,8 @@
-﻿using DotNetNuke.Entities.Portals;
-using DotNetNuke.Entities.Users;
-using DotNetNuke.Instrumentation;
-using DotNetNuke.PowerBI.Data;
+﻿using DotNetNuke.Instrumentation;
 using DotNetNuke.PowerBI.Data.Models;
 using DotNetNuke.PowerBI.Data.SharedSettings;
 using DotNetNuke.PowerBI.Models;
-using DotNetNuke.Security.Roles;
 using DotNetNuke.Services.Cache;
-using DotNetNuke.Web.Mvc.Framework.Controllers;
 using Microsoft.IdentityModel.Clients.ActiveDirectory;
 using Microsoft.PowerBI.Api;
 using Microsoft.PowerBI.Api.Models;
@@ -451,6 +446,7 @@ namespace DotNetNuke.PowerBI.Services
                 // Generate Embed Token for reports without effective identities.
                 GenerateTokenRequest generateTokenRequestParameters;
                 // This is how you create embed token with effective identities
+                string permission = hasEditPermission ? "edit" : "view";
                 if (!string.IsNullOrWhiteSpace(username))
                 {
                     // Check if the dataset has effective identity required
@@ -469,44 +465,17 @@ namespace DotNetNuke.PowerBI.Services
                             rls.Roles = rolesList;
                         }
                         // Generate Embed Token with effective identities.
-
-                        if (hasEditPermission)
-                        {
-                            generateTokenRequestParameters = new GenerateTokenRequest(accessLevel: "edit", identities: new List<EffectiveIdentity> { rls });
-
-                        }
-                        else
-                        {
-                            generateTokenRequestParameters = new GenerateTokenRequest(accessLevel: "view", identities: new List<EffectiveIdentity> { rls });
-
-                        }
-
+                        generateTokenRequestParameters = new GenerateTokenRequest(accessLevel: permission, identities: new List<EffectiveIdentity> { rls });
                     }
                     else
                     {
-                        if (hasEditPermission)
-                        {
-                            generateTokenRequestParameters = new GenerateTokenRequest(accessLevel: "edit");
-                        }
-                        else
-                        {
-                            generateTokenRequestParameters = new GenerateTokenRequest(accessLevel: "view");
-
-                        }
+                        generateTokenRequestParameters = new GenerateTokenRequest(accessLevel: permission);
                     }
                 }
                 else
                 {
                     // Generate Embed Token for reports without effective identities.
-                    if (hasEditPermission)
-                    {
-                        generateTokenRequestParameters = new GenerateTokenRequest(accessLevel: "edit");
-                    }
-                    else
-                    {
-                        generateTokenRequestParameters = new GenerateTokenRequest(accessLevel: "view");
-
-                    }
+                    generateTokenRequestParameters = new GenerateTokenRequest(accessLevel: permission);
                 }
                 var tokenResponse = await client.Reports.GenerateTokenInGroupAsync(Guid.Parse(Settings.WorkspaceId), report.Id, generateTokenRequestParameters).ConfigureAwait(false);
                 return tokenResponse;
@@ -520,6 +489,7 @@ namespace DotNetNuke.PowerBI.Services
 
         public async Task<EmbedConfig> GetDashboardEmbedConfigAsync(int userId, string username, string roles, string dashboardId, bool hasEditPermission)
         {
+            string permission = hasEditPermission ? "edit" : "view";
 
             var model = (EmbedConfig)CachingProvider.Instance().GetItem($"PBI_{Settings.PortalId}_{Settings.SettingsId}_{userId}_{username}_{roles}_{Thread.CurrentThread.CurrentUICulture.Name}_Dashboard_{dashboardId}");
             if (model != null)
@@ -564,27 +534,12 @@ namespace DotNetNuke.PowerBI.Services
                             rls.Roles = rolesList;
                         }
                         // Generate Embed Token with effective identities.
-                        if (hasEditPermission)
-                        {
-                            generateTokenRequestParameters = new GenerateTokenRequest(accessLevel: "edit", identities: new List<EffectiveIdentity> { rls });
-                        }
-                        else
-                        {
-                            generateTokenRequestParameters = new GenerateTokenRequest(accessLevel: "view", identities: new List<EffectiveIdentity> { rls });
-                        }
+                        generateTokenRequestParameters = new GenerateTokenRequest(accessLevel: permission, identities: new List<EffectiveIdentity> { rls });
                     }
                     else
                     {
                         // Generate Embed Token for reports without effective identities.
-                        if (hasEditPermission)
-                        {
-                            generateTokenRequestParameters = new GenerateTokenRequest(accessLevel: "edit");
-                        }
-                        else
-                        {
-                            generateTokenRequestParameters = new GenerateTokenRequest(accessLevel: "view");
-
-                        }
+                        generateTokenRequestParameters = new GenerateTokenRequest(accessLevel: permission);
                     }
                     EmbedToken tokenResponse;
                     try
@@ -597,14 +552,8 @@ namespace DotNetNuke.PowerBI.Services
                         {
                             // HACK: Creating embed token for accessing dataset shouldn't have effective identity"
                             // See https://community.powerbi.com/t5/Developer/quot-shouldn-t-have-effective-identity-quot-error-when-passing/m-p/437177
-                            if (hasEditPermission)
-                            {
-                                generateTokenRequestParameters = new GenerateTokenRequest(accessLevel: "edit");
-                            }
-                            else
-                            {
-                                generateTokenRequestParameters = new GenerateTokenRequest(accessLevel: "view");
-                            }
+                            generateTokenRequestParameters = new GenerateTokenRequest(accessLevel: permission);
+
                             tokenResponse = await client.Dashboards.GenerateTokenInGroupAsync(Guid.Parse(Settings.WorkspaceId), dashboard.Id, generateTokenRequestParameters).ConfigureAwait(false);
                         }
                         else
@@ -645,6 +594,8 @@ namespace DotNetNuke.PowerBI.Services
             // Create a Power BI Client object. It will be used to call Power BI APIs.
             using (var client = new PowerBIClient(new Uri(Settings.ApiUrl), tokenCredentials))
             {
+                string permission = hasEditPermission ? "edit" : "view";
+
                 // Get a list of dashboards.
                 var dashboards = await client.Dashboards.GetDashboardsInGroupAsync(Guid.Parse(Settings.WorkspaceId)).ConfigureAwait(false);
 
@@ -659,12 +610,7 @@ namespace DotNetNuke.PowerBI.Services
                 // Get the first tile in the workspace.
                 var tile = tiles.Value.FirstOrDefault(x => x.Id.ToString() == tileId);
                 // Generate Embed Token for a tile.
-                var generateTokenRequestParameters = new GenerateTokenRequest(accessLevel: "view");
-
-                if (hasEditPermission)
-                {
-                    generateTokenRequestParameters = new GenerateTokenRequest(accessLevel: "edit");
-                }
+                var generateTokenRequestParameters = new GenerateTokenRequest(accessLevel: permission);
 
                 var tokenResponse = await client.Tiles.GenerateTokenInGroupAsync(Guid.Parse(Settings.WorkspaceId), dashboard.Id, tile.Id, generateTokenRequestParameters).ConfigureAwait(false);
                 if (tokenResponse == null)

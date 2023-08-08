@@ -236,36 +236,42 @@ namespace DotNetNuke.PowerBI.Services
                     ObjectPermissionsRepository.Instance.DeleteObjectPermissions(pbiObject.Id, PortalSettings.PortalId);
                     foreach (var permission in pbiObject.Permissions.RolePermissions)
                     {
-                        foreach (var p in permission.Permissions)
+                        var p = permission.Permissions.FirstOrDefault();
+                        if (p != null)
                         {
-                            if (p != null)
+                            foreach (var rolePermission in permission.Permissions)
                             {
-                                ObjectPermissionsRepository.Instance.CreateObjectPermission(pbiObject.Id
-                                                                                            , p.PermissionId
-                                                                                            , p.AllowAccess
-                                                                                            , PortalSettings.PortalId
-                                                                                            , permission.RoleId
-                                                                                            , null);
+                                if (rolePermission != null)
+                                {
+                                    ObjectPermissionsRepository.Instance.CreateObjectPermission(pbiObject.Id
+                                                                                                , rolePermission.PermissionId
+                                                                                                , rolePermission.AllowAccess
+                                                                                                , PortalSettings.PortalId
+                                                                                                , permission.RoleId
+                                                                                                , null);
+                                }
                             }
                         }
-                        //var p = permission.Permissions.FirstOrDefault();
-
                     }
                     foreach (var permission in pbiObject.Permissions.UserPermissions)
                     {
-                        //var p = permission.Permissions.FirstOrDefault();
-                        foreach (var p in permission.Permissions)
+                        var p = permission.Permissions.FirstOrDefault();
+                        if (p != null)
                         {
-                            if (p != null)
+                            foreach (var userPermission in permission.Permissions)
                             {
-                                ObjectPermissionsRepository.Instance.CreateObjectPermission(pbiObject.Id
-                                                                                            , p.PermissionId
-                                                                                            , p.AllowAccess
-                                                                                            , PortalSettings.PortalId
-                                                                                            , null
-                                                                                            , permission.UserId);
+                                if (userPermission != null)
+                                {
+                                    ObjectPermissionsRepository.Instance.CreateObjectPermission(pbiObject.Id
+                                                                                                , userPermission.PermissionId
+                                                                                                , userPermission.AllowAccess
+                                                                                                , PortalSettings.PortalId
+                                                                                                , null
+                                                                                                , permission.UserId);
+                                }
                             }
                         }
+
                     }
                 }
 
