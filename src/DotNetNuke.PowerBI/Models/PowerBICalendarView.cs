@@ -1,11 +1,7 @@
 ﻿using Microsoft.PowerBI.Api.Models;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Runtime.Serialization;
-using System.Web;
-using System.Web.Mvc;
-using DotNetNuke.Common.Utilities;
 
 namespace DotNetNuke.PowerBI.Models
 {
@@ -13,7 +9,7 @@ namespace DotNetNuke.PowerBI.Models
     [DataContract]
     public class PowerBICalendarView
     {
-        
+
 
         public PowerBICalendarView()
         {

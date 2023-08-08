@@ -1,7 +1,5 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-using DotNetNuke.Entities.Users;
-using DotNetNuke.PowerBI.Data.Models;
+﻿using DotNetNuke.PowerBI.Data.Models;
+using System.Collections.Generic;
 
 namespace DotNetNuke.PowerBI.Data.SharedSettings
 {
@@ -10,7 +8,7 @@ namespace DotNetNuke.PowerBI.Data.SharedSettings
         PowerBISettings GetSettingsById(int settingId, int portalId);
         PowerBISettings GetSettingsByGroupId(string settingGroupId, int portalId);
         List<PowerBISettings> GetSettings(int portalId);
-        bool AddSettings(PowerBISettings setting ,int portalId, int? userId);
+        bool AddSettings(PowerBISettings setting, int portalId, int? userId);
         bool UpdateSettings(PowerBISettings settings, int portalId);
         bool DeleteSetting(int settingId, int portalId);
     }

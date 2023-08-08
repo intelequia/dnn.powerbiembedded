@@ -1,10 +1,11 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-using Dnn.PersonaBar.Library.Helper;
+﻿using Dnn.PersonaBar.Library.Helper;
 using DotNetNuke.Entities.Portals;
 using DotNetNuke.Entities.Users;
 using DotNetNuke.Instrumentation;
+using DotNetNuke.Security.Permissions;
 using DotNetNuke.Security.Roles;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace DotNetNuke.PowerBI.Services.Models
 {
@@ -31,6 +32,8 @@ namespace DotNetNuke.PowerBI.Services.Models
         public static Dnn.PersonaBar.Library.DTO.Permissions DataToPermissions(IQueryable<Data.Models.ObjectPermission> objPermissions)
         {
             var result = new PBIPermissions(true);
+            var permissions = new List<Dnn.PersonaBar.Library.DTO.Permission>();
+
             foreach (var permission in objPermissions)
             {
                 if (permission.RoleID.HasValue)
@@ -48,21 +51,38 @@ namespace DotNetNuke.PowerBI.Services.Models
                     else
                     {
                         role = RoleController.Instance.GetRoleById(PortalSettings.Current.PortalId, permission.RoleID.Value);
-                    }                    
+                    }
                     result.EnsureRole(role);
+
                     var rolePermission = result.RolePermissions.FirstOrDefault(x => x.RoleId == permission.RoleID.Value);
                     if (rolePermission.Permissions == null)
                     {
                         rolePermission.Permissions = new List<Dnn.PersonaBar.Library.DTO.Permission>();
                     }
-                    rolePermission.Permissions.Add(new Dnn.PersonaBar.Library.DTO.Permission()
+                    if (permission.PermissionID == 1)
                     {
-                        AllowAccess = permission.AllowAccess,
-                        FullControl = false,
-                        PermissionId = permission.PermissionID,
-                        PermissionName = "View",
-                        View = permission.AllowAccess
-                    });
+                        rolePermission.Permissions.Add(new Dnn.PersonaBar.Library.DTO.Permission()
+                        {
+                            AllowAccess = permission.AllowAccess,
+                            FullControl = false,
+                            PermissionId = permission.PermissionID,
+                            PermissionName = "View",
+                            View = true,
+                        });
+                    }
+                    if (permission.PermissionID == 2)
+                    {
+                        rolePermission.Permissions.Add(new Dnn.PersonaBar.Library.DTO.Permission()
+                        {
+                            AllowAccess = permission.AllowAccess,
+                            FullControl = false,
+                            PermissionId = permission.PermissionID,
+                            PermissionName = "Edit",
+                            View = false,
+                        });
+                    }
+
+
                 }
                 else
                 {
@@ -72,21 +92,32 @@ namespace DotNetNuke.PowerBI.Services.Models
                         Logger.Warn($"Detected misconfigured permission for user {permission.UserID.Value} and portal {PortalSettings.Current.PortalId}. Ensure the user has logged in at least one time on the portal (missing record in UserPortals table).");
                         continue;
                     }
-                    var permissions = new List<Dnn.PersonaBar.Library.DTO.Permission>();
-                    permissions.Add(new Dnn.PersonaBar.Library.DTO.Permission()
+
+                    ModulePermissionInfo permissionBase = new ModulePermissionInfo
                     {
-                        AllowAccess = permission.AllowAccess,
-                        FullControl = false,
-                        PermissionId = permission.PermissionID,
+                        PermissionID = permission.PermissionID,
                         PermissionName = "View",
-                        View = permission.AllowAccess
-                    });
-                    result.UserPermissions.Add(new Dnn.PersonaBar.Library.DTO.UserPermission()
-                    {
-                        UserId = user.UserID,
+                        AllowAccess = permission.AllowAccess,
+                        UserID = permission.UserID.Value,
                         DisplayName = user.DisplayName,
-                        Permissions = permissions
-                    });
+                        Username = user.Username,
+                    };
+
+                    if (permission.PermissionID == 2)
+                    {
+                        permissionBase = new ModulePermissionInfo
+                        {
+                            PermissionID = permission.PermissionID,
+                            PermissionName = "Edit",
+                            AllowAccess = permission.AllowAccess,
+                            UserID = permission.UserID.Value,
+                            DisplayName = user.DisplayName,
+                            Username = user.Username,
+                        };
+                    }
+
+                    result.AddUserPermission(permissionBase);
+
                 }
             }
 

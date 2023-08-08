@@ -1,12 +1,10 @@
-﻿using DotNetNuke.Framework;
+﻿using DotNetNuke.Common;
+using DotNetNuke.Data;
+using DotNetNuke.Framework;
 using DotNetNuke.PowerBI.Data.Bookmarks.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Web;
-using DotNetNuke.Common;
-using DotNetNuke.Data;
-using DotNetNuke.PowerBI.Services;
 
 namespace DotNetNuke.PowerBI.Data.Bookmarks
 {
@@ -40,7 +38,7 @@ namespace DotNetNuke.PowerBI.Data.Bookmarks
             Requires.NotNegative("portalId", portalId);
             Requires.NotNull(reportId);
             Requires.NotNull(userId);
-            
+
             using (var ctx = DataContext.Instance())
             {
                 var repo = ctx.GetRepository<Bookmark>();

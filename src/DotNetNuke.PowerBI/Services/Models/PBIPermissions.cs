@@ -28,6 +28,14 @@ namespace DotNetNuke.PowerBI.Services.Models
                 FullControl = false,
                 View = true
             });
+            PermissionDefinitions.Add(new Permission()
+            {
+                PermissionId = 2,
+                PermissionName = "Edit",
+                FullControl = false,
+                View = false
+            });
+
         }
     }
 }

@@ -127,8 +127,9 @@ namespace DotNetNuke.PowerBI.Services
                 }
                 SharedSettingsRepository.Instance.DeleteSetting(parameters.SettingsId, PortalId);
                 CachingProvider.Instance().Clear("Prefix", $"PBI_{PortalId}_");
-                return Request.CreateResponse(HttpStatusCode.OK, new {
-                    Success=true
+                return Request.CreateResponse(HttpStatusCode.OK, new
+                {
+                    Success = true
                 });
             }
             catch (Exception ex)
@@ -238,12 +239,18 @@ namespace DotNetNuke.PowerBI.Services
                         var p = permission.Permissions.FirstOrDefault();
                         if (p != null)
                         {
-                            ObjectPermissionsRepository.Instance.CreateObjectPermission(pbiObject.Id
-                                                                                        , p.PermissionId
-                                                                                        , p.AllowAccess
-                                                                                        , PortalSettings.PortalId
-                                                                                        , permission.RoleId
-                                                                                        , null);
+                            foreach (var rolePermission in permission.Permissions)
+                            {
+                                if (rolePermission != null)
+                                {
+                                    ObjectPermissionsRepository.Instance.CreateObjectPermission(pbiObject.Id
+                                                                                                , rolePermission.PermissionId
+                                                                                                , rolePermission.AllowAccess
+                                                                                                , PortalSettings.PortalId
+                                                                                                , permission.RoleId
+                                                                                                , null);
+                                }
+                            }
                         }
                     }
                     foreach (var permission in pbiObject.Permissions.UserPermissions)
@@ -251,13 +258,20 @@ namespace DotNetNuke.PowerBI.Services
                         var p = permission.Permissions.FirstOrDefault();
                         if (p != null)
                         {
-                            ObjectPermissionsRepository.Instance.CreateObjectPermission(pbiObject.Id
-                                                                                        , p.PermissionId
-                                                                                        , p.AllowAccess
-                                                                                        , PortalSettings.PortalId
-                                                                                        , null
-                                                                                        , permission.UserId);
+                            foreach (var userPermission in permission.Permissions)
+                            {
+                                if (userPermission != null)
+                                {
+                                    ObjectPermissionsRepository.Instance.CreateObjectPermission(pbiObject.Id
+                                                                                                , userPermission.PermissionId
+                                                                                                , userPermission.AllowAccess
+                                                                                                , PortalSettings.PortalId
+                                                                                                , null
+                                                                                                , permission.UserId);
+                                }
+                            }
                         }
+
                     }
                 }
 

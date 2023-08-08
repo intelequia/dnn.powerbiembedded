@@ -87,6 +87,7 @@
                         @Html.CheckBoxFor(m => m.FilterPaneVisible, true)
                     </div>
                 </div>
+                //
                 <div class="dnnFormItem">
                     <div class="leftGroup">
                         <label>Nav Pane Visible</label>
@@ -103,6 +104,12 @@
                     <div class="leftGroup">
                         <label>Visual Header Visible</label>
                         @Html.CheckBoxFor(m => m.VisualHeaderVisible, true)
+                    </div>
+                </div>
+                <div class="dnnFormItem">
+                    <div class="leftGroup">
+                        <label>Hide Visualizers and Data when editing</label>
+                        @Html.CheckBoxFor(m => m.HideVisualizationData, true)
                     </div>
                 </div>
                 <div class="dnnFormItem">

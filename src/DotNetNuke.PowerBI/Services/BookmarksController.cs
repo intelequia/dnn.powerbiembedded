@@ -1,13 +1,13 @@
-﻿using System;
+﻿using DotNetNuke.Entities.Users;
+using DotNetNuke.PowerBI.Data.Bookmarks;
+using DotNetNuke.PowerBI.Data.Bookmarks.Models;
+using DotNetNuke.Security;
+using DotNetNuke.Web.Api;
+using System;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
-using DotNetNuke.PowerBI.Data.Bookmarks.Models;
-using DotNetNuke.Web.Api;
 using System.Web.Http;
-using DotNetNuke.Entities.Users;
-using DotNetNuke.PowerBI.Data.Bookmarks;
-using DotNetNuke.Security;
 
 namespace DotNetNuke.PowerBI.Services
 {
@@ -87,7 +87,7 @@ namespace DotNetNuke.PowerBI.Services
                 });
             }
         }
-        
+
         [HttpPost]
         public HttpResponseMessage DeleteBookmark(Bookmark bookmark)
         {

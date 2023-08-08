@@ -1,7 +1,7 @@
 ﻿namespace DotNetNuke.PowerBI.Models
 {
-    using System;
     using Microsoft.PowerBI.Api.Models;
+    using System;
 
     public static class PowerBIApiExtensions
     {
@@ -16,6 +16,6 @@
             if (day == Days.Sunday) return 6;
             throw new ArgumentOutOfRangeException(nameof(day));
         }
-        
+
     }
 }

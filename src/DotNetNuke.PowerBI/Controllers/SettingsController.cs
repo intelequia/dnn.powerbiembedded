@@ -1,4 +1,5 @@
 ﻿using DotNetNuke.Entities.Modules;
+using DotNetNuke.Entities.Profile;
 using DotNetNuke.Instrumentation;
 using DotNetNuke.PowerBI.Data.SharedSettings;
 using DotNetNuke.PowerBI.Models;
@@ -10,7 +11,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Web.Mvc;
-using DotNetNuke.Entities.Profile;
 
 namespace DotNetNuke.PowerBI.Controllers
 {
@@ -27,6 +27,7 @@ namespace DotNetNuke.PowerBI.Controllers
                 OverrideVisualHeaderVisibility = false;
                 OverrideFilterPaneVisibility = false;
                 VisualHeaderVisible = false;
+                HideVisualizationData = false;
                 IsContentView = false;
                 ToolbarVisible = false;
                 PrintVisible = false;
@@ -43,6 +44,7 @@ namespace DotNetNuke.PowerBI.Controllers
             public bool FilterPaneVisible { get; set; }
             public bool NavPaneVisible { get; set; }
             public bool OverrideVisualHeaderVisibility { get; set; }
+            public bool HideVisualizationData { get; set; }
             public bool OverrideFilterPaneVisibility { get; set; }
             public bool VisualHeaderVisible { get; set; }
             public bool ToolbarVisible { get; set; }
@@ -65,7 +67,7 @@ namespace DotNetNuke.PowerBI.Controllers
             {
                 var settings = SharedSettingsRepository.Instance.GetSettings(ModuleContext.PortalId);
                 ViewBag.Settings = settings;
-                
+
                 var tabModule = ModuleController.Instance.GetTabModule(this.ModuleContext.TabModuleId);
                 var model = new SettingsModel
                 {
@@ -79,12 +81,13 @@ namespace DotNetNuke.PowerBI.Controllers
                     OverrideVisualHeaderVisibility = bool.Parse(GetSetting("PowerBIEmbedded_OverrideVisualHeaderVisibility", "False")),
                     VisualHeaderVisible = bool.Parse(GetSetting("PowerBIEmbedded_VisualHeaderVisible", "False")),
                     OverrideFilterPaneVisibility = bool.Parse(GetSetting("PowerBIEmbedded_OverrideFilterPaneVisibility", "False")),
+                    HideVisualizationData = bool.Parse(GetSetting("PowerBIEmbedded_HideVisualizationData", "False")),
                     ToolbarVisible = bool.Parse(GetSetting("PowerBIEmbedded_ToolbarVisible", "False")),
                     PrintVisible = bool.Parse(GetSetting("PowerBIEmbedded_PrintVisible", "False")),
                     BookmarksVisible = bool.Parse(GetSetting("PowerBIEmbedded_BookmarksVisible", "False")),
                     FullScreenVisible = bool.Parse(GetSetting("PowerBIEmbedded_FullScreenVisible", "False")),
-                    UserProperty = GetSetting("PowerBIEmbedded_UserProperty","Username"),
-                    CustomUserProperty = GetSetting("PowerBIEmbedded_CustomUserProperty",""),
+                    UserProperty = GetSetting("PowerBIEmbedded_UserProperty", "Username"),
+                    CustomUserProperty = GetSetting("PowerBIEmbedded_CustomUserProperty", ""),
                     CustomExtensionLibrary = GetSetting("PowerBIEmbedded_CustomExtensionLibrary", ""),
                     ApplicationInsightsEnabled = bool.Parse(GetSetting("PowerBIEmbedded_ApplicationInsightsEnabled", "False")),
                     BackgroundImageUrl = GetSetting("PowerBIEmbedded_BackgroundImageUrl", ""),
@@ -124,9 +127,9 @@ namespace DotNetNuke.PowerBI.Controllers
                         "Custom Extension Library"
                     };
                     var property = ProfileController.GetPropertyDefinitionByName(PortalSettings.PortalId, "PowerBiGroup");
-                    if (property !=null && !property.Deleted)
+                    if (property != null && !property.Deleted)
                     {
-                         userProperties.Add("PowerBiGroup");
+                        userProperties.Add("PowerBiGroup");
                     }
 
                     ViewBag.UserProperties = userProperties;
@@ -158,6 +161,7 @@ namespace DotNetNuke.PowerBI.Controllers
                 ModuleController.Instance.UpdateTabModuleSetting(this.ModuleContext.TabModuleId, "PowerBIEmbedded_Height", settings.Height);
                 ModuleController.Instance.UpdateTabModuleSetting(this.ModuleContext.TabModuleId, "PowerBIEmbedded_OverrideVisualHeaderVisibility", settings.OverrideVisualHeaderVisibility.ToString());
                 ModuleController.Instance.UpdateTabModuleSetting(this.ModuleContext.TabModuleId, "PowerBIEmbedded_OverrideFilterPaneVisibility", settings.OverrideFilterPaneVisibility.ToString());
+                ModuleController.Instance.UpdateTabModuleSetting(this.ModuleContext.TabModuleId, "PowerBIEmbedded_HideVisualizationData", settings.HideVisualizationData.ToString());
                 ModuleController.Instance.UpdateTabModuleSetting(this.ModuleContext.TabModuleId, "PowerBIEmbedded_VisualHeaderVisible", settings.VisualHeaderVisible.ToString());
                 ModuleController.Instance.UpdateTabModuleSetting(this.ModuleContext.TabModuleId, "PowerBIEmbedded_ToolbarVisible", settings.ToolbarVisible.ToString());
                 ModuleController.Instance.UpdateTabModuleSetting(this.ModuleContext.TabModuleId, "PowerBIEmbedded_PrintVisible", settings.PrintVisible.ToString());
