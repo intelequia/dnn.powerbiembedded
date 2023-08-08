@@ -426,7 +426,7 @@ namespace DotNetNuke.PowerBI.Services
                         model.ReportType = report?.ReportType;
                         if (model.EmbedToken == null)
                         {
-                            model.ErrorMessage = "Failed to generate embed token. 2";
+                            model.ErrorMessage = "Failed to generate embed token.";
                         }
                     }
                 }
@@ -561,7 +561,7 @@ namespace DotNetNuke.PowerBI.Services
                     }
                     if (tokenResponse == null)
                     {
-                        model.ErrorMessage = "Failed to generate embed token. 3";
+                        model.ErrorMessage = "Failed to generate embed token.";
                     }
                     // Generate Embed Configuration.
                     model.EmbedToken = tokenResponse;
@@ -615,7 +615,7 @@ namespace DotNetNuke.PowerBI.Services
                 var tokenResponse = await client.Tiles.GenerateTokenInGroupAsync(Guid.Parse(Settings.WorkspaceId), dashboard.Id, tile.Id, generateTokenRequestParameters).ConfigureAwait(false);
                 if (tokenResponse == null)
                 {
-                    tileEmbedConfig.ErrorMessage = "Failed to generate embed token. 1";
+                    tileEmbedConfig.ErrorMessage = "Failed to generate embed token.";
                     return model;
                 }
 
