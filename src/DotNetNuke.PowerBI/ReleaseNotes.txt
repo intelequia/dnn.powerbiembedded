@@ -127,5 +127,8 @@
 	<b>Version 1.1.0</b>	
 	<p>feat: added the edit permission to be able to edit reports.</p>
 	<p>feat: added a new config parameter "Hide Visualizers and Data when editing" to hide those panes while editing.</p>
+
+	<b>Version 1.1.1</b>	
+	<p>fix: workspaces are now ordered alphabetically on settings.</p>
 	
 </div>
