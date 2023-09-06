@@ -24,6 +24,7 @@ namespace DotNetNuke.PowerBI.Controllers
             {
                 FilterPaneVisible = true;
                 NavPaneVisible = true;
+                ShowSubscription = false;
                 OverrideVisualHeaderVisibility = false;
                 OverrideFilterPaneVisibility = false;
                 VisualHeaderVisible = false;
@@ -43,6 +44,7 @@ namespace DotNetNuke.PowerBI.Controllers
             public bool IsContentView { get; set; }
             public bool FilterPaneVisible { get; set; }
             public bool NavPaneVisible { get; set; }
+            public bool ShowSubscription { get; set; }
             public bool OverrideVisualHeaderVisibility { get; set; }
             public bool HideVisualizationData { get; set; }
             public bool OverrideFilterPaneVisibility { get; set; }
@@ -76,6 +78,7 @@ namespace DotNetNuke.PowerBI.Controllers
                     PageName = GetSetting("PowerBIEmbedded_PageName"),
                     IsContentView = ModuleContext.Configuration.ModuleDefinition.DefinitionName == "PowerBI Embedded Content View",
                     FilterPaneVisible = bool.Parse(GetSetting("PowerBIEmbedded_FilterPaneVisible", "True")),
+                    ShowSubscription = bool.Parse(GetSetting("PowerBIEmbedded_ShowSubscriptions", "false")),
                     NavPaneVisible = bool.Parse(GetSetting("PowerBIEmbedded_NavPaneVisible", "True")),
                     Height = GetSetting("PowerBIEmbedded_Height"),
                     OverrideVisualHeaderVisibility = bool.Parse(GetSetting("PowerBIEmbedded_OverrideVisualHeaderVisibility", "False")),
@@ -157,6 +160,7 @@ namespace DotNetNuke.PowerBI.Controllers
                 ModuleController.Instance.UpdateTabModuleSetting(this.ModuleContext.TabModuleId, "PowerBIEmbedded_ContentItemId", settings.ContentItemId);
                 ModuleController.Instance.UpdateTabModuleSetting(this.ModuleContext.TabModuleId, "PowerBIEmbedded_PageName", settings.PageName);
                 ModuleController.Instance.UpdateTabModuleSetting(this.ModuleContext.TabModuleId, "PowerBIEmbedded_FilterPaneVisible", settings.FilterPaneVisible.ToString());
+                ModuleController.Instance.UpdateTabModuleSetting(this.ModuleContext.TabModuleId, "PowerBIEmbedded_ShowSubscriptions", settings.ShowSubscription.ToString());
                 ModuleController.Instance.UpdateTabModuleSetting(this.ModuleContext.TabModuleId, "PowerBIEmbedded_NavPaneVisible", settings.NavPaneVisible.ToString());
                 ModuleController.Instance.UpdateTabModuleSetting(this.ModuleContext.TabModuleId, "PowerBIEmbedded_Height", settings.Height);
                 ModuleController.Instance.UpdateTabModuleSetting(this.ModuleContext.TabModuleId, "PowerBIEmbedded_OverrideVisualHeaderVisibility", settings.OverrideVisualHeaderVisibility.ToString());

@@ -9,6 +9,122 @@
         }
     }
 
+    function SubscriptionModel(p, id, portalId, reportId, groupId, name, startDate, endDate, repeatPeriod, repeatTime, timeZone, emailSubject, message, reportPages, enabled, users, roles) {
+        var that = this;
+        var parent = p;
+        this.id = ko.observable(id);
+        this.portalId = ko.observable(portalId);
+        this.reportId = ko.observable(reportId);
+        this.groupId = ko.observable(groupId);
+        this.name = ko.observable(name).extend({ required: true });
+        this.startDate = ko.observable(startDate).extend({ required: true });
+        this.endDate = ko.observable(endDate).extend({ required: true });
+        this.repeatPeriod = ko.observable(repeatPeriod).extend({ required: true });
+        this.repeatTime = ko.observable(repeatTime).extend({ required: true });
+        this.timeZone = ko.observable(timeZone).extend({ required: true });
+        this.emailSubject = ko.observable(emailSubject).extend({ required: true });
+        this.message = ko.observable(message).extend({ required: true });
+        this.enabled = ko.observable(enabled)
+        this.users = ko.observableArray(users);
+        this.roles = ko.observableArray(roles);
+        this.reportPages = ko.observableArray(reportPages);
+        this.usersArray = ko.observableArray(parent.usersArray().slice());
+        this.rolesArray = ko.observableArray(parent.rolesArray().slice());
+        this.pagesArray = ko.observableArray(parent.pagesArray().slice());
+        this.editSearchQuery = ko.observable('');
+        this.addedUsers = ko.observableArray(users.slice());
+        this.addedRoles = ko.observableArray(roles.slice());
+        this.addedPages = ko.observableArray(reportPages.slice());
+
+        // Error group for editing a subscription.
+        this.editSubscriptionErrors = ko.validation.group({
+            name: this.name,
+            startDate: this.startDate,
+            endDate: this.endDate,
+            repeatPeriod: this.repeatPeriod,
+            repeatTime: this.repeatTime,
+            timeZone: this.timeZone,
+            emailSubject: this.emailSubject,
+            message: this.message,
+        });
+
+        // Validation rules for editing a Subscription
+
+
+        this.availableUsers = ko.computed(function () {
+            var query = that.editSearchQuery().toLowerCase();
+
+            return that.usersArray().filter(function (user) {
+                return !that.addedUsers().some(selectedUser => selectedUser.UserID === user.UserID) &&
+                    user.DisplayName.toLowerCase().indexOf(query) >= 0;
+            });
+        });
+
+        this.availableRoles = ko.computed(function () {
+            var query = that.editSearchQuery().toLowerCase();
+
+            return that.rolesArray().filter(function (role) {
+                return !that.addedRoles().some(selectedRole => selectedRole.KeyID === role.KeyID) &&
+                    role.RoleName.toLowerCase().indexOf(query) >= 0;
+            });
+        });
+
+        this.availablePages = ko.computed(function () {
+            return that.pagesArray().filter(function (page) {
+                return !that.addedPages().some(selectedPage => selectedPage.name === page.name)
+            });
+        });
+
+
+        this.editing = ko.observable(false);
+        this.startEditing = function () {
+            that.editing(true);
+            parent.selectSubscription(null);
+            parent.cancelAddingSubscription();
+        };
+
+        this.addUserToSubscription = function (user) {
+            that.addedUsers.push(user);
+        };
+
+        this.addRoleToSubscription = function (role) {
+            that.addedRoles.push(role);
+        };
+
+        this.addPageToSubscription = function (page) {
+            that.addedPages.push(page);
+        }
+        this.removeUserFromSubscription = function (user) {
+            that.addedUsers.remove(user);
+        };
+
+        this.removeRoleFromSubscription = function (role) {
+            that.addedRoles.remove(role);
+        };
+
+        this.removePageFromSubscription = function (page) {
+            that.addedPages.remove(page);
+        }
+
+        // Method to cancel editing
+        this.cancelEditing = function () {
+            // Reset the observable properties to their original values
+            that.name(name);
+            that.startDate(startDate);
+            that.endDate(endDate);
+            that.repeatPeriod(repeatPeriod);
+            that.repeatTime(repeatTime);
+            that.timeZone(timeZone);
+            that.emailSubject(emailSubject);
+            that.message(message);
+            that.enabled(enabled);
+            that.addedUsers(users.slice());
+            that.addedRoles(roles.slice());
+            that.addedPages(reportPages.slice());
+            // Set editing state back to false
+            that.editing(false);
+        };
+    }
     function BookmarkModel(p, id, name, displayName, state, reportId) {
         var that = this;
         var parent = p;
@@ -31,13 +147,170 @@
         this.bookmarksArray = ko.observableArray([]);
         this.selectedBookmark = ko.observable(null);
         this.newBookmarkName = ko.observable('').extend({ required: true });
-        this.service = {
+        this.bookmarksService = {
             path: "Bookmarks",
             controller: "Bookmarks",
             framework: $.ServicesFramework(context.ModuleId)
         }
-        this.service.baseUrl = that.service.framework.getServiceRoot(that.service.path);
+        this.bookmarksService.baseUrl = that.bookmarksService.framework.getServiceRoot(that.bookmarksService.path);
 
+        // Subscriptions
+        this.subscriptionsArray = ko.observableArray([]);
+        this.selectSubscription = ko.observable(null);
+
+        // New Subscription
+
+        this.newSubscriptionName = ko.observable('').extend({ required: true });
+        this.newSubscriptionStartDate = ko.observable('').extend({ required: true });
+        this.newSubscriptionEndDate = ko.observable('').extend({ required: true });
+        this.newSubscriptionRepeatPeriod = ko.observable('').extend({ required: true });
+        this.newSubscriptionRepeatTime = ko.observable('').extend({ required: true });
+        this.newSubscriptionTimeZone = ko.observable('').extend({ required: true });
+        this.newSubscriptionEmailSubject = ko.observable('').extend({ required: true });
+        this.newSubscriptionMessage = ko.observable('').extend({ required: true });
+        this.newSubscriptionEnabled = ko.observable('')
+
+        // Validation group for a new Subscription
+        this.newSubscriptionErrors = ko.validation.group({
+            newSubscriptionName: this.newSubscriptionName,
+            newSubscriptionStartDate: this.newSubscriptionStartDate,
+            newSubscriptionEndDate: this.newSubscriptionEndDate,
+            newSubscriptionRepeatPeriod: this.newSubscriptionRepeatPeriod,
+            newSubscriptionRepeatTime: this.newSubscriptionRepeatTime,
+            newSubscriptionTimeZone: this.newSubscriptionTimeZone,
+            newSubscriptionEmailSubject: this.newSubscriptionEmailSubject,
+            newSubscriptionMessage: this.newSubscriptionMessage,
+        });
+
+        this.selectedUsers = ko.observableArray([]);
+        this.selectedRoles = ko.observableArray([]);
+        this.selectedPages = ko.observableArray([]);
+        this.usersArray = ko.observableArray(context.Users.slice());
+        this.rolesArray = ko.observableArray(context.Roles.slice());
+        this.pagesArray = ko.observableArray(context.ReportPages.value.slice());
+        this.userSearchQuery = ko.observable('');
+
+        this.adding = ko.observable(false);
+
+        this.subscriptionsService = {
+            path: "Subscription",
+            controller: "Subscription",
+            framework: $.ServicesFramework(context.ModuleId)
+        }
+        this.subscriptionsService.baseUrl = that.subscriptionsService.framework.getServiceRoot(that.subscriptionsService.path);
+        this.toggleSubscriptionDetails = function (subscription) {
+            if (that.selectSubscription() === subscription.id) {
+                that.selectSubscription(null); 
+            } else {
+                that.selectSubscription(subscription.id); 
+                subscription.cancelEditing();
+            }
+        };
+        this.goToSubscription = function (subscription) {
+            that.selectSubscription(subscription.id);
+        }
+
+
+        this.filteredUsers = ko.computed(function () {
+            var query = that.userSearchQuery().toLowerCase();
+            return that.usersArray().filter(function (user) {
+                return user.DisplayName.toLowerCase().indexOf(query) >= 0;
+            });
+        });
+
+        this.filteredRoles = ko.computed(function () {
+            var query = that.userSearchQuery().toLowerCase();
+            return that.rolesArray().filter(function (role) {
+                return role.RoleName.toLowerCase().indexOf(query) >= 0;
+            });
+        });
+
+        this.createSubscriptionList = function () {
+            let params = {
+                reportId: context.Id
+            }
+            Common.Call("GET", "GetSubscriptions", that.subscriptionsService, params,
+                function (data) {
+                    if (data.Success) {
+                        var subscriptions = [];
+
+                        data.Data.forEach(subscription => {
+                            var reportPageNames = subscription.ReportPages.split(',');
+                            var reportPages = reportPageNames.map(function (pageName) {
+                                var correspondingPage = that.pagesArray().find(function (page) {
+                                    return page.name === pageName;
+                                });
+
+                                return correspondingPage ? correspondingPage : null;
+                            })
+                            .filter(function (page) {
+                                return page !== null; // Remove null values (non-existing pages)
+                            });
+                            
+                            var b = new SubscriptionModel(
+                                that,
+                                subscription.Id,
+                                subscription.PortalId,
+                                subscription.ReportId,
+                                subscription.GroupId,
+                                subscription.Name,
+                                new Date(subscription.StartDate).toISOString().split('T')[0],
+                                new Date(subscription.EndDate).toISOString().split('T')[0],
+                                subscription.RepeatPeriod,
+                                subscription.RepeatTime,
+                                subscription.TimeZone,
+                                subscription.EmailSubject,
+                                subscription.Message,
+                                reportPages,
+                                subscription.Enabled,
+                                JSON.parse(subscription.Users),
+                                JSON.parse(subscription.Roles),
+                                
+                            );
+                            subscriptions.push(b);
+
+                        });
+
+                        that.subscriptionsArray(subscriptions);
+                    }
+                    else {
+                        that.subscriptionsArray([]);
+                    }
+                },
+                function (error) {
+                    console.log(error);
+                },
+                function () {
+                });
+        }
+
+        this.createBookmarksList = function () {
+            let params = {
+                reportId: context.Id
+            }
+
+            Common.Call("GET", "GetBookmarks", that.bookmarksService, params,
+                function (data) {
+                    if (data.Success) {
+                        var bookmarks = [];
+                        data.Data.forEach(bookmark => {
+                            var b = new BookmarkModel(that, bookmark.Id, "bookmark_" + bookmark.Id, bookmark.DisplayName, bookmark.State, context.Id);
+                            bookmarks.push(b);
+                        });
+                        that.bookmarksArray(bookmarks);
+                        // Set first bookmark active
+                        if (bookmarks.length > 0) {
+                            // Apply first bookmark state
+                            that.onBookmarkClicked(bookmarks[0]);
+                        }
+                    }
+                },
+                function (error) {
+                    console.log("error");
+                },
+                function () {
+                });
+        }
         // set validation group
         this.errors = ko.validation.group(that);
 
@@ -160,7 +433,7 @@
                 reportId: context.Id
             }
 
-            Common.Call("GET", "GetBookmarks", that.service, params,
+            Common.Call("GET", "GetBookmarks", that.bookmarksService, params,
                 function (data) {
                     if (data.Success) {
                         var bookmarks = [];
@@ -219,7 +492,7 @@
                             state: capturedBookmark.state,
                             reportId: context.Id
                         }
-                        Common.Call("POST", "SaveBookmark", that.service, bookmark,
+                        Common.Call("POST", "SaveBookmark", that.bookmarksService, bookmark,
                             function (data) {
                                 if (data.Success) {
                                     that.newBookmarkName('');
@@ -243,7 +516,7 @@
                 id: element.id()
             };
 
-            Common.Call("POST", "DeleteBookmark", that.service, bookmark,
+            Common.Call("POST", "DeleteBookmark", that.bookmarksService, bookmark,
                 function (data) {
                     if (data.Success) {
                         that.bookmarksArray.remove(element);
@@ -256,6 +529,205 @@
                 }
             );
         }
+
+        // Subscriptions
+        this.openLateralTab = function () {
+            $(".lateral-tab").css("width", "350px");
+            that.createSubscriptionList();
+        }
+
+        this.closeLateralTab = function () {
+            $(".lateral-tab").css("width", "0");
+        }
+
+        this.editSubscription = function (subscription) {
+            subscription.startEditing();
+            that.selectSubscription(null); // Hide details of a selected subscription.
+        };
+
+        this.cancelEditing = function (subscription) {
+            subscription.cancelEditing();
+            that.selectSubscription(subscription.id); // Show details of a selected subscription.
+        };
+
+        this.startAddingSubscription = function () {
+            that.adding(true);
+            that.selectSubscription(null); // Hide details of a selected subscription.
+        };
+
+        this.cancelAddingSubscription = function () {
+            that.adding(false);
+            that.newSubscriptionName('');
+            that.newSubscriptionStartDate('');
+            that.newSubscriptionEndDate('');
+            that.newSubscriptionRepeatPeriod('');
+            that.newSubscriptionRepeatTime('');
+            that.newSubscriptionTimeZone('');
+            that.newSubscriptionEmailSubject('');
+            that.newSubscriptionMessage('');
+            that.newSubscriptionEnabled(false);
+            that.selectedUsers([]);
+            that.selectedRoles([]);
+            that.selectedPages([]);
+        };
+
+        this.addUserToSelected = function (user) {
+            that.selectedUsers.push(user);
+            that.usersArray.remove(user);
+        };
+
+        this.addRoleToSelected = function (role) {
+            that.selectedRoles.push(role);
+            that.rolesArray.remove(role);
+        };
+
+        this.addPageToSelected = function (page) {
+            that.selectedPages.push(page);
+            that.pagesArray.remove(page);
+
+        }
+        this.removeRoleFromSelected = function (role) {
+            that.selectedRoles.remove(role);
+            that.rolesArray.push(role);
+        };
+
+        this.removeUserFromSelected = function (user) {
+            that.selectedUsers.remove(user);
+            that.usersArray.push(user);
+        };
+
+        this.removePageFromSelected = function (page) {
+            that.selectedPages.remove(page);
+            that.pagesArray.push(page);
+        };
+
+            
+        this.addNewSubscription = function () {
+            if (that.newSubscriptionErrors().length > 0) {
+                that.newSubscriptionErrors.showAllMessages(true);
+            }
+            else {
+                let serializedUsers = that.selectedUsers().map(a => a.UserID).join(",");
+                let serializedRoles = that.selectedRoles().map(a => a.KeyID).join(",");
+                let serialiezReportPages;
+                if (that.selectedPages().length <= 0) {
+                    serialiezReportPages = context.ReportPages.value.slice().map(a => a.name).join(",");
+                }
+                else {
+                    serialiezReportPages = that.selectedPages().map(a => a.name).join(",");
+                }
+                let params = {
+                    reportId: that.report.config.id,
+                    groupId: that.report.config.groupId,
+                    name: that.newSubscriptionName(),
+                    startDate: that.newSubscriptionStartDate(),
+                    endDate: that.newSubscriptionEndDate(),
+                    repeatPeriod: that.newSubscriptionRepeatPeriod(),
+                    repeatTime: that.newSubscriptionRepeatTime(),
+                    timeZone: that.newSubscriptionTimeZone(),
+                    emailSubject: that.newSubscriptionEmailSubject(),
+                    message: that.newSubscriptionMessage(),
+                    reportPages: serialiezReportPages,
+                    enabled: that.newSubscriptionEnabled(),
+                    users: serializedUsers,
+                    roles: serializedRoles,
+                }
+                Common.Call("POST", "AddSubscription", that.subscriptionsService, params,
+                    function (data) {
+                        if (data.Success) {
+                            that.newSubscriptionName('');
+                            that.newSubscriptionStartDate('');
+                            that.newSubscriptionEndDate('');
+                            that.newSubscriptionRepeatPeriod('');
+                            that.newSubscriptionRepeatTime('');
+                            that.newSubscriptionTimeZone('');
+                            that.newSubscriptionEmailSubject('');
+                            that.newSubscriptionMessage('');
+                            that.newSubscriptionEnabled(false);
+                            that.selectedUsers([]);
+                            that.selectedRoles([]);
+                            that.selectedPages([]);
+                            that.createSubscriptionList();
+                            that.cancelAddingSubscription();
+                            that.newSubscriptionErrors.showAllMessages(false);
+                        }
+                        else {
+                            alert(data.ErrorMessage);
+                        }
+                    },
+                    function (error) {
+                        console.log(error);
+                    },
+                    function () {
+                    });
+            }
+        }
+
+        this.saveEditedSubscription = function (subscription) {
+
+            if (subscription.editSubscriptionErrors().length > 0) {
+                subscription.editSubscriptionErrors.showAllMessages(true);
+            }
+            else {
+                let serializedUsers = subscription.addedUsers().map(user => user.UserID).join(",");
+                let serializedRoles = subscription.addedRoles().map(role => role.KeyID).join(",");
+                let serializedReportPages = subscription.addedPages().map(page => page.name).join(",");
+                let params = {
+                    Id: subscription.id(),
+                    Name: subscription.name(),
+                    StartDate: subscription.startDate(),
+                    EndDate: subscription.endDate(),
+                    RepeatPeriod: subscription.repeatPeriod(),
+                    RepeatTime: subscription.repeatTime(),
+                    TimeZone: subscription.timeZone(),
+                    EmailSubject: subscription.emailSubject(),
+                    Message: subscription.message(),
+                    ReportPages: serializedReportPages,
+                    Enabled: subscription.enabled(),
+                    Users: serializedUsers,
+                    Roles: serializedRoles
+
+                };
+                Common.Call("POST", "EditSubscription", that.subscriptionsService, params,
+                    function (data) {
+                        if (data.Success) {
+                            that.createSubscriptionList();
+                            that.cancelEditing(subscription);
+                            subscription.editing(false);
+                            subscription.editSubscriptionErrors.showAllMessages(false);
+                        }
+                    },
+                    function (error) {
+                        console.log(error);
+                    },
+                    function () {
+                    });
+            }
+        };
+
+
+        this.deleteSubscription = function (subscription) {
+            let params = {
+                Id: subscription.id()
+            };
+            var confirmed = confirm("Are you sure you want to delete " + subscription.name() + " subscription?");
+            if (confirmed) {
+                Common.Call("POST", "DeleteSubscription", that.subscriptionsService, params,
+                    function (data) {
+                        if (data.Success) {
+                            that.createSubscriptionList();
+                        }
+                        else {
+                            alert(data.ErrorMessage);
+                        }
+                    },
+                    function (error) {
+                        console.log(error);
+                    },
+                    function () {
+                    });
+            }
+        };
 
         this.getParameterByName = function (name, url) {
             if (!url) url = window.location.href;
@@ -272,6 +744,11 @@
         }
         this.pbifullscreen = function () {
             that.report.fullscreen();
+        }
+
+        this.pbipages = async function () {
+            const pages = await that.report.getPages();
+            return pages;
         }
 
         this.pbiedit =  async function () {
@@ -333,6 +810,14 @@
             }
         }
 
+        this.timesZones = ko.observableArray([]);
+
+        context.TimeZones.forEach(function (timeZone) {
+            that.timesZones.push({
+                Id: timeZone.Id,
+                DisplayName: timeZone.DisplayName
+            });
+        });
 
         this.Init = function () {
             that.createBookmarksList();

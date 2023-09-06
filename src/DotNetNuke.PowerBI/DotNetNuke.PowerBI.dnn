@@ -1,6 +1,6 @@
 <dotnetnuke type="Package" version="5.0">
   <packages>
-    <package name="PowerBIEmbeddedList" type="Module" version="01.01.00">
+    <package name="PowerBIEmbeddedList" type="Module" version="01.01.02">
       <friendlyName>PowerBI Embedded Content List</friendlyName>
       <description>A set of modules to embed PowerBI Embedded dashboards and reports into a DNN Platform installation.</description>
       <iconFile>~/DesktopModules/MVC/PowerBIEmbedded/images/powerbi.png</iconFile>
@@ -52,10 +52,15 @@
 				<name>01.00.21.SqlDataProvider</name>
 				<version>01.00.21</version>
 			</script>
+			<script type="Install">
+				<path>Providers\DataProviders\SqlDataProvider</path>
+				<name>01.01.02.SqlDataProvider</name>
+				<version>01.01.02</version>
+			</script>
 			<script type="UnInstall">
-              <path>Providers\DataProviders\SqlDataProvider</path>
-              <name>Uninstall.SqlDataProvider</name>
-              <version>01.00.00</version>
+                <path>Providers\DataProviders\SqlDataProvider</path>
+                <name>Uninstall.SqlDataProvider</name>
+                <version>01.00.00</version>
             </script>
           </scripts>
         </component>
@@ -136,7 +141,7 @@
             <attributes>
               <businessControllerClass>DotNetNuke.PowerBI.FeatureController, DotNetNuke.PowerBI</businessControllerClass>
               <desktopModuleID>[DESKTOPMODULEID]</desktopModuleID>
-              <upgradeVersionsList>01.00.13,01.00.14</upgradeVersionsList>
+              <upgradeVersionsList>01.00.13,01.00.14,1.01.02</upgradeVersionsList>
             </attributes>
           </eventMessage>
         </component>
@@ -171,7 +176,7 @@
         </component>
       </components>
     </package>
-    <package name="PowerBIEmbeddedContent" type="Module" version="01.01.00">
+    <package name="PowerBIEmbeddedContent" type="Module" version="01.01.02">
       <friendlyName>PowerBI Embedded Content View</friendlyName>
       <description>A set of modules to embed PowerBI Embedded dashboards and reports into a DNN Platform installation.</description>
       <iconFile>~/DesktopModules/MVC/PowerBIEmbedded/images/powerbi.png</iconFile>
@@ -226,7 +231,7 @@
         </component>
       </components>
     </package>
-    <package name="PowerBIEmbeddedCalendar" type="Module" version="01.01.00">
+    <package name="PowerBIEmbeddedCalendar" type="Module" version="01.01.02">
       <friendlyName>PowerBI Embedded Calendar View</friendlyName>
       <description>A set of modules to embed PowerBI Embedded dashboards and reports into a DNN Platform installation.</description>
       <iconFile>~/DesktopModules/MVC/PowerBIEmbedded/images/powerbi.png</iconFile>

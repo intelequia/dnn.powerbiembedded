@@ -201,7 +201,14 @@
     <Compile Include="Data\SharedSettings\Models\SharedSettings.cs" />
     <Compile Include="Data\ObjectPermissionsRepository.cs" />
     <Compile Include="Data\SharedSettings\SharedSettingsRepository.cs" />
+    <Compile Include="Data\Subscriptions\ISubscriptionsRepository.cs" />
+    <Compile Include="Data\Subscriptions\ISubscriptionsSubscribersRepository.cs" />
+    <Compile Include="Data\Subscriptions\Models\Subscription.cs" />
+    <Compile Include="Data\Subscriptions\Models\SubscriptionSubscriber.cs" />
+    <Compile Include="Data\Subscriptions\SubscriptionsRepository.cs" />
+    <Compile Include="Data\Subscriptions\SubscriptionsSubscribersRepository.cs" />
     <Compile Include="Models\EmbedConfig.cs" />
+    <Compile Include="Models\ExportedFile.cs" />
     <Compile Include="Models\PowerBIApiExtensions.cs" />
     <Compile Include="Models\PowerBICalendarView.cs" />
     <Compile Include="Models\PowerBIListView.cs" />
@@ -217,6 +224,8 @@
     <Compile Include="Services\Models\PBIPermissions.cs" />
     <Compile Include="Services\Models\SavePowerBiObjectsPermissionsInput.cs" />
     <Compile Include="Services\PBIEmbeddedController.cs" />
+    <Compile Include="Services\SubscriptionController.cs" />
+    <Compile Include="Tasks\SubscribeTask.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="admin\personaBar\css\PBIEmbedded.css" />
@@ -226,15 +235,19 @@
     <Content Include="BuildScripts\watch.js" />
     <Content Include="css\vendors\select2.min.css" />
     <Content Include="images\addbookmark.png" />
+    <Content Include="images\addsubscription.png" />
     <Content Include="images\bookmark.png" />
     <Content Include="images\delete.png" />
     <Content Include="images\edit.png" />
+    <Content Include="images\editsubscription.png" />
+    <Content Include="images\empty.png" />
     <Content Include="images\fullscreen.png" />
     <Content Include="images\powerbi.png" />
     <Content Include="images\powerbi.svg" />
     <Content Include="images\print.png" />
     <Content Include="images\refresh.png" />
     <Content Include="images\reload.png" />
+    <Content Include="images\subscription.png" />
     <Content Include="License.txt" />
     <Content Include="css\module.css" />
     <Content Include="ReleaseNotes.txt" />
@@ -279,6 +292,7 @@
     <Content Include="scripts\powerbi.js.map" />
     <Content Include="Providers\DataProviders\SqlDataProvider\01.00.21.SqlDataProvider" />
     <Content Include="package.json" />
+    <Content Include="Providers\DataProviders\SqlDataProvider\01.01.02.SqlDataProvider" />
     <None Include="web.Debug.config">
       <DependentUpon>web.config</DependentUpon>
     </None>
@@ -323,6 +337,7 @@
       <SubType>Designer</SubType>
     </Content>
   </ItemGroup>
+  <ItemGroup />
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>
     <VSToolsPath Condition="'$(VSToolsPath)' == ''">$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)</VSToolsPath>

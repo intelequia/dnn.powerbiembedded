@@ -123,4 +123,88 @@
   <data name="ErrorTitle.Text" xml:space="preserve">
     <value>Error</value>
   </data>
+  <data name="NewSubscription.Text" xml:space="preserve">
+    <value>Nueva Suscripción</value>
+  </data>
+  <data name="SubscriptionAvailablePages.Text" xml:space="preserve">
+    <value>Páginas Disponibles</value>
+  </data>
+  <data name="SubscriptionAvailableRoles.Text" xml:space="preserve">
+    <value>Roles Disponibles</value>
+  </data>
+  <data name="SubscriptionAvailableUsers.Text" xml:space="preserve">
+    <value>Usuarios Disponibles</value>
+  </data>
+  <data name="SubscriptionCancel.Text" xml:space="preserve">
+    <value>Cancelar</value>
+  </data>
+  <data name="SubscriptionCurrentPages.Text" xml:space="preserve">
+    <value>Páginas Actuales</value>
+  </data>
+  <data name="SubscriptionCurrentRoles.Text" xml:space="preserve">
+    <value>Roles Actuales</value>
+  </data>
+  <data name="SubscriptionCurrentUsers.Text" xml:space="preserve">
+    <value>Usuarios Actuales</value>
+  </data>
+  <data name="SubscriptionEdit.Text" xml:space="preserve">
+    <value>Editar Suscripción</value>
+  </data>
+  <data name="SubscriptionEmailMessage.Text" xml:space="preserve">
+    <value>Mensaje del Email</value>
+  </data>
+  <data name="SubscriptionEmailSubject.Text" xml:space="preserve">
+    <value>Asunto del Email</value>
+  </data>
+  <data name="SubscriptionEnabled.Text" xml:space="preserve">
+    <value>Habilitado</value>
+  </data>
+  <data name="SubscriptionEndDate.Text" xml:space="preserve">
+    <value>Fecha de Finalización</value>
+  </data>
+  <data name="SubscriptionName.Text" xml:space="preserve">
+    <value>Nombre</value>
+  </data>
+  <data name="SubscriptionNoPages.Text" xml:space="preserve">
+    <value>Sin Páginas</value>
+  </data>
+  <data name="SubscriptionNoRoles.Text" xml:space="preserve">
+    <value>Sin Roles</value>
+  </data>
+  <data name="SubscriptionNoUsers.Text" xml:space="preserve">
+    <value>Sin Usuarios</value>
+  </data>
+  <data name="SubscriptionQuery.Text" xml:space="preserve">
+    <value>Busca usuarios o roles...</value>
+  </data>
+  <data name="SubscriptionRepeatPeriod.Text" xml:space="preserve">
+    <value>Periodo de Repetición</value>
+  </data>
+  <data name="SubscriptionRepeatTime.Text" xml:space="preserve">
+    <value>Tiempo de Repetición</value>
+  </data>
+  <data name="SubscriptionReportPages.Text" xml:space="preserve">
+    <value>Páginas del Reporte</value>
+  </data>
+  <data name="SubscriptionRoles.Text" xml:space="preserve">
+    <value>Roles</value>
+  </data>
+  <data name="Subscriptions.Text" xml:space="preserve">
+    <value>Suscripciones</value>
+  </data>
+  <data name="SubscriptionSave.Text" xml:space="preserve">
+    <value>Guardar</value>
+  </data>
+  <data name="SubscriptionStartDate.Text" xml:space="preserve">
+    <value>Fecha de Inicio</value>
+  </data>
+  <data name="SubscriptionTimeZone.Text" xml:space="preserve">
+    <value>Zona Horaria</value>
+  </data>
+  <data name="SubscriptionUsers.Text" xml:space="preserve">
+    <value>Usuarios</value>
+  </data>
+  <data name="SubscriptionUsersRoles.Text" xml:space="preserve">
+    <value>Usuarios y Roles</value>
+  </data>
 </root>
