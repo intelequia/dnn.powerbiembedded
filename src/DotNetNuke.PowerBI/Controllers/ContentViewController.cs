@@ -172,7 +172,7 @@ namespace DotNetNuke.PowerBI.Controllers
                 ViewBag.Height = GetSetting("PowerBIEmbedded_Height");
                 ViewBag.PageName = GetSetting("PowerBIEmbedded_PageName");
                 ViewBag.BackgroundImageUrl = GetSetting("PowerBIEmbedded_BackgroundImageUrl", "");
-
+                ViewBag.RefreshVisible = bool.Parse(GetSetting("PowerBIEmbedded_RefreshVisible", "true"));
 
 
                 // Sets the reports page on the viewbag
