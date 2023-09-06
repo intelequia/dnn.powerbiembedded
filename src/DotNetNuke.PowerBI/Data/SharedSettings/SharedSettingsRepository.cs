@@ -48,6 +48,18 @@ namespace DotNetNuke.PowerBI.Data.SharedSettings
             return result;
         }
 
+        public List<PowerBISettings> GetAllSettings()
+        {
+            List<PowerBISettings> result;
+            using (IDataContext ctx = DataContext.Instance())
+            {
+                var rep = ctx.GetRepository<PowerBISettings>();
+                result = rep.Get().ToList();
+            }
+            return result;
+        }
+
+
         public bool AddSettings(PowerBISettings setting, int portalId, int? userId)
         {
             Requires.NotNull(setting);

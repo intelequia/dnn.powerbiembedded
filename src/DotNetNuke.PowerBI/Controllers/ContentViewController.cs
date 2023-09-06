@@ -15,6 +15,7 @@ using DotNetNuke.Services.Localization;
 using DotNetNuke.UI.Utilities;
 using DotNetNuke.Web.Mvc.Framework.ActionFilters;
 using DotNetNuke.Web.Mvc.Framework.Controllers;
+using Microsoft.PowerBI.Api.Models;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -152,11 +153,13 @@ namespace DotNetNuke.PowerBI.Controllers
                 }
 
 
-
-
+                Pages reportPages = embedService.GetReportPages(model.Id).Result;
+                ViewBag.ReportPages = reportPages;
                 ViewBag.CanEdit = hasEditPermission;
                 ViewBag.Locale = System.Threading.Thread.CurrentThread.CurrentUICulture.Name.Substring(0, 2);
 
+                ViewBag.TimeZones = TimeZoneInfo.GetSystemTimeZones();
+                ViewBag.ShowSubscription = bool.Parse(GetSetting("PowerBIEmbedded_ShowSubscriptions", "false"));
                 ViewBag.FilterPaneVisible = bool.Parse(GetSetting("PowerBIEmbedded_FilterPaneVisible", "true"));
                 ViewBag.NavPaneVisible = bool.Parse(GetSetting("PowerBIEmbedded_NavPaneVisible", "true"));
                 ViewBag.OverrideVisualHeaderVisibility = bool.Parse(GetSetting("PowerBIEmbedded_OverrideVisualHeaderVisibility", "false"));
@@ -174,7 +177,6 @@ namespace DotNetNuke.PowerBI.Controllers
                 ViewBag.BackgroundImageUrl = GetSetting("PowerBIEmbedded_BackgroundImageUrl", "");
                 ViewBag.RefreshVisible = bool.Parse(GetSetting("PowerBIEmbedded_RefreshVisible", "true"));
 
-
                 // Sets the reports page on the viewbag
                 if (embedService != null)
                 {
@@ -186,7 +188,45 @@ namespace DotNetNuke.PowerBI.Controllers
                     ViewBag.ReportsPage = reportsPage;
                     ViewBag.DisabledCapacityMessage = embedService.Settings.DisabledCapacityMessage;
                 }
+                List<ObjectPermission> objectPermissions = ObjectPermissionsRepository.Instance.GetObjectPermissionsByPortalExtended(ModuleContext.PortalId)
+                    .Where(permission => permission.PermissionID == 1 && permission.AllowAccess)
+                    .ToList();
 
+                Dictionary<int, UserInfo> usersDict = new Dictionary<int, UserInfo>();
+                Dictionary<int, RoleInfo> rolesDict = new Dictionary<int, RoleInfo>();
+
+                foreach (ObjectPermission permission in objectPermissions)
+                {
+                    if (permission.RoleID != null)
+                    {
+                        List<UserInfo> userInfos = RoleController.Instance.GetUsersByRole(ModuleContext.PortalId, permission.RoleName).ToList();
+                        foreach (UserInfo userInfo in userInfos)
+                        {
+                            if (!usersDict.ContainsKey(userInfo.UserID))
+                            {
+                                usersDict.Add(userInfo.UserID, userInfo);
+                            }
+                        }
+
+                        RoleInfo roleInfo = RoleController.Instance.GetRoleById(ModuleContext.PortalId, permission.RoleID.Value);
+                        if (!rolesDict.ContainsKey(roleInfo.RoleID))
+                        {
+                            rolesDict.Add(roleInfo.RoleID, roleInfo);
+                        }
+                    }
+                    else
+                    {
+                        UserInfo addingUser = UserController.GetUserById(ModuleContext.PortalId, permission.UserID.Value);
+
+                        if (!usersDict.ContainsKey(addingUser.UserID))
+                        {
+                            usersDict.Add(addingUser.UserID, addingUser);
+                        }
+                    }
+                }
+
+                ViewBag.Users = usersDict.Values.ToList();
+                ViewBag.Roles = rolesDict.Values.ToList();
                 var currentLocale = LocaleController.Instance.GetLocale(ModuleContext.PortalId, CultureInfo.CurrentCulture.Name);
 
                 var context = new
@@ -213,6 +253,10 @@ namespace DotNetNuke.PowerBI.Controllers
                     ViewBag.PageName,
                     ViewBag.BackgroundImageUrl,
                     ViewBag.CanEdit,
+                    ViewBag.TimeZones,
+                    ViewBag.Users,
+                    ViewBag.Roles,
+                    ViewBag.ReportPages,
                     model.ContentType,
                     Token = model.EmbedToken?.Token,
                     model.EmbedUrl,
@@ -223,7 +267,7 @@ namespace DotNetNuke.PowerBI.Controllers
                 DotNetNuke.Framework.JavaScriptLibraries.JavaScript.RequestRegistration(CommonJs.DnnPlugins);
                 ClientAPI.RegisterClientVariable(DnnPage, $"ViewContext_{ModuleContext.ModuleId}",
                     JsonConvert.SerializeObject(context, Formatting.None), true);
-
+                
 
                 return View(model);
             }

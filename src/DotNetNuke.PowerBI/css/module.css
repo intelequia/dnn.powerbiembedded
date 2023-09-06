@@ -1,4 +1,4 @@
-.mini-navbar #dnn_Side_Menu {
+﻿.mini-navbar #dnn_Side_Menu {
     display: none;
 }
 
@@ -267,7 +267,7 @@
         color: black;
     }
 
-        .powerbiContentView .pbitoolbar .edit .divImg {
+        .powerbiContentView .pbitoolbar .edit .editImg {
             background-image: url('../images/edit.png');
             width: 16px;
             height: 100%;
@@ -275,8 +275,30 @@
             background-size: 16px;
             background-repeat: no-repeat;
             background-position-y: center;
+            margin-right: 5px;
         }
 
+    .powerbiContentView .pbitoolbar .subscription {
+        float: left;
+        margin-right: 10px;
+        margin-left: 10px;
+        text-decoration: none;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        color: black;
+    }
+
+        .powerbiContentView .pbitoolbar .subscription .subscribeImg {
+            background-image: url('../images/subscription.png');
+            width: 16px;
+            height: 100%;
+            display: inline-block;
+            background-size: 16px;
+            background-repeat: no-repeat;
+            background-position-y: center;
+            margin-right: 5px;
+        }
 
 .createBookmarks {
     background-image: url('../images/addbookmark.png');
@@ -286,6 +308,44 @@
     background-repeat: no-repeat;
     background-position-y: center;
     margin-right: 10px;
+    margin-left: 10px;
+    padding: 8px 8px 8px 8px !important
+}
+
+.addSubscription {
+    text-decoration: none;
+}
+
+.createSubscription, .btnAdd {
+    background-image: url('../images/addsubscription.png');
+    width: 16px;
+    display: inline-block !important;
+    background-size: 16px;
+    background-repeat: no-repeat;
+    background-position-y: center;
+    margin-right: 10px;
+    margin-left: 10px;
+    padding: 8px 8px 8px 8px !important
+}    
+
+.editSubscription {
+    background-image: url('../images/editsubscription.png');
+    width: 16px;
+    display: inline-block !important;
+    background-size: 16px;
+    background-repeat: no-repeat;
+    background-position-y: center;
+    margin-left: 10px;
+    padding: 8px 8px 8px 8px !important
+}
+
+.deleteSubscription, .btnRemove {
+    background-image: url('../images/delete.png');
+    width: 16px;
+    display: inline-block !important;
+    background-size: 16px;
+    background-repeat: no-repeat;
+    background-position-y: center;
     margin-left: 10px;
     padding: 8px 8px 8px 8px !important
 }
@@ -339,8 +399,111 @@
     padding-top: 27px;
     border-right: solid 0px #C8C8C8
 }
+.lateral-tab {
+    height: 91%;
+    width: 0;
+    position: absolute;
+    z-index: 1;
+    top: 41px;
+    right: 0;
+    background-color: #FFFFFF;
+    overflow-x: hidden;
+    border-right: solid 0px #C8C8C8;
+    padding-left: 10px;
+    padding-top: 27px;
+}
 
-    .sidenav a {
+    .lateral-tab .subscriptions li {
+        padding-left: 15px;
+    }
+
+    .lateral-tab table {
+        width: 100%;
+    }
+
+        .lateral-tab table tbody tr {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 50px 10px 50px;
+        }
+        .lateral-tab table td {
+            display: flex;
+            flex-direction: column;
+        }
+
+            .lateral-tab table tbody tr td:first-child {
+                align-self: flex-start;
+            }
+
+            .lateral-tab table tbody tr td:last-child {
+                align-self: flex-end;
+            }
+
+    .lateral-tab .actions {
+        width: auto;
+        display: block;
+        padding-top: 10px;
+        padding-bottom: 10px;
+        height: auto;
+        top: 0;
+        display: flex;
+        justify-content: space-evenly;
+    }
+
+        .lateral-tab a {
+            cursor: pointer;
+            text-decoration: none;
+        }
+            .lateral-tab a:hover {
+                cursor: pointer;
+                text-decoration: underline !important;
+            }
+
+    .lateral-tab .searchbox {
+        float: right;
+    }
+
+        .lateral-tab .searchbox input {
+            width: 250px;
+            padding: 5px;
+            padding-left: 15px;
+            margin-bottom: 5px;
+            margin-right: 0px;
+        }
+
+    .lateral-tab h3.dnnFormSectionHead {
+        background-color: white;
+        width: 100%;
+        top: 0px;
+        margin: 0;
+        padding-top: 20px;
+        padding-bottom: 20px;
+        z-index: 99;
+    }
+
+    .lateral-tab .dnnForm {
+        margin-top: 25px;
+    }
+
+    .lateral-tab .dnnFormItem label {
+        display: block;
+    }
+    .lateral-tab .dnnFormItem label.inline {
+        display: inline-block;
+        cursor: pointer;
+    }
+
+    .lateral-tab .dnnFormItem .full-width {
+        width: 100%;
+    }
+
+.subscription-user-header, .subscription-role-header, .subscription-page-header {
+    width: 100%;
+    background-color: #f0f0f0;
+    padding: 10px;
+}
+
+    .sidenav a, .lateral-tab .closebtn {
         padding: 8px 8px 8px 32px;
         text-decoration: none;
         font-size: 25px;
@@ -352,13 +515,17 @@
             color: #f1f1f1;
         }
 
-    .sidenav .closebtn {
-        position: absolute;
-        top: 0;
-        right: 25px;
-        font-size: 36px;
-        margin-left: 50px;
-    }
+        .lateral-tab .closebtn {
+            font-size: 36px;
+        }
+
+        .sidenav .closebtn, .lateral-tab .closebtn {
+            position: absolute;
+            top: 0;
+            right: 25px;
+            font-size: 36px;
+            margin-left: 50px;
+        }
 
 @media screen and (max-height: 450px) {
     .sidenav {
