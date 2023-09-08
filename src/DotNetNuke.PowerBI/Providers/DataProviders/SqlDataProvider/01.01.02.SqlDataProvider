@@ -20,7 +20,7 @@ BEGIN
         [LastProcessedOn] [datetime] NULL,
     )
 END
-IF (NOT EXISTS(SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'PBI_SubscriptionSubscribers')
+IF (NOT EXISTS(SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'PBI_SubscriptionSubscribers'))
 BEGIN
     CREATE TABLE {databaseOwner}[{objectQualifier}PBI_SubscriptionSubscribers](
 		[Id] [int] IDENTITY(1,1) NOT NULL PRIMARY KEY,
