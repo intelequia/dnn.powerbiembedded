@@ -214,8 +214,8 @@ namespace DotNetNuke.PowerBI
                 // Programmed Task for Subscribers.
                 var fullName = "DotNetNuke.PowerBI.Tasks.SubscribeTask, DotNetNuke.PowerBI";
                 var startTime = DateTime.Now;
-                var timeLapse = 1;
-                var timeLapseMeasurement = "d";
+                var timeLapse = 15;
+                var timeLapseMeasurement = "m";
                 var retryTimeLapse = 30;
                 var retryTimeLapseMeasurement = "m";
                 var retainHistoryNum = 0;

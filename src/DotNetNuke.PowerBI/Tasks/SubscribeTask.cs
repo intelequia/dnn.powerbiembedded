@@ -104,7 +104,7 @@ namespace DotNetNuke.PowerBI.Tasks
         {
             DotNetNuke.PowerBI.Components.Common common = new DotNetNuke.PowerBI.Components.Common();
 
-            Attachment attachment = common.ExportPowerBIReport(Guid.Parse(subscription.ReportId), tokenCredentials, setting, subscription.ReportPages).Result;
+            Attachment attachment = common.ExportPowerBIReport(Guid.Parse(subscription.ReportId), tokenCredentials, setting, subscription.ReportPages, portalSettings.DefaultLanguage.ToLower()).Result;
             // I want to check if the PDFReport is null or not, if it is null then I want to return false and not send the email
             if (attachment == null)
             {
@@ -155,7 +155,7 @@ namespace DotNetNuke.PowerBI.Tasks
             
             try
             {
-                Mail.SendMail(fromAddress, recipients[0], String.Empty, bccEmails, String.Empty, MailPriority.Normal, subject, MailFormat.Html, Encoding.UTF8, body, attachments, String.Empty, String.Empty, String.Empty, String.Empty, true);
+                Mail.SendMail(fromAddress, fromAddress, String.Empty, bccEmails, String.Empty, MailPriority.Normal, subject, MailFormat.Html, Encoding.UTF8, body, attachments, String.Empty, String.Empty, String.Empty, String.Empty, true);
             } catch
             {
                 return false;

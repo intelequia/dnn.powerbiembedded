@@ -31,10 +31,33 @@
         this.usersArray = ko.observableArray(parent.usersArray().slice());
         this.rolesArray = ko.observableArray(parent.rolesArray().slice());
         this.pagesArray = ko.observableArray(parent.pagesArray().slice());
-        this.editSearchQuery = ko.observable('');
+        this.editUserSearchQuery = ko.observable('');
+        this.editRoleSearchQuery = ko.observable('');
         this.addedUsers = ko.observableArray(users.slice());
         this.addedRoles = ko.observableArray(roles.slice());
         this.addedPages = ko.observableArray(reportPages.slice());
+
+
+        this.repeatTimeFormatted = ko.computed(function () {
+            var time = that.repeatTime();
+            var hours = parseInt(time.substring(0, 2), 10);
+            var minutes = time.substring(3, 5);
+            var ampm = hours >= 12 ? 'PM' : 'AM';
+
+            // Convert hours from 24-hour to 12-hour format
+            if (hours > 12) {
+                hours -= 12;
+            }
+
+            // Add leading zero for single-digit hours
+            if (hours < 10) {
+                hours = '0' + hours;
+            }
+
+            return hours + ':' + minutes + ' ' + ampm;
+        });
+
+
 
         // Error group for editing a subscription.
         this.editSubscriptionErrors = ko.validation.group({
@@ -52,7 +75,7 @@
 
 
         this.availableUsers = ko.computed(function () {
-            var query = that.editSearchQuery().toLowerCase();
+            var query = that.editUserSearchQuery().toLowerCase();
 
             return that.usersArray().filter(function (user) {
                 return !that.addedUsers().some(selectedUser => selectedUser.UserID === user.UserID) &&
@@ -61,7 +84,7 @@
         });
 
         this.availableRoles = ko.computed(function () {
-            var query = that.editSearchQuery().toLowerCase();
+            var query = that.editRoleSearchQuery().toLowerCase();
 
             return that.rolesArray().filter(function (role) {
                 return !that.addedRoles().some(selectedRole => selectedRole.KeyID === role.KeyID) &&
@@ -189,6 +212,8 @@
         this.rolesArray = ko.observableArray(context.Roles.slice());
         this.pagesArray = ko.observableArray(context.ReportPages.value.slice());
         this.userSearchQuery = ko.observable('');
+        this.roleSearchQuery = ko.observable('');
+
 
         this.adding = ko.observable(false);
 
@@ -219,7 +244,7 @@
         });
 
         this.filteredRoles = ko.computed(function () {
-            var query = that.userSearchQuery().toLowerCase();
+            var query = that.roleSearchQuery().toLowerCase();
             return that.rolesArray().filter(function (role) {
                 return role.RoleName.toLowerCase().indexOf(query) >= 0;
             });
@@ -254,8 +279,8 @@
                                 subscription.ReportId,
                                 subscription.GroupId,
                                 subscription.Name,
-                                new Date(subscription.StartDate).toISOString().split('T')[0],
-                                new Date(subscription.EndDate).toISOString().split('T')[0],
+                                new Date(subscription.StartDate.split('T')[0]).toISOString().split('T')[0],
+                                new Date(subscription.EndDate.split('T')[0]).toISOString().split('T')[0],
                                 subscription.RepeatPeriod,
                                 subscription.RepeatTime,
                                 subscription.TimeZone,
@@ -532,7 +557,7 @@
 
         // Subscriptions
         this.openLateralTab = function () {
-            $(".lateral-tab").css("width", "350px");
+            $(".lateral-tab").css("width", "450px");
             that.createSubscriptionList();
         }
 

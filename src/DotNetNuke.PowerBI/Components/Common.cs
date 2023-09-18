@@ -209,7 +209,8 @@ namespace DotNetNuke.PowerBI.Components
             Guid reportId,
             TokenCredentials tokenCredentials,
             PowerBISettings setting,
-            string reportPages)
+            string reportPages,
+            string locale = "en-us")
         {
             try
             {
@@ -232,7 +233,7 @@ namespace DotNetNuke.PowerBI.Components
                 int retryAttempt = 1;
                 do
                 {
-                    var exportId = await PostExportRequest(reportId, tokenCredentials, setting, format, pageNames, urlFilter);
+                    var exportId = await PostExportRequest(reportId, tokenCredentials, setting, format, pageNames, urlFilter, locale);
                     var httpMessage = await PollExportRequest(reportId, exportId, pollingtimeOutInMinutes, cancellationToken, tokenCredentials, setting);
                     export = httpMessage.Body;
                     if (export == null)
@@ -279,7 +280,8 @@ namespace DotNetNuke.PowerBI.Components
     PowerBISettings setting,
     FileFormat format,
     Pages pageNames = null, /* Get the page names from the GetPages REST API */
-    string urlFilter = null)
+    string urlFilter = null,
+    string locale = "en-us")
         {
             try
             {
@@ -294,7 +296,7 @@ namespace DotNetNuke.PowerBI.Components
                 {
                     Settings = new ExportReportSettings
                     {
-                        Locale = "en-us"
+                        Locale = locale
                     },
                     // Note that page names differ from the page display names
                     // To get the page names use the GetPages REST API

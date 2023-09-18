@@ -117,6 +117,9 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="EditSubscriptionDetails.Text" xml:space="preserve">
+    <value>Edit the information of this subscription.</value>
+  </data>
   <data name="Error.Text" xml:space="preserve">
     <value>Error loading report contents. Please, try again later.</value>
   </data>
@@ -125,6 +128,9 @@
   </data>
   <data name="NewSubscription.Text" xml:space="preserve">
     <value>New Subscription</value>
+  </data>
+  <data name="NewSubscriptionDetails.Text" xml:space="preserve">
+    <value>Add the information for a new subscription.</value>
   </data>
   <data name="SubscriptionAvailablePages.Text" xml:space="preserve">
     <value>Available Pages</value>
@@ -147,6 +153,9 @@
   <data name="SubscriptionCurrentUsers.Text" xml:space="preserve">
     <value>Current Users</value>
   </data>
+  <data name="SubscriptionDaily.Text" xml:space="preserve">
+    <value>Daily</value>
+  </data>
   <data name="SubscriptionEdit.Text" xml:space="preserve">
     <value>Edit Subscription</value>
   </data>
@@ -162,6 +171,9 @@
   <data name="SubscriptionEndDate.Text" xml:space="preserve">
     <value>End Date</value>
   </data>
+  <data name="SubscriptionMonthly.Text" xml:space="preserve">
+    <value>Monthly</value>
+  </data>
   <data name="SubscriptionName.Text" xml:space="preserve">
     <value>Subscription Name</value>
   </data>
@@ -174,9 +186,6 @@
   <data name="SubscriptionNoUsers.Text" xml:space="preserve">
     <value>No Users</value>
   </data>
-  <data name="SubscriptionQuery.Text" xml:space="preserve">
-    <value>Search users or roles...</value>
-  </data>
   <data name="SubscriptionRepeatPeriod.Text" xml:space="preserve">
     <value>Repeat Period</value>
   </data>
@@ -185,6 +194,9 @@
   </data>
   <data name="SubscriptionReportPages.Text" xml:space="preserve">
     <value>Report Pages</value>
+  </data>
+  <data name="SubscriptionRoleQuery.Text" xml:space="preserve">
+    <value>Search a role...</value>
   </data>
   <data name="SubscriptionRoles.Text" xml:space="preserve">
     <value>Roles</value>
@@ -195,16 +207,25 @@
   <data name="SubscriptionSave.Text" xml:space="preserve">
     <value>Save</value>
   </data>
+  <data name="SubscriptionSearchRoles.Text" xml:space="preserve">
+    <value>Search Roles</value>
+  </data>
+  <data name="SubscriptionSearchUsers.Text" xml:space="preserve">
+    <value>Search Users</value>
+  </data>
   <data name="SubscriptionStartDate.Text" xml:space="preserve">
     <value>Start Date</value>
   </data>
   <data name="SubscriptionTimeZone.Text" xml:space="preserve">
     <value>Time Zone</value>
   </data>
+  <data name="SubscriptionUserQuery.Text" xml:space="preserve">
+    <value>Search an user...</value>
+  </data>
   <data name="SubscriptionUsers.Text" xml:space="preserve">
     <value>Users</value>
   </data>
-  <data name="SubscriptionUsersRoles.Text" xml:space="preserve">
-    <value>Users &amp; Roles</value>
+  <data name="SubscriptionWeekly.Text" xml:space="preserve">
+    <value>Weekly</value>
   </data>
 </root>
