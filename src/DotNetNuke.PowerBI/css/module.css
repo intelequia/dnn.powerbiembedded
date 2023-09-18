@@ -314,56 +314,56 @@
 
 .addSubscription {
     text-decoration: none;
+    border: 1px solid;
+    padding: 5px;
+    text-decoration: none;
 }
-
-.createSubscription, .btnAdd {
-    background-image: url('../images/addsubscription.png');
-    width: 16px;
-    display: inline-block !important;
-    background-size: 16px;
-    background-repeat: no-repeat;
-    background-position-y: center;
-    margin-right: 10px;
-    margin-left: 10px;
-    padding: 8px 8px 8px 8px !important
-}    
-
-.editSubscription {
-    background-image: url('../images/editsubscription.png');
-    width: 16px;
-    display: inline-block !important;
-    background-size: 16px;
-    background-repeat: no-repeat;
-    background-position-y: center;
-    margin-left: 10px;
-    padding: 8px 8px 8px 8px !important
+    .addSubscription:hover,
+    .btnAdd:hover,
+    .createSubscription:hover,
+    .btnRemove:hover {
+        text-decoration: none;
+    }
+.subscriptionName {
+    cursor: pointer;
+    font-weight: bold;
+    line-height: 26px;
 }
-
+.subscriptionItem {
+    display: flow-root;
+}
+.createSubscription, .btnAdd, .editSubscription,
 .deleteSubscription, .btnRemove {
-    background-image: url('../images/delete.png');
-    width: 16px;
     display: inline-block !important;
-    background-size: 16px;
-    background-repeat: no-repeat;
-    background-position-y: center;
-    margin-left: 10px;
-    margin-right: 10px;
-    padding: 8px 8px 8px 8px !important
+    padding: 5px;
+    text-decoration: none;
+    border: 1px solid;
+    min-width: 50px;
+    text-align: center;
 }
+    .deleteSubscription, .editSubscription {
+        float: right;
+        display: flow-root;
+    }
+        .editSubscription {
+            margin-right: 5px;
+            min-width: 30px;
+        }
 
-.deletebookmark {
-    background-image: url('../images/delete.png');
-    width: 16px;
-    display: inline-block !important;
-    background-size: 16px;
-    background-repeat: no-repeat;
-    background-position-y: center;
-    margin-right: 10px;
-    margin-left: 10px;
-    float: right;
-    position: relative;
-    padding: 8px 8px 8px 8px !important
-}
+
+        .deletebookmark {
+            background-image: url('../images/delete.png');
+            width: 16px;
+            display: inline-block !important;
+            background-size: 16px;
+            background-repeat: no-repeat;
+            background-position-y: center;
+            margin-right: 10px;
+            margin-left: 10px;
+            float: right;
+            position: relative;
+            padding: 8px 8px 8px 8px !important
+        }
 
 .not-valid {
     color: red;
@@ -404,32 +404,40 @@
     height: 100%;
     width: 0;
     position: fixed;
-    z-index: 1;
+    z-index: 9999;
     top: 0;
     right: 0;
     background-color: #FFFFFF;
     overflow-x: hidden;
     border-right: solid 0px #C8C8C8;
-    padding-top: 27px;
     box-shadow: -1px 0px 20px 0px #000000;
 }
 
-.lateral-tab * {
-    font-size: 16px;
+.pbi-panel {
+    padding: 20px;
 }
-    .lateral-tab #addSubscriptionPanel {
-        padding-left: 15px;
+
+.lateral-tab * {
+    /*font-size: 16px;*/
+}
+
+    .close-panel {
+        position: absolute;
+        right: 10px;
+        top: 10px;
+        font-size: 2em;
+        z-index: 100;
     }
 
-    .lateral-tab .user-dropdown {
-        background-color: white;
-        width: 70%;
-        height: 100px;
-        overflow-y: scroll;
-        position: absolute;
-        box-shadow: 1px 1px 5px 0px #d3d3d3;
-        z-index: 1;
-    }
+.lateral-tab .user-dropdown {
+    background-color: white;
+    width: calc(100% - 40px);
+    height: 100px;
+    overflow-y: scroll;
+    position: absolute;
+    box-shadow: 1px 1px 5px 0px #d3d3d3;
+    z-index: 1;
+}
 
     .lateral-tab .user-dropdown li {
         list-style: none;
@@ -440,13 +448,12 @@
     }
 
         .lateral-tab .user-dropdown li:hover {
-            background-color: #e9e4e98c;
-            color: mediumaquamarine;
             cursor: pointer;
         }
 
     .lateral-tab .subscriptions {
-        padding-left: 15px;
+        padding-left: 0px;
+        list-style: none;
     }
 
     .lateral-tab .subscriptions li {
@@ -459,14 +466,10 @@
     }
 
     .lateral-tab .removePageTable tr:hover, .lateral-tab .removeRoleTable tr:hover, .lateral-tab .removeUserTable tr:hover {
-        background-color: #e9e4e98c;
-        color: red;
         cursor: pointer;
     }
 
     .lateral-tab .addPageTable tr:hover {
-        background-color: #e9e4e98c;
-        color: mediumaquamarine;
         cursor: pointer;
     }
 
@@ -477,9 +480,7 @@
         .lateral-tab table tbody tr {
             display: flex;
             justify-content: space-between;
-            padding: 10px;
-            padding-right: 10%;
-            padding-left: 10%;
+            padding: 5px;
         }
         .lateral-tab table td {
             display: flex;
@@ -494,24 +495,23 @@
                 align-self: flex-end;
             }
 
-    .lateral-tab .actions {
-        width: auto;
-        display: block;
-        padding-top: 10px;
-        padding-bottom: 10px;
-        height: auto;
-        top: 0;
-        display: flex;
-        justify-content: space-evenly;
-    }
+.lateral-tab .actions {
+    display: block;
+    padding-top: 10px;
+    padding-bottom: 10px;
+    height: auto;
+    top: 0;
+    text-align: right;
+    width: 100%;
+    display: inline-block;
+}
 
         .lateral-tab a {
             cursor: pointer;
             text-decoration: none;
         }
             .lateral-tab a:hover {
-                cursor: pointer;
-                text-decoration: underline !important;
+                cursor: pointer;                
             }
 
 
@@ -526,8 +526,7 @@
     }
 
     .lateral-tab .dnnForm {
-        margin-top: 25px;
-        padding: 0px 10px 0px 10px;
+        margin-top: 10px;
     }
 
     .lateral-tab .dnnFormItem {
@@ -537,10 +536,7 @@
 
     .lateral-tab .dnnFormItem input, .lateral-tab .dnnFormItem select {
         width: 100%;
-        margin-top: 5px;
         margin-bottom: 5px;
-        height: 45px;
-        font-size: 15px;
     }
 
         .lateral-tab .dnnFormItem input[type="checkbox"] {
@@ -636,4 +632,41 @@
 
 #disabledCapacityMessage {
     padding: 20px;
-} 
+}
+
+.pbi-overlay {
+    position: fixed;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 9998;
+    display: none;
+}
+
+.lateral-tab h3.dnnFormSectionHead {
+    background-color: white;
+    width: 100%;
+    top: 0px;
+    margin: 0;
+    padding-top: 0px;
+    padding-bottom: 10px;
+    z-index: 99;
+    font-size: 1.8em;
+}
+
+.norows {
+    padding: 10px;
+}
+.lateral-tab input[type=date],
+.lateral-tab input[type=time] {
+    padding: 8px;
+    border: 1px solid #c9c9c9;
+    border-radius: 3px;
+    -webkit-box-shadow: 0px 1px 0px 0px rgba(255, 255, 255, 0.8), inset 0px 1px 2px 0px rgba(0, 0, 0, 0.1);
+    box-shadow: 0px 1px 0px 0px rgba(255, 255, 255, 0.8), inset 0px 1px 2px 0px rgba(0, 0, 0, 0.1);
+    color: #333;
+}

@@ -102,6 +102,7 @@
         this.editing = ko.observable(false);
         this.startEditing = function () {
             that.editing(true);
+            parent.editing(true);
             parent.selectSubscription(null);
             parent.cancelAddingSubscription();
         };
@@ -146,6 +147,35 @@
             that.addedPages(reportPages.slice());
             // Set editing state back to false
             that.editing(false);
+            parent.editing(false);
+        };
+
+        this.editSubscription = function () {
+            that.startEditing();
+            parent.selectedSubscription(that);
+        };
+
+        this.deleteSubscription = function () {
+            let params = {
+                Id: that.id()
+            };
+            var confirmed = confirm("Are you sure you want to delete " + that.name() + " subscription?");
+            if (confirmed) {
+                Common.Call("POST", "DeleteSubscription", parent.subscriptionsService, params,
+                    function (data) {
+                        if (data.Success) {
+                            parent.createSubscriptionList();
+                        }
+                        else {
+                            alert(data.ErrorMessage);
+                        }
+                    },
+                    function (error) {
+                        console.log(error);
+                    },
+                    function () {
+                    });
+            }
         };
     }
     function BookmarkModel(p, id, name, displayName, state, reportId) {
@@ -188,7 +218,7 @@
         this.newSubscriptionEndDate = ko.observable('').extend({ required: true });
         this.newSubscriptionRepeatPeriod = ko.observable('').extend({ required: true });
         this.newSubscriptionRepeatTime = ko.observable('').extend({ required: true });
-        this.newSubscriptionTimeZone = ko.observable('').extend({ required: true });
+        this.newSubscriptionTimeZone = ko.observable(context.PreferredTimeZone).extend({ required: true });
         this.newSubscriptionEmailSubject = ko.observable('').extend({ required: true });
         this.newSubscriptionMessage = ko.observable('').extend({ required: true });
         this.newSubscriptionEnabled = ko.observable('')
@@ -213,9 +243,11 @@
         this.pagesArray = ko.observableArray(context.ReportPages.value.slice());
         this.userSearchQuery = ko.observable('');
         this.roleSearchQuery = ko.observable('');
+        this.selectedSubscription = ko.observable();
 
 
         this.adding = ko.observable(false);
+        this.editing = ko.observable(false);
 
         this.subscriptionsService = {
             path: "Subscription",
@@ -223,16 +255,9 @@
             framework: $.ServicesFramework(context.ModuleId)
         }
         this.subscriptionsService.baseUrl = that.subscriptionsService.framework.getServiceRoot(that.subscriptionsService.path);
-        this.toggleSubscriptionDetails = function (subscription) {
-            if (that.selectSubscription() === subscription.id) {
-                that.selectSubscription(null); 
-            } else {
-                that.selectSubscription(subscription.id); 
-                subscription.cancelEditing();
-            }
-        };
+
         this.goToSubscription = function (subscription) {
-            that.selectSubscription(subscription.id);
+            that.selectSubscription(subscription);
         }
 
 
@@ -557,27 +582,26 @@
 
         // Subscriptions
         this.openLateralTab = function () {
+            $(".pbi-overlay").css("display", "block");
             $(".lateral-tab").css("width", "450px");
             that.createSubscriptionList();
         }
 
         this.closeLateralTab = function () {
             $(".lateral-tab").css("width", "0");
+            $(".pbi-overlay").css("display", "none");
         }
 
-        this.editSubscription = function (subscription) {
-            subscription.startEditing();
-            that.selectSubscription(null); // Hide details of a selected subscription.
-        };
 
         this.cancelEditing = function (subscription) {
             subscription.cancelEditing();
-            that.selectSubscription(subscription.id); // Show details of a selected subscription.
+            that.editing(false);
+            that.selectedSubscription(null); 
         };
 
         this.startAddingSubscription = function () {
             that.adding(true);
-            that.selectSubscription(null); // Hide details of a selected subscription.
+            that.selectedSubscription(null);
         };
 
         this.cancelAddingSubscription = function () {
@@ -730,29 +754,6 @@
             }
         };
 
-
-        this.deleteSubscription = function (subscription) {
-            let params = {
-                Id: subscription.id()
-            };
-            var confirmed = confirm("Are you sure you want to delete " + subscription.name() + " subscription?");
-            if (confirmed) {
-                Common.Call("POST", "DeleteSubscription", that.subscriptionsService, params,
-                    function (data) {
-                        if (data.Success) {
-                            that.createSubscriptionList();
-                        }
-                        else {
-                            alert(data.ErrorMessage);
-                        }
-                    },
-                    function (error) {
-                        console.log(error);
-                    },
-                    function () {
-                    });
-            }
-        };
 
         this.getParameterByName = function (name, url) {
             if (!url) url = window.location.href;

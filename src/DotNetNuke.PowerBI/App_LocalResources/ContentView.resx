@@ -117,6 +117,18 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="btnAdd.Text" xml:space="preserve">
+    <value>Add</value>
+  </data>
+  <data name="btnDeleteSubscription.Text" xml:space="preserve">
+    <value>Delete</value>
+  </data>
+  <data name="btnEditSubscription.Text" xml:space="preserve">
+    <value>...</value>
+  </data>
+  <data name="btnRemove.Text" xml:space="preserve">
+    <value>Remove</value>
+  </data>
   <data name="EditSubscriptionDetails.Text" xml:space="preserve">
     <value>Edit the information of this subscription.</value>
   </data>
@@ -127,7 +139,7 @@
     <value>Error</value>
   </data>
   <data name="NewSubscription.Text" xml:space="preserve">
-    <value>New Subscription</value>
+    <value>Add new subscription</value>
   </data>
   <data name="NewSubscriptionDetails.Text" xml:space="preserve">
     <value>Add the information for a new subscription.</value>
@@ -157,25 +169,28 @@
     <value>Daily</value>
   </data>
   <data name="SubscriptionEdit.Text" xml:space="preserve">
-    <value>Edit Subscription</value>
+    <value>Edit Subscription *</value>
   </data>
   <data name="SubscriptionEmailMessage.Text" xml:space="preserve">
-    <value>Message</value>
+    <value>Message *</value>
   </data>
   <data name="SubscriptionEmailSubject.Text" xml:space="preserve">
-    <value>Email Subject</value>
+    <value>Email Subject *</value>
   </data>
   <data name="SubscriptionEnabled.Text" xml:space="preserve">
     <value>Enabled</value>
   </data>
   <data name="SubscriptionEndDate.Text" xml:space="preserve">
-    <value>End Date</value>
+    <value>End Date *</value>
+  </data>
+  <data name="SubscriptionList.Text" xml:space="preserve">
+    <value>List of current subscriptions:</value>
   </data>
   <data name="SubscriptionMonthly.Text" xml:space="preserve">
     <value>Monthly</value>
   </data>
   <data name="SubscriptionName.Text" xml:space="preserve">
-    <value>Subscription Name</value>
+    <value>Subscription Name *</value>
   </data>
   <data name="SubscriptionNoPages.Text" xml:space="preserve">
     <value>No Pages</value>
@@ -190,7 +205,7 @@
     <value>Repeat Period</value>
   </data>
   <data name="SubscriptionRepeatTime.Text" xml:space="preserve">
-    <value>Repeat Time</value>
+    <value>Repeat Time *</value>
   </data>
   <data name="SubscriptionReportPages.Text" xml:space="preserve">
     <value>Report Pages</value>
@@ -208,13 +223,16 @@
     <value>Save</value>
   </data>
   <data name="SubscriptionSearchRoles.Text" xml:space="preserve">
-    <value>Search Roles</value>
+    <value>Add Roles</value>
   </data>
   <data name="SubscriptionSearchUsers.Text" xml:space="preserve">
-    <value>Search Users</value>
+    <value>Add Users</value>
+  </data>
+  <data name="SubscriptionsSubtitle.Text" xml:space="preserve">
+    <value>Check below the list of subscriptions for this report. Click on the subscription name to edit a subscription, or create a new one.</value>
   </data>
   <data name="SubscriptionStartDate.Text" xml:space="preserve">
-    <value>Start Date</value>
+    <value>Start Date *</value>
   </data>
   <data name="SubscriptionTimeZone.Text" xml:space="preserve">
     <value>Time Zone</value>

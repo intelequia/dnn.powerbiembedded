@@ -159,6 +159,7 @@ namespace DotNetNuke.PowerBI.Controllers
                 ViewBag.Locale = System.Threading.Thread.CurrentThread.CurrentUICulture.Name.Substring(0, 2);
 
                 ViewBag.TimeZones = TimeZoneInfo.GetSystemTimeZones();
+                ViewBag.PreferredTimeZone = User.Profile.PreferredTimeZone;
                 ViewBag.ShowSubscription = bool.Parse(GetSetting("PowerBIEmbedded_ShowSubscriptions", "false"));
                 ViewBag.FilterPaneVisible = bool.Parse(GetSetting("PowerBIEmbedded_FilterPaneVisible", "true"));
                 ViewBag.NavPaneVisible = bool.Parse(GetSetting("PowerBIEmbedded_NavPaneVisible", "true"));
@@ -254,6 +255,7 @@ namespace DotNetNuke.PowerBI.Controllers
                     ViewBag.BackgroundImageUrl,
                     ViewBag.CanEdit,
                     ViewBag.TimeZones,
+                    ViewBag.PreferredTimeZone,
                     ViewBag.Users,
                     ViewBag.Roles,
                     ViewBag.ReportPages,
