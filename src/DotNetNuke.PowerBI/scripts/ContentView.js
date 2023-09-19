@@ -9,7 +9,7 @@
         }
     }
 
-    function SubscriptionModel(p, id, portalId, reportId, groupId, name, startDate, endDate, repeatPeriod, repeatTime, timeZone, emailSubject, message, reportPages, enabled, users, roles) {
+    function SubscriptionModel(p, id, portalId, reportId, groupId, name, startDate, endDate, repeatPeriod, repeatTime, timeZone, emailSubject, message, reportPages, enabled, users, roles, portalId) {
         var that = this;
         var parent = p;
         this.id = ko.observable(id);
@@ -28,16 +28,12 @@
         this.users = ko.observableArray(users);
         this.roles = ko.observableArray(roles);
         this.reportPages = ko.observableArray(reportPages);
-        this.usersArray = ko.observableArray(parent.usersArray().slice());
-        this.rolesArray = ko.observableArray(parent.rolesArray().slice());
         this.pagesArray = ko.observableArray(parent.pagesArray().slice());
         this.editUserSearchQuery = ko.observable('');
         this.editRoleSearchQuery = ko.observable('');
         this.addedUsers = ko.observableArray(users.slice());
         this.addedRoles = ko.observableArray(roles.slice());
         this.addedPages = ko.observableArray(reportPages.slice());
-
-
         this.repeatTimeFormatted = ko.computed(function () {
             var time = that.repeatTime();
             var hours = parseInt(time.substring(0, 2), 10);
@@ -57,8 +53,6 @@
             return hours + ':' + minutes + ' ' + ampm;
         });
 
-
-
         // Error group for editing a subscription.
         this.editSubscriptionErrors = ko.validation.group({
             name: this.name,
@@ -71,33 +65,66 @@
             message: this.message,
         });
 
-        // Validation rules for editing a Subscription
-
-
-        this.availableUsers = ko.computed(function () {
-            var query = that.editUserSearchQuery().toLowerCase();
-
-            return that.usersArray().filter(function (user) {
-                return !that.addedUsers().some(selectedUser => selectedUser.UserID === user.UserID) &&
-                    user.DisplayName.toLowerCase().indexOf(query) >= 0;
-            });
+        this.availableUsers = ko.observableArray([]);
+        this.editUserSearchQuery.subscribe(function (newValue) {
+            var users = [];
+            query = newValue.toLowerCase();
+            if (query == null || query == "") {
+                that.availableUsers(users)
+                return;
+            }
+            let params = {
+                portalId: portalId,
+                searchName: query,
+            }
+            Common.Call("GET", "SearchUsers", parent.subscriptionsService, params,
+                function (data) {
+                    if (data.Success) {
+                        users = data.Data.filter(user => {
+                            return !that.addedUsers().some(selectedUser => selectedUser.UserID === user.UserID);
+                        });
+                        that.availableUsers(users)
+                    }
+                },
+                function (error) {
+                    console.log(error);
+                },
+                function () {
+                });
         });
 
-        this.availableRoles = ko.computed(function () {
-            var query = that.editRoleSearchQuery().toLowerCase();
-
-            return that.rolesArray().filter(function (role) {
-                return !that.addedRoles().some(selectedRole => selectedRole.KeyID === role.KeyID) &&
-                    role.RoleName.toLowerCase().indexOf(query) >= 0;
-            });
+        this.availableRoles = ko.observableArray([]);
+        this.editRoleSearchQuery.subscribe(function (newValue) {
+            var roles = [];
+            query = newValue.toLowerCase();
+            if (query == null || query == "") {
+                that.availableRoles(roles)
+                return;
+            }
+            let params = {
+                portalId: portalId,
+                searchName: query,
+            }
+            Common.Call("GET", "SearchRoles", parent.subscriptionsService, params,
+                function (data) {
+                    if (data.Success) {
+                        roles = data.Data.filter(role => {
+                            return !that.addedRoles().some(selectedRole => selectedRole.RoleID === role.RoleID);
+                        });
+                        that.availableRoles(roles)
+                    }
+                },
+                function (error) {
+                    console.log(error);
+                },
+                function () {
+                });
         });
-
         this.availablePages = ko.computed(function () {
             return that.pagesArray().filter(function (page) {
                 return !that.addedPages().some(selectedPage => selectedPage.name === page.name)
             });
         });
-
 
         this.editing = ko.observable(false);
         this.startEditing = function () {
@@ -109,27 +136,26 @@
 
         this.addUserToSubscription = function (user) {
             that.addedUsers.push(user);
+            that.availableUsers.remove(user);
         };
-
         this.addRoleToSubscription = function (role) {
             that.addedRoles.push(role);
+            that.availableRoles.remove(role);
         };
-
         this.addPageToSubscription = function (page) {
             that.addedPages.push(page);
         }
         this.removeUserFromSubscription = function (user) {
             that.addedUsers.remove(user);
+            that.availableUsers.push(user);
         };
-
         this.removeRoleFromSubscription = function (role) {
             that.addedRoles.remove(role);
+            that.availableRoles.push(role);
         };
-
         this.removePageFromSubscription = function (page) {
             that.addedPages.remove(page);
         }
-
         // Method to cancel editing
         this.cancelEditing = function () {
             // Reset the observable properties to their original values
@@ -238,8 +264,6 @@
         this.selectedUsers = ko.observableArray([]);
         this.selectedRoles = ko.observableArray([]);
         this.selectedPages = ko.observableArray([]);
-        this.usersArray = ko.observableArray(context.Users.slice());
-        this.rolesArray = ko.observableArray(context.Roles.slice());
         this.pagesArray = ko.observableArray(context.ReportPages.value.slice());
         this.userSearchQuery = ko.observable('');
         this.roleSearchQuery = ko.observable('');
@@ -260,20 +284,70 @@
             that.selectSubscription(subscription);
         }
 
+        this.filteredUsers = ko.observableArray([]);
 
-        this.filteredUsers = ko.computed(function () {
-            var query = that.userSearchQuery().toLowerCase();
-            return that.usersArray().filter(function (user) {
-                return user.DisplayName.toLowerCase().indexOf(query) >= 0;
-            });
+        this.userSearchQuery.subscribe(function (newValue) {
+            var users = [];
+            query = newValue.toLowerCase();
+            if (query == null || query == "") {
+                that.filteredUsers(users)
+                return;
+            }
+            let params = {
+                portalId: context.PortalId,
+                searchName: query,
+            }
+            Common.Call("GET", "SearchUsers", that.subscriptionsService, params,
+                function (data) {
+                    if (data.Success) {
+                        users = data.Data.filter(user => {
+                            return !that.selectedUsers().some(selectedUser => selectedUser.UserID === user.UserID);
+                        });
+                        that.filteredUsers(users)
+                    }
+                },
+                function (error) {
+                    console.log(error);
+                },
+                function () {
+                });
         });
 
-        this.filteredRoles = ko.computed(function () {
-            var query = that.roleSearchQuery().toLowerCase();
-            return that.rolesArray().filter(function (role) {
-                return role.RoleName.toLowerCase().indexOf(query) >= 0;
-            });
+        this.filteredRoles = ko.observableArray([]);
+
+
+        this.roleSearchQuery.subscribe(function (newValue) {
+            var roles = [];
+            query = newValue.toLowerCase();
+            if (query == null || query == "") {
+                that.filteredRoles(roles)
+                return;
+            }
+            let params = {
+                portalId: context.PortalId,
+                searchName: query,
+            }
+            Common.Call("GET", "SearchRoles", that.subscriptionsService, params,
+                function (data) {
+                    if (data.Success) {
+                        roles = data.Data.filter(role => {
+                            return !that.selectedRoles().some(selectedRole => selectedRole.RoleID === role.RoleID);
+                        });
+                        that.filteredRoles(roles)
+                    }
+                },
+                function (error) {
+                    console.log(error);
+                },
+                function () {
+                });
         });
+        //this.filteredRoles = ko.computed(function () {
+        //    var query = that.roleSearchQuery().toLowerCase();
+        //    return that.rolesArray().filter(function (role) {
+        //        return role.RoleName.toLowerCase().indexOf(query) >= 0;
+        //    });
+        //});
 
         this.createSubscriptionList = function () {
             let params = {
@@ -315,12 +389,10 @@
                                 subscription.Enabled,
                                 JSON.parse(subscription.Users),
                                 JSON.parse(subscription.Roles),
-                                
+                                context.PortalId,
                             );
                             subscriptions.push(b);
-
                         });
-
                         that.subscriptionsArray(subscriptions);
                     }
                     else {
@@ -622,12 +694,12 @@
 
         this.addUserToSelected = function (user) {
             that.selectedUsers.push(user);
-            that.usersArray.remove(user);
+            that.filteredUsers.remove(user);
         };
 
         this.addRoleToSelected = function (role) {
             that.selectedRoles.push(role);
-            that.rolesArray.remove(role);
+            that.filteredRoles.remove(role);
         };
 
         this.addPageToSelected = function (page) {
@@ -637,12 +709,12 @@
         }
         this.removeRoleFromSelected = function (role) {
             that.selectedRoles.remove(role);
-            that.rolesArray.push(role);
+            that.filteredRoles.push(role);
         };
 
         this.removeUserFromSelected = function (user) {
             that.selectedUsers.remove(user);
-            that.usersArray.push(user);
+            that.filteredUsers.push(user);
         };
 
         this.removePageFromSelected = function (page) {
@@ -657,7 +729,7 @@
             }
             else {
                 let serializedUsers = that.selectedUsers().map(a => a.UserID).join(",");
-                let serializedRoles = that.selectedRoles().map(a => a.KeyID).join(",");
+                let serializedRoles = that.selectedRoles().map(a => a.RoleID).join(",");
                 let serialiezReportPages;
                 if (that.selectedPages().length <= 0) {
                     serialiezReportPages = context.ReportPages.value.slice().map(a => a.name).join(",");
@@ -719,7 +791,7 @@
             }
             else {
                 let serializedUsers = subscription.addedUsers().map(user => user.UserID).join(",");
-                let serializedRoles = subscription.addedRoles().map(role => role.KeyID).join(",");
+                let serializedRoles = subscription.addedRoles().map(role => role.RoleID).join(",");
                 let serializedReportPages = subscription.addedPages().map(page => page.name).join(",");
                 let params = {
                     Id: subscription.id(),

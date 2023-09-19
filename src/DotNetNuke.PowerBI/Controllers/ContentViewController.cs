@@ -189,45 +189,6 @@ namespace DotNetNuke.PowerBI.Controllers
                     ViewBag.ReportsPage = reportsPage;
                     ViewBag.DisabledCapacityMessage = embedService.Settings.DisabledCapacityMessage;
                 }
-                List<ObjectPermission> objectPermissions = ObjectPermissionsRepository.Instance.GetObjectPermissionsByPortalExtended(ModuleContext.PortalId)
-                    .Where(permission => permission.PermissionID == 1 && permission.AllowAccess)
-                    .ToList();
-
-                Dictionary<int, UserInfo> usersDict = new Dictionary<int, UserInfo>();
-                Dictionary<int, RoleInfo> rolesDict = new Dictionary<int, RoleInfo>();
-
-                foreach (ObjectPermission permission in objectPermissions)
-                {
-                    if (permission.RoleID != null)
-                    {
-                        List<UserInfo> userInfos = RoleController.Instance.GetUsersByRole(ModuleContext.PortalId, permission.RoleName).ToList();
-                        foreach (UserInfo userInfo in userInfos)
-                        {
-                            if (!usersDict.ContainsKey(userInfo.UserID))
-                            {
-                                usersDict.Add(userInfo.UserID, userInfo);
-                            }
-                        }
-
-                        RoleInfo roleInfo = RoleController.Instance.GetRoleById(ModuleContext.PortalId, permission.RoleID.Value);
-                        if (!rolesDict.ContainsKey(roleInfo.RoleID))
-                        {
-                            rolesDict.Add(roleInfo.RoleID, roleInfo);
-                        }
-                    }
-                    else
-                    {
-                        UserInfo addingUser = UserController.GetUserById(ModuleContext.PortalId, permission.UserID.Value);
-
-                        if (!usersDict.ContainsKey(addingUser.UserID))
-                        {
-                            usersDict.Add(addingUser.UserID, addingUser);
-                        }
-                    }
-                }
-
-                ViewBag.Users = usersDict.Values.ToList();
-                ViewBag.Roles = rolesDict.Values.ToList();
                 var currentLocale = LocaleController.Instance.GetLocale(ModuleContext.PortalId, CultureInfo.CurrentCulture.Name);
 
                 var context = new
@@ -256,8 +217,6 @@ namespace DotNetNuke.PowerBI.Controllers
                     ViewBag.CanEdit,
                     ViewBag.TimeZones,
                     ViewBag.PreferredTimeZone,
-                    ViewBag.Users,
-                    ViewBag.Roles,
                     ViewBag.ReportPages,
                     model.ContentType,
                     Token = model.EmbedToken?.Token,

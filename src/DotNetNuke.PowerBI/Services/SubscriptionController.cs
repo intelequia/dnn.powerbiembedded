@@ -1,10 +1,14 @@
 ﻿using DotNetNuke.Entities.Users;
+using DotNetNuke.PowerBI.Data;
 using DotNetNuke.PowerBI.Data.Bookmarks;
+using DotNetNuke.PowerBI.Data.Models;
 using DotNetNuke.PowerBI.Data.Subscriptions;
 using DotNetNuke.PowerBI.Data.Subscriptions.Models;
 using DotNetNuke.Security;
 using DotNetNuke.Security.Roles;
+using DotNetNuke.Services.Social.Subscriptions.Entities;
 using DotNetNuke.Web.Api;
+using Microsoft.PowerBI.Api;
 using Microsoft.PowerBI.Api.Models;
 using System;
 using System.Collections.Generic;
@@ -43,6 +47,18 @@ namespace DotNetNuke.PowerBI.Services
             public string Roles { get; set; }
 
         }
+
+        public class UserViewModel
+        {
+            public int UserID { get; set; }
+            public string DisplayName { get; set; }
+        }
+
+        public class RoleViewModel
+        {
+            public int RoleID { get; set; }
+            public string RoleName { get; set; }
+        }
         [HttpGet]
         public HttpResponseMessage GetSubscriptions(string reportId)
         {
@@ -55,8 +71,8 @@ namespace DotNetNuke.PowerBI.Services
                 foreach (var subscription in subscriptions)
                 {
                     var subscriptionSubscribers = SubscriptionsSubscribersRepository.Instance.GetSubscribersBySubscription(subscription.Id);
-                    var users = new List<UserInfo>();
-                    var roles = new List<RoleInfo>();
+                    var users = new List<UserViewModel>();
+                    var roles = new List<RoleViewModel>();
                     foreach (var subscriptionSubscriber in subscriptionSubscribers)
                     {
                         if (subscriptionSubscriber.UserId.HasValue)
@@ -64,7 +80,11 @@ namespace DotNetNuke.PowerBI.Services
                             var user = UserController.Instance.GetUserById(portalId, subscriptionSubscriber.UserId.Value);
                             if (user != null)
                             {
-                                users.Add(user);
+                                users.Add(new UserViewModel
+                                {
+                                    UserID = user.UserID,
+                                    DisplayName = user.DisplayName
+                                });
 
                             }
                         }
@@ -73,7 +93,11 @@ namespace DotNetNuke.PowerBI.Services
                             var role = RoleController.Instance.GetRoleById(portalId, subscriptionSubscriber.RoleId.Value);
                             if (role != null)
                             {
-                                roles.Add(role);
+                                roles.Add(new RoleViewModel
+                                {
+                                    RoleID = role.RoleID,
+                                    RoleName = role.RoleName
+                                });
                             }
                         }
                     }
@@ -295,6 +319,122 @@ namespace DotNetNuke.PowerBI.Services
             }
         }
 
+        [HttpGet]
+        public HttpResponseMessage SearchUsers(int portalId, string searchName)
+        {
+            try
+            {
+                List<ObjectPermission> objectPermissions = ObjectPermissionsRepository.Instance.GetObjectPermissionsByPortalExtended(portalId)
+                .Where(permission => permission.PermissionID == 1 && permission.AllowAccess)
+                .ToList();
+                List<UserViewModel> users = new List<UserViewModel>();
+                foreach (ObjectPermission permission in objectPermissions)
+                {
+                    if (permission.UserID != null)
+                    {
+                        UserInfo addingUser = UserController.GetUserById(portalId, permission.UserID.Value);
 
+                        if (addingUser != null && addingUser.DisplayName.ToLower().Contains(searchName.ToLower()))
+                        {
+                            if (users.Where(user => user.UserID == addingUser.UserID).Count() == 0)
+                            {
+                                users.Add(new UserViewModel
+                                {
+                                    UserID = addingUser.UserID,
+                                    DisplayName = addingUser.DisplayName
+                                });
+                            }
+                        }
+                    }
+                    else if (permission.RoleID != null)
+                    {
+                        List<UserInfo> roleUsers = RoleController.Instance.GetUsersByRole(portalId, permission.RoleName).ToList();
+                        foreach (UserInfo user in roleUsers)
+                        {
+                            if (user.DisplayName.ToLower().Contains(searchName.ToLower()))
+                            {
+                                if (users.Where(roleUser => roleUser.UserID == user.UserID).Count() == 0)
+                                {
+                                    users.Add(new UserViewModel
+                                    {
+                                        UserID = user.UserID,
+                                        DisplayName = user.DisplayName
+                                    });
+                                }
+                            }
+                        }
+                    }
+                }
+                if (users != null)
+                {
+                    return Request.CreateResponse(HttpStatusCode.OK, new
+                    {
+                        Success = true,
+                        Data = users
+                    });
+                }
+                return Request.CreateResponse(HttpStatusCode.OK, new
+                {
+                    Success = false,
+                });
+            } catch (Exception ex)
+            {
+                return Request.CreateResponse(HttpStatusCode.InternalServerError, new
+                {
+                    Success = false,
+                    Error = ex
+                });
+            }
+        }
+
+        [HttpGet]
+        public HttpResponseMessage SearchRoles(int portalId, string searchName)
+        {
+            try
+            {
+                List<ObjectPermission> objectPermissions = ObjectPermissionsRepository.Instance.GetObjectPermissionsByPortalExtended(portalId)
+                .Where(permission => permission.PermissionID == 1 && permission.AllowAccess)
+                .ToList();
+                List<RoleViewModel> roles = new List<RoleViewModel>();
+                foreach (ObjectPermission permission in objectPermissions)
+                {
+                    if (permission.RoleID != null)
+                    {
+                        RoleInfo addingRole = RoleController.Instance.GetRoleById(portalId, permission.RoleID.Value);
+
+                        if (addingRole != null && addingRole.RoleName.ToLower().Contains(searchName.ToLower()))
+                        {
+                            if (roles.Where(role => role.RoleID == addingRole.RoleID).Count() == 0)
+                            {
+                                roles.Add(new RoleViewModel
+                                {
+                                    RoleID = addingRole.RoleID,
+                                    RoleName = addingRole.RoleName
+                                });
+                            }
+                        }
+                    }
+                }
+                if (roles != null)
+                {
+                    return Request.CreateResponse(HttpStatusCode.OK, new
+                    {
+                        Success = true,
+                        Data = roles
+                    });
+                }
+                return Request.CreateResponse(HttpStatusCode.OK, new
+                {
+                    Success = false,
+                });
+            } catch (Exception ex)
+            {
+                return Request.CreateResponse(HttpStatusCode.InternalServerError, new
+                {
+                    Success = false,
+                    Error = ex
+                });
+            }
+        }
     }
 }

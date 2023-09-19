@@ -121,7 +121,7 @@
     <value>Añadir</value>
   </data>
   <data name="btnDeleteSubscription.Text" xml:space="preserve">
-    <value>Delete</value>
+    <value>Eliminar</value>
   </data>
   <data name="btnEditSubscription.Text" xml:space="preserve">
     <value>...</value>
