@@ -1,6 +1,7 @@
 ﻿using DotNetNuke.Entities.Controllers;
 using DotNetNuke.Entities.Portals;
 using DotNetNuke.Entities.Users;
+using DotNetNuke.Instrumentation;
 using DotNetNuke.PowerBI.Components;
 using DotNetNuke.PowerBI.Data.Models;
 using DotNetNuke.PowerBI.Data.SharedSettings;
@@ -25,6 +26,8 @@ namespace DotNetNuke.PowerBI.Tasks
 {
     public class SubscribeTask : SchedulerClient
     {
+        private static readonly ILog Logger = LoggerSource.Instance.GetLogger(typeof(SubscribeTask));
+
         public SubscribeTask(ScheduleHistoryItem item) : base()
         {
             this.ScheduleHistoryItem = item;
@@ -64,24 +67,14 @@ namespace DotNetNuke.PowerBI.Tasks
 
                                 if (currentDateTime >= repeatDateTime)
                                 {
-                                    if (subscription.RepeatPeriod.Equals("Daily") && totalDays >= 1)
+                                    if ((subscription.RepeatPeriod.Equals("Daily") && totalDays >= 1)
+                                        || (subscription.RepeatPeriod.Equals("Weekly") && totalDays >= 7)
+                                            || (subscription.RepeatPeriod.Equals("Monthly") && totalDays >= 30))
                                     {
-                                        if (!SendSubscriptionsEmails(setting, tokenCredentials, subscription, portalSettings))
+                                        string result = SendSubscriptionsEmails(setting, tokenCredentials, subscription, portalSettings);
+                                        if (!string.IsNullOrEmpty(result))
                                         {
-                                            continue;
-                                        }
-                                    }
-                                    else if (subscription.RepeatPeriod.Equals("Weekly") && totalDays >= 7)
-                                    {
-                                        if (!SendSubscriptionsEmails(setting, tokenCredentials, subscription, portalSettings))
-                                        {
-                                            continue;
-                                        }
-                                    }
-                                    else if (subscription.RepeatPeriod.Equals("Monthly") && totalDays >= 30)
-                                    {
-                                        if (!SendSubscriptionsEmails(setting, tokenCredentials, subscription, portalSettings))
-                                        {
+                                            this.ScheduleHistoryItem.AddLogNote(result);
                                             continue;
                                         }
                                     }
@@ -95,12 +88,13 @@ namespace DotNetNuke.PowerBI.Tasks
             }
             catch (Exception ex)
             {
+                Logger.Error($"Error processing the subscribe Task", ex);
                 this.ScheduleHistoryItem.AddLogNote(ex.Message);
                 this.ScheduleHistoryItem.Succeeded = false;
                 this.Errored(ref ex);
             }
         }
-        private bool SendSubscriptionsEmails(PowerBISettings setting, TokenCredentials tokenCredentials, Subscription subscription, PortalSettings portalSettings)
+        private string SendSubscriptionsEmails(PowerBISettings setting, TokenCredentials tokenCredentials, Subscription subscription, PortalSettings portalSettings)
         {
             DotNetNuke.PowerBI.Components.Common common = new DotNetNuke.PowerBI.Components.Common();
 
@@ -108,7 +102,7 @@ namespace DotNetNuke.PowerBI.Tasks
             // I want to check if the PDFReport is null or not, if it is null then I want to return false and not send the email
             if (attachment == null)
             {
-                return false;
+                return "There was an ";
             }
             List<Attachment> attachments = new List<Attachment>
                                         {
@@ -149,21 +143,21 @@ namespace DotNetNuke.PowerBI.Tasks
             }
             if (recipients.Count == 0)
             {
-                return false;
+                return $"No recipients found for subscription '{subscription.Name}'";
             }
             string bccEmails = string.Join(",", recipients);
             
             try
             {
                 Mail.SendMail(fromAddress, fromAddress, String.Empty, bccEmails, String.Empty, MailPriority.Normal, subject, MailFormat.Html, Encoding.UTF8, body, attachments, String.Empty, String.Empty, String.Empty, String.Empty, true);
-            } catch
+            } catch (Exception ex)
             {
-                return false;
+                return $"Error processing '{subscription.Name}': {ex.Message}";
             }
-            // subscription.LastProcessedOn = DateTime.Now;
+            subscription.LastProcessedOn = DateTime.Now;
             SubscriptionsRepository.Instance.EditSubscription(subscription);
 
-            return true;
+            return string.Empty;
         }
     }
 }

@@ -40,7 +40,7 @@
             var minutes = time.substring(3, 5);
             var ampm = hours >= 12 ? 'PM' : 'AM';
 
-            // Convert hours from 24-hour to 12-hour format
+            // Convert hours from 24-hour to 12-hour format 
             if (hours > 12) {
                 hours -= 12;
             }
@@ -65,6 +65,7 @@
             message: this.message,
         });
 
+        this.searchTimeout = null;
         this.availableUsers = ko.observableArray([]);
         this.editUserSearchQuery.subscribe(function (newValue) {
             var users = [];
@@ -77,20 +78,25 @@
                 portalId: portalId,
                 searchName: query,
             }
-            Common.Call("GET", "SearchUsers", parent.subscriptionsService, params,
-                function (data) {
-                    if (data.Success) {
-                        users = data.Data.filter(user => {
-                            return !that.addedUsers().some(selectedUser => selectedUser.UserID === user.UserID);
-                        });
-                        that.availableUsers(users)
-                    }
-                },
-                function (error) {
-                    console.log(error);
-                },
-                function () {
-                });
+            if (that.searchTimeout)
+                clearTimeout(that.searchTimeout);
+            that.searchTimeout = setTimeout(function () {
+                that.searchTimeout = null;
+                Common.Call("GET", "SearchUsers", parent.subscriptionsService, params,
+                    function (data) {
+                        if (data.Success) {
+                            users = data.Data.filter(user => {
+                                return !that.addedUsers().some(selectedUser => selectedUser.UserID === user.UserID);
+                            });
+                            that.availableUsers(users)
+                        }
+                    },
+                    function (error) {
+                        console.log(error);
+                    },
+                    function () {
+                    });
+            }, 500);
         });
 
         this.availableRoles = ko.observableArray([]);
@@ -105,20 +111,24 @@
                 portalId: portalId,
                 searchName: query,
             }
-            Common.Call("GET", "SearchRoles", parent.subscriptionsService, params,
-                function (data) {
-                    if (data.Success) {
-                        roles = data.Data.filter(role => {
-                            return !that.addedRoles().some(selectedRole => selectedRole.RoleID === role.RoleID);
-                        });
-                        that.availableRoles(roles)
-                    }
-                },
-                function (error) {
-                    console.log(error);
-                },
-                function () {
-                });
+            if (that.searchTimeout)
+                clearTimeout(that.searchTimeout);
+            that.searchTimeout = setTimeout(function () {
+                Common.Call("GET", "SearchRoles", parent.subscriptionsService, params,
+                    function (data) {
+                        if (data.Success) {
+                            roles = data.Data.filter(role => {
+                                return !that.addedRoles().some(selectedRole => selectedRole.RoleID === role.RoleID);
+                            });
+                            that.availableRoles(roles)
+                        }
+                    },
+                    function (error) {
+                        console.log(error);
+                    },
+                    function () {
+                    });
+            }, 500);
         });
         this.availablePages = ko.computed(function () {
             return that.pagesArray().filter(function (page) {
@@ -130,8 +140,10 @@
         this.startEditing = function () {
             that.editing(true);
             parent.editing(true);
-            parent.selectSubscription(null);
-            parent.cancelAddingSubscription();
+            parent.cancelAddingSubscription();     
+            setTimeout(function () {
+                $('input[type=checkbox]').dnnCheckbox(); //workaround to display the checkboxes
+            }, 0);
         };
 
         this.addUserToSubscription = function (user) {
@@ -285,6 +297,7 @@
         }
 
         this.filteredUsers = ko.observableArray([]);
+        this.searchTimeout = null;
 
         this.userSearchQuery.subscribe(function (newValue) {
             var users = [];
@@ -297,20 +310,24 @@
                 portalId: context.PortalId,
                 searchName: query,
             }
-            Common.Call("GET", "SearchUsers", that.subscriptionsService, params,
-                function (data) {
-                    if (data.Success) {
-                        users = data.Data.filter(user => {
-                            return !that.selectedUsers().some(selectedUser => selectedUser.UserID === user.UserID);
-                        });
-                        that.filteredUsers(users)
-                    }
-                },
-                function (error) {
-                    console.log(error);
-                },
-                function () {
-                });
+            if (that.searchTimeout)
+                clearTimeout(that.searchTimeout);
+            that.searchTimeout = setTimeout(function () {
+                Common.Call("GET", "SearchUsers", that.subscriptionsService, params,
+                    function (data) {
+                        if (data.Success) {
+                            users = data.Data.filter(user => {
+                                return !that.selectedUsers().some(selectedUser => selectedUser.UserID === user.UserID);
+                            });
+                            that.filteredUsers(users)
+                        }
+                    },
+                    function (error) {
+                        console.log(error);
+                    },
+                    function () {
+                    });
+            }, 500);
         });
 
         this.filteredRoles = ko.observableArray([]);
@@ -327,20 +344,24 @@
                 portalId: context.PortalId,
                 searchName: query,
             }
-            Common.Call("GET", "SearchRoles", that.subscriptionsService, params,
-                function (data) {
-                    if (data.Success) {
-                        roles = data.Data.filter(role => {
-                            return !that.selectedRoles().some(selectedRole => selectedRole.RoleID === role.RoleID);
-                        });
-                        that.filteredRoles(roles)
-                    }
-                },
-                function (error) {
-                    console.log(error);
-                },
-                function () {
-                });
+            if (that.searchTimeout)
+                clearTimeout(that.searchTimeout);
+            that.searchTimeout = setTimeout(function () {
+                Common.Call("GET", "SearchRoles", that.subscriptionsService, params,
+                    function (data) {
+                        if (data.Success) {
+                            roles = data.Data.filter(role => {
+                                return !that.selectedRoles().some(selectedRole => selectedRole.RoleID === role.RoleID);
+                            });
+                            that.filteredRoles(roles)
+                        }
+                    },
+                    function (error) {
+                        console.log(error);
+                    },
+                    function () {
+                    });
+            }, 500);
         });
         //this.filteredRoles = ko.computed(function () {
         //    var query = that.roleSearchQuery().toLowerCase();
@@ -357,7 +378,7 @@
                 function (data) {
                     if (data.Success) {
                         var subscriptions = [];
-
+                        
                         data.Data.forEach(subscription => {
                             var reportPageNames = subscription.ReportPages.split(',');
                             var reportPages = reportPageNames.map(function (pageName) {
@@ -674,6 +695,9 @@
         this.startAddingSubscription = function () {
             that.adding(true);
             that.selectedSubscription(null);
+            setTimeout(function () {
+                $('input[type=checkbox]').dnnCheckbox();
+            }, 0);
         };
 
         this.cancelAddingSubscription = function () {
