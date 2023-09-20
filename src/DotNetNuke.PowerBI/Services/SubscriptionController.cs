@@ -333,7 +333,8 @@ namespace DotNetNuke.PowerBI.Services
                     {
                         UserInfo addingUser = UserController.GetUserById(portalId, permission.UserID.Value);
 
-                        if (addingUser != null && addingUser.DisplayName.ToLower().Contains(searchName.ToLower()))
+                        if ((addingUser != null && addingUser.DisplayName.ToLower().Contains(searchName.ToLower()))
+                            || (addingUser != null && addingUser.Email.ToLower().Contains(searchName.ToLower())))
                         {
                             if (users.Where(user => user.UserID == addingUser.UserID).Count() == 0)
                             {
@@ -350,7 +351,8 @@ namespace DotNetNuke.PowerBI.Services
                         List<UserInfo> roleUsers = RoleController.Instance.GetUsersByRole(portalId, permission.RoleName).ToList();
                         foreach (UserInfo user in roleUsers)
                         {
-                            if (user.DisplayName.ToLower().Contains(searchName.ToLower()))
+                            if ((user.DisplayName.ToLower().Contains(searchName.ToLower()))
+                                || (user != null && user.Email.ToLower().Contains(searchName.ToLower())))
                             {
                                 if (users.Where(roleUser => roleUser.UserID == user.UserID).Count() == 0)
                                 {
