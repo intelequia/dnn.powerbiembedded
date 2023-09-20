@@ -9,7 +9,7 @@
         }
     }
 
-    function SubscriptionModel(p, id, portalId, reportId, groupId, name, startDate, endDate, repeatPeriod, repeatTime, timeZone, emailSubject, message, reportPages, enabled, users, roles, portalId) {
+    function SubscriptionModel(p, id, portalId, reportId, groupId, name, startDate, endDate, repeatPeriod, repeatTime, timeZone, emailSubject, message, reportPages, enabled, users, roles) {
         var that = this;
         var parent = p;
         this.id = ko.observable(id);
@@ -75,7 +75,7 @@
                 return;
             }
             let params = {
-                portalId: portalId,
+                portalId: that.portalId,
                 searchName: query,
             }
             if (that.searchTimeout)
@@ -139,9 +139,7 @@
         this.editing = ko.observable(false);
         this.startEditing = function () {
             that.editing(true);
-            parent.editing(true);
-            parent.cancelAddingSubscription();
-            setTimeout(function () {
+            parent.editing(true);            setTimeout(function () {
                 $('input[type=checkbox]').dnnCheckbox(); //workaround to display the checkboxes
             }, 0);
         };
@@ -248,41 +246,10 @@
         // Subscriptions
         this.subscriptionsArray = ko.observableArray([]);
         this.selectSubscription = ko.observable(null);
-
-        // New Subscription
-
-        this.newSubscriptionName = ko.observable('').extend({ required: true });
-        this.newSubscriptionStartDate = ko.observable('').extend({ required: true });
-        this.newSubscriptionEndDate = ko.observable('').extend({ required: true });
-        this.newSubscriptionRepeatPeriod = ko.observable('').extend({ required: true });
-        this.newSubscriptionRepeatTime = ko.observable('').extend({ required: true });
-        this.newSubscriptionTimeZone = ko.observable(context.PreferredTimeZone).extend({ required: true });
-        this.newSubscriptionEmailSubject = ko.observable('').extend({ required: true });
-        this.newSubscriptionMessage = ko.observable('').extend({ required: true });
-        this.newSubscriptionEnabled = ko.observable('')
-
-        // Validation group for a new Subscription
-        this.newSubscriptionErrors = ko.validation.group({
-            newSubscriptionName: this.newSubscriptionName,
-            newSubscriptionStartDate: this.newSubscriptionStartDate,
-            newSubscriptionEndDate: this.newSubscriptionEndDate,
-            newSubscriptionRepeatPeriod: this.newSubscriptionRepeatPeriod,
-            newSubscriptionRepeatTime: this.newSubscriptionRepeatTime,
-            newSubscriptionTimeZone: this.newSubscriptionTimeZone,
-            newSubscriptionEmailSubject: this.newSubscriptionEmailSubject,
-            newSubscriptionMessage: this.newSubscriptionMessage,
-        });
-
-        this.selectedUsers = ko.observableArray([]);
-        this.selectedRoles = ko.observableArray([]);
-        this.selectedPages = ko.observableArray([]);
         this.pagesArray = ko.observableArray(context.ReportPages.value.slice());
-        this.userSearchQuery = ko.observable('');
-        this.roleSearchQuery = ko.observable('');
         this.selectedSubscription = ko.observable();
 
 
-        this.adding = ko.observable(false);
         this.editing = ko.observable(false);
 
         this.subscriptionsService = {
@@ -295,80 +262,7 @@
         this.goToSubscription = function (subscription) {
             that.selectSubscription(subscription);
         }
-
-        this.filteredUsers = ko.observableArray([]);
         this.searchTimeout = null;
-
-        this.userSearchQuery.subscribe(function (newValue) {
-            var users = [];
-            query = newValue.toLowerCase();
-            if (query == null || query == "") {
-                that.filteredUsers(users)
-                return;
-            }
-            let params = {
-                portalId: context.PortalId,
-                searchName: query,
-            }
-            if (that.searchTimeout)
-                clearTimeout(that.searchTimeout);
-            that.searchTimeout = setTimeout(function () {
-                Common.Call("GET", "SearchUsers", that.subscriptionsService, params,
-                    function (data) {
-                        if (data.Success) {
-                            users = data.Data.filter(user => {
-                                return !that.selectedUsers().some(selectedUser => selectedUser.UserID === user.UserID);
-                            });
-                            that.filteredUsers(users)
-                        }
-                    },
-                    function (error) {
-                        console.log(error);
-                    },
-                    function () {
-                    });
-            }, 500);
-        });
-
-        this.filteredRoles = ko.observableArray([]);
-
-
-        this.roleSearchQuery.subscribe(function (newValue) {
-            var roles = [];
-            query = newValue.toLowerCase();
-            if (query == null || query == "") {
-                that.filteredRoles(roles)
-                return;
-            }
-            let params = {
-                portalId: context.PortalId,
-                searchName: query,
-            }
-            if (that.searchTimeout)
-                clearTimeout(that.searchTimeout);
-            that.searchTimeout = setTimeout(function () {
-                Common.Call("GET", "SearchRoles", that.subscriptionsService, params,
-                    function (data) {
-                        if (data.Success) {
-                            roles = data.Data.filter(role => {
-                                return !that.selectedRoles().some(selectedRole => selectedRole.RoleID === role.RoleID);
-                            });
-                            that.filteredRoles(roles)
-                        }
-                    },
-                    function (error) {
-                        console.log(error);
-                    },
-                    function () {
-                    });
-            }, 500);
-        });
-        //this.filteredRoles = ko.computed(function () {
-        //    var query = that.roleSearchQuery().toLowerCase();
-        //    return that.rolesArray().filter(function (role) {
-        //        return role.RoleName.toLowerCase().indexOf(query) >= 0;
-        //    });
-        //});
 
         this.createSubscriptionList = function () {
             let params = {
@@ -691,122 +585,38 @@
             that.editing(false);
             that.selectedSubscription(null);
         };
-
-        this.startAddingSubscription = function () {
-            that.adding(true);
-            that.selectedSubscription(null);
-            that.newSubscriptionTimeZone(context.PreferredTimeZone.Id);
-            setTimeout(function () {
-                $('input[type=checkbox]').dnnCheckbox();
-            }, 0);
-        };
-
-        this.cancelAddingSubscription = function () {
-            that.adding(false);
-            that.newSubscriptionName('');
-            that.newSubscriptionStartDate('');
-            that.newSubscriptionEndDate('');
-            that.newSubscriptionRepeatPeriod('');
-            that.newSubscriptionRepeatTime('');
-            that.newSubscriptionTimeZone('');
-            that.newSubscriptionEmailSubject('');
-            that.newSubscriptionMessage('');
-            that.newSubscriptionEnabled(false);
-            that.selectedUsers([]);
-            that.selectedRoles([]);
-            that.selectedPages([]);
-        };
-
-        this.addUserToSelected = function (user) {
-            that.selectedUsers.push(user);
-            that.filteredUsers.remove(user);
-        };
-
-        this.addRoleToSelected = function (role) {
-            that.selectedRoles.push(role);
-            that.filteredRoles.remove(role);
-        };
-
-        this.addPageToSelected = function (page) {
-            that.selectedPages.push(page);
-            that.pagesArray.remove(page);
-
-        }
-        this.removeRoleFromSelected = function (role) {
-            that.selectedRoles.remove(role);
-            that.filteredRoles.push(role);
-        };
-
-        this.removeUserFromSelected = function (user) {
-            that.selectedUsers.remove(user);
-            that.filteredUsers.push(user);
-        };
-
-        this.removePageFromSelected = function (page) {
-            that.selectedPages.remove(page);
-            that.pagesArray.push(page);
-        };
-
-            
         this.addNewSubscription = function () {
-            if (that.newSubscriptionErrors().length > 0) {
-                that.newSubscriptionErrors.showAllMessages(true);
+            let params = {
+                portalId: context.PortalId,
+                reportId: that.report.config.id,
+                groupId: that.report.config.groupId,
+                name: "Change me! *",
+                startDate: new Date().toISOString().split('T')[0],
+                endDate: new Date().toISOString().split('T')[0],
+                repeatPeriod: "Daily",
+                repeatTime: "00:00:00",
+                timeZone: context.PreferredTimeZone.Id,
+                emailSubject: "Change me",
+                message: "Change me",
+                reportPages: "",
+                enabled: false,
+                users: "",
+                roles: "",
             }
-            else {
-                let serializedUsers = that.selectedUsers().map(a => a.UserID).join(",");
-                let serializedRoles = that.selectedRoles().map(a => a.RoleID).join(",");
-                let serialiezReportPages;
-                if (that.selectedPages().length <= 0) {
-                    serialiezReportPages = context.ReportPages.value.slice().map(a => a.name).join(",");
-                }
-                else {
-                    serialiezReportPages = that.selectedPages().map(a => a.name).join(",");
-                }
-                let params = {
-                    reportId: that.report.config.id,
-                    groupId: that.report.config.groupId,
-                    name: that.newSubscriptionName(),
-                    startDate: that.newSubscriptionStartDate(),
-                    endDate: that.newSubscriptionEndDate(),
-                    repeatPeriod: that.newSubscriptionRepeatPeriod(),
-                    repeatTime: that.newSubscriptionRepeatTime(),
-                    timeZone: that.newSubscriptionTimeZone(),
-                    emailSubject: that.newSubscriptionEmailSubject(),
-                    message: that.newSubscriptionMessage(),
-                    reportPages: serialiezReportPages,
-                    enabled: that.newSubscriptionEnabled(),
-                    users: serializedUsers,
-                    roles: serializedRoles,
-                }
-                Common.Call("POST", "AddSubscription", that.subscriptionsService, params,
-                    function (data) {
-                        if (data.Success) {
-                            that.newSubscriptionName('');
-                            that.newSubscriptionStartDate('');
-                            that.newSubscriptionEndDate('');
-                            that.newSubscriptionRepeatPeriod('');
-                            that.newSubscriptionRepeatTime('');
-                            that.newSubscriptionTimeZone('');
-                            that.newSubscriptionEmailSubject('');
-                            that.newSubscriptionMessage('');
-                            that.newSubscriptionEnabled(false);
-                            that.selectedUsers([]);
-                            that.selectedRoles([]);
-                            that.selectedPages([]);
-                            that.createSubscriptionList();
-                            that.cancelAddingSubscription();
-                            that.newSubscriptionErrors.showAllMessages(false);
-                        }
-                        else {
-                            alert(data.ErrorMessage);
-                        }
-                    },
-                    function (error) {
-                        console.log(error);
-                    },
-                    function () {
-                    });
-            }
+            Common.Call("POST", "AddSubscription", that.subscriptionsService, params,
+                function (data) {
+                    if (data.Success) {
+                        that.createSubscriptionList();
+                    }
+                    else {
+                        alert(data.ErrorMessage);
+                    }
+                },
+                function (error) {
+                    console.log(error);
+                },
+                function () {
+                });
         }
 
         this.saveEditedSubscription = function (subscription) {
@@ -850,8 +660,6 @@
                     });
             }
         };
-
-
         this.getParameterByName = function (name, url) {
             if (!url) url = window.location.href;
             name = name.replace(/[\[\]]/g, '\\$&');
