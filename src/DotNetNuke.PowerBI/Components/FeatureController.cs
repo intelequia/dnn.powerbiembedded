@@ -216,7 +216,7 @@ namespace DotNetNuke.PowerBI
                 var startTime = DateTime.Now;
                 var timeLapse = 15;
                 var timeLapseMeasurement = "m";
-                var retryTimeLapse = 30;
+                var retryTimeLapse = 5;
                 var retryTimeLapseMeasurement = "m";
                 var retainHistoryNum = 0;
                 var attachToEvent = "";

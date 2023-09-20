@@ -130,5 +130,9 @@
 
 	<b>Version 1.1.1</b>
 	<p>feat: added option to hide refresh buttons on the toolbar.</p>
+
+	<b>Version 1.2.0</b>
+	<p>feat: added the subscription panel to manage subscriptions.</p>
+	<p>feat: added the option to hide the subscription panel.</p>
 	
 </div>

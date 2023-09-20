@@ -139,7 +139,7 @@
     <value>Error</value>
   </data>
   <data name="NewSubscription.Text" xml:space="preserve">
-    <value>Añadur nueva suscripción</value>
+    <value>Añadir nueva suscripción</value>
   </data>
   <data name="NewSubscriptionDetails.Text" xml:space="preserve">
     <value>Introduzca la información para la nueva suscripción.</value>

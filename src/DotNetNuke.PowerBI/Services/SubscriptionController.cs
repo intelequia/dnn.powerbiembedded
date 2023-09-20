@@ -67,7 +67,6 @@ namespace DotNetNuke.PowerBI.Services
                 var userId = UserController.Instance.GetCurrentUserInfo().UserID;
                 var portalId = PortalSettings.PortalId;
                 var subscriptions = SubscriptionsRepository.Instance.GetSubscriptionsByReportId(reportId, portalId);
-                // I need that foreach subscription, I get the users and roles that are subscribed to it
                 foreach (var subscription in subscriptions)
                 {
                     var subscriptionSubscribers = SubscriptionsSubscribersRepository.Instance.GetSubscribersBySubscription(subscription.Id);

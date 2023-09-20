@@ -74,6 +74,7 @@ namespace DotNetNuke.PowerBI.Tasks
                                         string result = SendSubscriptionsEmails(setting, tokenCredentials, subscription, portalSettings);
                                         if (!string.IsNullOrEmpty(result))
                                         {
+                                            Logger.Error($"Error: {result}");
                                             this.ScheduleHistoryItem.AddLogNote(result);
                                             continue;
                                         }
@@ -97,12 +98,18 @@ namespace DotNetNuke.PowerBI.Tasks
         private string SendSubscriptionsEmails(PowerBISettings setting, TokenCredentials tokenCredentials, Subscription subscription, PortalSettings portalSettings)
         {
             DotNetNuke.PowerBI.Components.Common common = new DotNetNuke.PowerBI.Components.Common();
+            Attachment attachment = null;
+            try
+            {
+                attachment = common.ExportPowerBIReport(Guid.Parse(subscription.ReportId), tokenCredentials, setting, subscription.ReportPages, portalSettings.DefaultLanguage.ToLower()).Result;
+            } catch (Exception ex)
+            {
+                return $"Error processing '{subscription.Name}': {ex.InnerException.Message}\n";
+            }
 
-            Attachment attachment = common.ExportPowerBIReport(Guid.Parse(subscription.ReportId), tokenCredentials, setting, subscription.ReportPages, portalSettings.DefaultLanguage.ToLower()).Result;
-            // I want to check if the PDFReport is null or not, if it is null then I want to return false and not send the email
             if (attachment == null)
             {
-                return "There was an ";
+                return "There was an error processing the export.";
             }
             List<Attachment> attachments = new List<Attachment>
                                         {

@@ -4,20 +4,19 @@ using DotNetNuke.PowerBI.Data.Models;
 using DotNetNuke.PowerBI.Models;
 using DotNetNuke.Services.Localization;
 using Microsoft.IdentityModel.Clients.ActiveDirectory;
-using Microsoft.PowerBI.Api.Models;
 using Microsoft.PowerBI.Api;
+using Microsoft.PowerBI.Api.Models;
 using Microsoft.Rest;
-using System.Collections.Generic;
 using System;
+using System.Collections.Generic;
 using System.Globalization;
-using System.Threading.Tasks;
-using System.Threading;
 using System.Linq;
-using UserInfo = DotNetNuke.Entities.Users.UserInfo;
-using System.IO;
 using System.Net.Mail;
 using System.Net.Mime;
-using DotNetNuke.Instrumentation;
+using System.Threading;
+using System.Threading.Tasks;
+using System.Web.UI.WebControls;
+using UserInfo = DotNetNuke.Entities.Users.UserInfo;
 
 namespace DotNetNuke.PowerBI.Components
 {
@@ -213,58 +212,60 @@ namespace DotNetNuke.PowerBI.Components
             string reportPages,
             string locale = "en-us")
         {
-            string urlFilter = null;
-            int pollingtimeOutInMinutes = 1;
-            FileFormat format = FileFormat.PDF;
-            Pages pageNames = await GetReportPages(reportId, tokenCredentials, setting);
-            string[] pages = reportPages.Split(',');
-            if (reportPages != "All" && reportPages != "")
+            try
             {
-                pageNames.Value = pageNames.Value.Where(page => pages.Contains(page.Name)).ToList();
-            }
-
-            CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
-            CancellationToken cancellationToken = cancellationTokenSource.Token;
-            const int c_maxNumberOfRetries = 3; /* Can be set to any desired number */
-            const int c_secToMillisec = 1000;
-
-            Export export = null;
-            int retryAttempt = 1;
-            do
-            {
-                var exportId = await PostExportRequest(reportId, tokenCredentials, setting, format, pageNames, urlFilter, locale);
-                var httpMessage = await PollExportRequest(reportId, exportId, pollingtimeOutInMinutes, cancellationToken, tokenCredentials, setting);
-                export = httpMessage?.Body;
-                if (export == null)
+                string urlFilter = null;
+                int pollingtimeOutInMinutes = 1;
+                FileFormat format = FileFormat.PDF;
+                Pages pageNames = await GetReportPages(reportId, tokenCredentials, setting);
+                string[] pages = reportPages.Split(',');
+                if (reportPages != "All" && reportPages != "")
                 {
-                    throw new ApplicationException("There was a failure exporting the report");
+                    pageNames.Value = pageNames.Value.Where(page => pages.Contains(page.Name)).ToList();
                 }
-                if (export.Status == ExportState.Failed)
+
+                CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
+                CancellationToken cancellationToken = cancellationTokenSource.Token;
+                const int c_maxNumberOfRetries = 3; /* Can be set to any desired number */
+                const int c_secToMillisec = 1000;
+
+                Export export = null;
+                int retryAttempt = 1;
+                do
                 {
-                    // Some failure cases indicate that the system is currently busy. The entire export operation can be retried after a certain delay
-                    // In such cases the recommended waiting time before retrying the entire export operation can be found in the RetryAfter header
-                    var retryAfter = httpMessage.Response.Headers.RetryAfter;
-                    if (retryAfter == null)
+
+                    var exportId = await PostExportRequest(reportId, tokenCredentials, setting, format, pageNames, urlFilter, locale);
+                    var httpMessage = await PollExportRequest(reportId, exportId, pollingtimeOutInMinutes, cancellationToken, tokenCredentials, setting);
+                    export = httpMessage?.Body;
+                    if (export == null)
                     {
-                        // Failed state with no RetryAfter header indicates that the export failed permanently
-                        throw new ApplicationException("Failed state with no RetryAfter header indicates that the export failed permanently");
+                        throw new ApplicationException("There was a failure exporting the report");
                     }
-
-                    var retryAfterInSec = retryAfter.Delta.Value.Seconds;
-                    await Task.Delay(retryAfterInSec * c_secToMillisec);
+                    if (export.Status == ExportState.Failed)
+                    {
+                        // Some failure cases indicate that the system is currently busy. The entire export operation can be retried after a certain delay
+                        // In such cases the recommended waiting time before retrying the entire export operation can be found in the RetryAfter header
+                        var retryAfter = httpMessage.Response.Headers.RetryAfter ?? throw new ApplicationException("Export Error: Failed state with no RetryAfter header indicates that the export failed permanently.");
+                        var retryAfterInSec = retryAfter.Delta.Value.Seconds;
+                        await Task.Delay(retryAfterInSec * c_secToMillisec);
+                    }
                 }
-            }
-            while (export.Status != ExportState.Succeeded && retryAttempt++ < c_maxNumberOfRetries);
+                while (export.Status != ExportState.Succeeded && retryAttempt++ < c_maxNumberOfRetries);
 
-            if (export.Status != ExportState.Succeeded)
+                if (export.Status != ExportState.Succeeded)
+                {
+                    throw new ApplicationException("Export Error: The export didn't succeed");
+                }
+
+                ExportedFile exportedFile = await GetExportedFile(reportId, export, tokenCredentials, setting);
+
+                Attachment attachment = new Attachment(exportedFile.FileStream, export.ReportName + exportedFile.FileSuffix, MediaTypeNames.Application.Pdf);
+                return attachment;
+            }
+            catch (Exception ex)
             {
-                throw new ApplicationException("The export didn't succeed");
+                throw new ApplicationException($"Export Error: {ex.Message}");
             }
-
-            ExportedFile exportedFile = await GetExportedFile(reportId, export, tokenCredentials, setting);
-
-            Attachment attachment = new Attachment(exportedFile.FileStream, export.ReportName + exportedFile.FileSuffix, MediaTypeNames.Application.Pdf);
-            return attachment;
         }
         public async Task<string> PostExportRequest(
     Guid reportId,
@@ -314,7 +315,7 @@ namespace DotNetNuke.PowerBI.Components
             }
             catch (Exception e)
             {
-                return null;
+                throw new ApplicationException($"Post Export Error: {e.Message}");
             }
         }
         public async Task<HttpOperationResponse<Export>> PollExportRequest(
@@ -360,7 +361,7 @@ namespace DotNetNuke.PowerBI.Components
             }
             catch (Exception ex)
             {
-                return null;
+                throw new ApplicationException($"Poll Export Error: {ex.Message}");
             }
         }
 
@@ -388,7 +389,7 @@ namespace DotNetNuke.PowerBI.Components
             }
             catch (Exception ex)
             {
-                return null;
+                throw new ApplicationException($"Get Exported File Error: {ex.Message}");
             }
         }
 
@@ -397,13 +398,22 @@ namespace DotNetNuke.PowerBI.Components
             TokenCredentials tokenCredentials,
             PowerBISettings settings)
         {
-            Pages pages = null;
-
-            using (var client = new PowerBIClient(new Uri(settings.ApiUrl), tokenCredentials))
+            try
             {
-                pages = client.Reports.GetPages(reportId);
+                Pages pages = null;
+
+                using (var client = new PowerBIClient(new Uri(settings.ApiUrl), tokenCredentials))
+                {
+                    pages = client.Reports.GetPages(reportId);
+                }
+                return pages;
             }
-            return pages;
+            catch
+            (Exception ex)
+            {
+                throw new ApplicationException($"Get Report Pages Error: {ex.Message}");
+            }
+
         }
 
 

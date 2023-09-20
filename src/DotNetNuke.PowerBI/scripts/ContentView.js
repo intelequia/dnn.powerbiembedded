@@ -140,7 +140,7 @@
         this.startEditing = function () {
             that.editing(true);
             parent.editing(true);
-            parent.cancelAddingSubscription();     
+            parent.cancelAddingSubscription();
             setTimeout(function () {
                 $('input[type=checkbox]').dnnCheckbox(); //workaround to display the checkboxes
             }, 0);
@@ -378,7 +378,7 @@
                 function (data) {
                     if (data.Success) {
                         var subscriptions = [];
-                        
+
                         data.Data.forEach(subscription => {
                             var reportPageNames = subscription.ReportPages.split(',');
                             var reportPages = reportPageNames.map(function (pageName) {
@@ -388,10 +388,10 @@
 
                                 return correspondingPage ? correspondingPage : null;
                             })
-                            .filter(function (page) {
-                                return page !== null; // Remove null values (non-existing pages)
-                            });
-                            
+                                .filter(function (page) {
+                                    return page !== null; // Remove null values (non-existing pages)
+                                });
+
                             var b = new SubscriptionModel(
                                 that,
                                 subscription.Id,
@@ -531,7 +531,7 @@
                 // Create bookmarks list from the existing report bookmarks 
                 that.updateBookmarksList(bookmarks);
             });
-        this.trackEvent = function(eventName, data) {
+        this.trackEvent = function (eventName, data) {
             if (that.applicationInsightsEnabled && typeof appInsights !== "undefined") {
                 let userId = "-1";
                 if (dnn.getVar("dnn_current_userid") !== undefined) {
@@ -571,7 +571,7 @@
 
 
 
-        this.createBookmarksList = function() {
+        this.createBookmarksList = function () {
             let params = {
                 reportId: context.Id
             }
@@ -599,7 +599,7 @@
                 });
         }
 
-        this.updateBookmarksList = function(bookmarks) {
+        this.updateBookmarksList = function (bookmarks) {
             // Set bookmarks array to the report's fetched bookmarks
             that.bookmarksArray(bookmarks);
             // Set first bookmark active
@@ -611,7 +611,7 @@
             }
         }
 
-        this.onBookmarkClicked = function(element) {
+        this.onBookmarkClicked = function (element) {
             // Set the clicked bookmark as active
             that.selectedBookmark(element);
 
@@ -689,12 +689,13 @@
         this.cancelEditing = function (subscription) {
             subscription.cancelEditing();
             that.editing(false);
-            that.selectedSubscription(null); 
+            that.selectedSubscription(null);
         };
 
         this.startAddingSubscription = function () {
             that.adding(true);
             that.selectedSubscription(null);
+            that.newSubscriptionTimeZone(context.PreferredTimeZone.Id);
             setTimeout(function () {
                 $('input[type=checkbox]').dnnCheckbox();
             }, 0);
