@@ -215,6 +215,10 @@ namespace DotNetNuke.PowerBI.Services
             try
             {
                 var serializer = new JavaScriptSerializer();
+                if (subscriptionViewModel.Id == -1)
+                {
+                    return AddSubscription(subscriptionViewModel);
+                }
                 Subscription subscription = SubscriptionsRepository.Instance.GetSubscriptionById(subscriptionViewModel.Id);
                 subscription.Name = subscriptionViewModel.Name;
                 subscription.StartDate = subscriptionViewModel.StartDate;

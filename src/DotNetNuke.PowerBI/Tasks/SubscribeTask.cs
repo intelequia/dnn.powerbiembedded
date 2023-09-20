@@ -49,7 +49,7 @@ namespace DotNetNuke.PowerBI.Tasks
 
                         if (subscription.Enabled)
                         {
-                            if(DateTime.Now > subscription.StartDate && DateTime.Now < subscription.EndDate)
+                            if(DateTime.Now.Date >= subscription.StartDate.Date && DateTime.Now.Date <= subscription.EndDate.Date)
                             {
                                 DateTime currentDate = DateTime.Now;
                                 TimeSpan timeSinceLastProcessed = new TimeSpan();

@@ -168,7 +168,6 @@
         }
         // Method to cancel editing
         this.cancelEditing = function () {
-            // Reset the observable properties to their original values
             that.name(name);
             that.startDate(startDate);
             that.endDate(endDate);
@@ -184,6 +183,7 @@
             // Set editing state back to false
             that.editing(false);
             parent.editing(false);
+            parent.createSubscriptionList();
         };
 
         this.editSubscription = function () {
@@ -586,37 +586,27 @@
             that.selectedSubscription(null);
         };
         this.addNewSubscription = function () {
-            let params = {
-                portalId: context.PortalId,
-                reportId: that.report.config.id,
-                groupId: that.report.config.groupId,
-                name: "Change me! *",
-                startDate: new Date().toISOString().split('T')[0],
-                endDate: new Date().toISOString().split('T')[0],
-                repeatPeriod: "Daily",
-                repeatTime: "00:00:00",
-                timeZone: context.PreferredTimeZone.Id,
-                emailSubject: "Change me",
-                message: "Change me",
-                reportPages: "",
-                enabled: false,
-                users: "",
-                roles: "",
-            }
-            Common.Call("POST", "AddSubscription", that.subscriptionsService, params,
-                function (data) {
-                    if (data.Success) {
-                        that.createSubscriptionList();
-                    }
-                    else {
-                        alert(data.ErrorMessage);
-                    }
-                },
-                function (error) {
-                    console.log(error);
-                },
-                function () {
-                });
+            var b = new SubscriptionModel(
+                that,
+                -1,
+                context.PortalId,
+                that.report.config.id,
+                that.report.config.groupId,
+                "",
+                "",
+                "",
+                "",
+                "",
+                context.PreferredTimeZone.Id,
+                "",
+                "",
+                [],
+                false,
+                [],
+                [],
+            );
+            that.subscriptionsArray.push(b);
+            b.editSubscription();
         }
 
         this.saveEditedSubscription = function (subscription) {
@@ -630,6 +620,9 @@
                 let serializedReportPages = subscription.addedPages().map(page => page.name).join(",");
                 let params = {
                     Id: subscription.id(),
+                    ReportId: subscription.reportId(),
+                    GroupId: subscription.groupId(),
+                    PortalId: subscription.portalId(),
                     Name: subscription.name(),
                     StartDate: subscription.startDate(),
                     EndDate: subscription.endDate(),
@@ -641,8 +634,7 @@
                     ReportPages: serializedReportPages,
                     Enabled: subscription.enabled(),
                     Users: serializedUsers,
-                    Roles: serializedRoles
-
+                    Roles: serializedRoles,
                 };
                 Common.Call("POST", "EditSubscription", that.subscriptionsService, params,
                     function (data) {
