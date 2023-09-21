@@ -49,18 +49,18 @@ namespace DotNetNuke.PowerBI.Tasks
                         {
                             PortalSettings portalSettings = new PortalSettings(subscription.PortalId);
 
-                            if (subscription.Enabled)
+                        if (subscription.Enabled)
+                        {
+                            if(DateTime.Now.Date >= subscription.StartDate.Date && DateTime.Now.Date <= subscription.EndDate.Date)
                             {
-                                if (DateTime.Now > subscription.StartDate && DateTime.Now < subscription.EndDate)
+                                DateTime currentDate = DateTime.Now;
+                                TimeSpan timeSinceLastProcessed = new TimeSpan();
+                                double totalDays = 30;
+                                if (subscription.LastProcessedOn.HasValue)
                                 {
-                                    DateTime currentDate = DateTime.Now;
-                                    TimeSpan timeSinceLastProcessed = new TimeSpan();
-                                    double totalDays = 30;
-                                    if (subscription.LastProcessedOn.HasValue)
-                                    {
-                                        timeSinceLastProcessed = currentDate - subscription.LastProcessedOn.Value;
-                                        totalDays = timeSinceLastProcessed.TotalDays;
-                                    }
+                                    timeSinceLastProcessed = currentDate - subscription.LastProcessedOn.Value;
+                                    totalDays = timeSinceLastProcessed.TotalDays;
+                                }
 
 
                                     TimeSpan repeatTime = subscription.RepeatTime;

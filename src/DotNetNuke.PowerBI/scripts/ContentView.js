@@ -168,7 +168,7 @@
         }
         // Method to cancel editing
         this.cancelEditing = function () {
-            // Reset the observable properties to their original values
+
             that.name(name);
             that.startDate(startDate);
             that.endDate(endDate);
@@ -181,6 +181,7 @@
             that.addedUsers(users.slice());
             that.addedRoles(roles.slice());
             that.addedPages(reportPages.slice());
+            
             // Set editing state back to false
             that.editing(false);
             parent.editing(false);
@@ -245,7 +246,6 @@
 
         // Subscriptions
         this.subscriptionsArray = ko.observableArray([]);
-        this.selectSubscription = ko.observable(null);
         this.pagesArray = ko.observableArray(context.ReportPages.value.slice());
         this.selectedSubscription = ko.observable();
 
@@ -259,9 +259,7 @@
         }
         this.subscriptionsService.baseUrl = that.subscriptionsService.framework.getServiceRoot(that.subscriptionsService.path);
 
-        this.goToSubscription = function (subscription) {
-            that.selectSubscription(subscription);
-        }
+
         this.searchTimeout = null;
 
         this.createSubscriptionList = function () {
@@ -581,42 +579,37 @@
 
 
         this.cancelEditing = function (subscription) {
-            subscription.cancelEditing();
+            if (subscription.id() == -1) {
+                that.subscriptionsArray.splice(that.subscriptionsArray.indexOf(subscription), 1);
+            }
+            else {
+                subscription.cancelEditing();
+            }
             that.editing(false);
             that.selectedSubscription(null);
         };
         this.addNewSubscription = function () {
-            let params = {
-                portalId: context.PortalId,
-                reportId: that.report.config.id,
-                groupId: that.report.config.groupId,
-                name: "Change me! *",
-                startDate: new Date().toISOString().split('T')[0],
-                endDate: new Date().toISOString().split('T')[0],
-                repeatPeriod: "Daily",
-                repeatTime: "00:00:00",
-                timeZone: context.PreferredTimeZone.Id,
-                emailSubject: "Change me",
-                message: "Change me",
-                reportPages: "",
-                enabled: false,
-                users: "",
-                roles: "",
-            }
-            Common.Call("POST", "AddSubscription", that.subscriptionsService, params,
-                function (data) {
-                    if (data.Success) {
-                        that.createSubscriptionList();
-                    }
-                    else {
-                        alert(data.ErrorMessage);
-                    }
-                },
-                function (error) {
-                    console.log(error);
-                },
-                function () {
-                });
+            var b = new SubscriptionModel(
+                that,
+                -1,
+                context.PortalId,
+                that.report.config.id,
+                that.report.config.groupId,
+                "",
+                "",
+                "",
+                "",
+                "",
+                context.PreferredTimeZone.Id,
+                "",
+                "",
+                [],
+                false,
+                [],
+                [],
+            );
+            that.subscriptionsArray.push(b);
+            b.editSubscription();
         }
 
         this.saveEditedSubscription = function (subscription) {
@@ -630,6 +623,9 @@
                 let serializedReportPages = subscription.addedPages().map(page => page.name).join(",");
                 let params = {
                     Id: subscription.id(),
+                    ReportId: subscription.reportId(),
+                    GroupId: subscription.groupId(),
+                    PortalId: subscription.portalId(),
                     Name: subscription.name(),
                     StartDate: subscription.startDate(),
                     EndDate: subscription.endDate(),
@@ -641,8 +637,7 @@
                     ReportPages: serializedReportPages,
                     Enabled: subscription.enabled(),
                     Users: serializedUsers,
-                    Roles: serializedRoles
-
+                    Roles: serializedRoles,
                 };
                 Common.Call("POST", "EditSubscription", that.subscriptionsService, params,
                     function (data) {

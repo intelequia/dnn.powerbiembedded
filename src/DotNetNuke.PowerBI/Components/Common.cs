@@ -179,26 +179,12 @@ namespace DotNetNuke.PowerBI.Components
         public async Task<AuthenticationResult> DoAuthenticationAsync(PowerBISettings setting)
         {
             AuthenticationResult authenticationResult = null;
-            if (setting.AuthenticationType.Equals("MasterUser"))
-            {
-                var authenticationContext = new AuthenticationContext(setting.AuthorityUrl);
+            var authenticationContext = new AuthenticationContext(setting.AuthorityUrl);
 
-                // Authentication using master user credentials
-                var credential = new UserPasswordCredential(setting.Username, setting.Password);
-                authenticationResult = authenticationContext.AcquireTokenAsync(setting.ResourceUrl, setting.ApplicationId, credential).Result;
-            }
-            else
-            {
-                // For app only authentication, we need the specific tenant id in the authority url
-                var tenantSpecificURL = setting.AuthorityUrl.Replace("common", setting.ServicePrincipalTenant);
-                var authenticationContext = new AuthenticationContext(tenantSpecificURL);
-
-                // Authentication using app credentials
-                var credential = new ClientCredential(setting.ServicePrincipalApplicationId, setting.ServicePrincipalApplicationSecret);
-                authenticationResult = authenticationContext.AcquireTokenAsync(setting.ResourceUrl, credential).Result;
-            }
+            // Authentication using master user credentials
+            var credential = new UserPasswordCredential(setting.Username, setting.Password);
+            authenticationResult = authenticationContext.AcquireTokenAsync(setting.ResourceUrl, setting.ApplicationId, credential).Result;
             await Task.CompletedTask;
-
             return authenticationResult;
         }
         #endregion
@@ -215,7 +201,7 @@ namespace DotNetNuke.PowerBI.Components
             try
             {
                 string urlFilter = null;
-                int pollingtimeOutInMinutes = 1;
+                int pollingtimeOutInMinutes = 5;
                 FileFormat format = FileFormat.PDF;
                 Pages pageNames = await GetReportPages(reportId, tokenCredentials, setting);
                 string[] pages = reportPages.Split(',');
@@ -226,8 +212,8 @@ namespace DotNetNuke.PowerBI.Components
 
                 CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
                 CancellationToken cancellationToken = cancellationTokenSource.Token;
-                const int c_maxNumberOfRetries = 3; /* Can be set to any desired number */
-                const int c_secToMillisec = 1000;
+                const int c_maxNumberOfRetries = 6; /* Can be set to any desired number */
+                const int c_secToMillisec = 2000;
 
                 Export export = null;
                 int retryAttempt = 1;
