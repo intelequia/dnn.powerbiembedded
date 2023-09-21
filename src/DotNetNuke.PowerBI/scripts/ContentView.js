@@ -168,6 +168,7 @@
         }
         // Method to cancel editing
         this.cancelEditing = function () {
+
             that.name(name);
             that.startDate(startDate);
             that.endDate(endDate);
@@ -180,10 +181,10 @@
             that.addedUsers(users.slice());
             that.addedRoles(roles.slice());
             that.addedPages(reportPages.slice());
+            
             // Set editing state back to false
             that.editing(false);
             parent.editing(false);
-            parent.createSubscriptionList();
         };
 
         this.editSubscription = function () {
@@ -245,7 +246,6 @@
 
         // Subscriptions
         this.subscriptionsArray = ko.observableArray([]);
-        this.selectSubscription = ko.observable(null);
         this.pagesArray = ko.observableArray(context.ReportPages.value.slice());
         this.selectedSubscription = ko.observable();
 
@@ -259,9 +259,7 @@
         }
         this.subscriptionsService.baseUrl = that.subscriptionsService.framework.getServiceRoot(that.subscriptionsService.path);
 
-        this.goToSubscription = function (subscription) {
-            that.selectSubscription(subscription);
-        }
+
         this.searchTimeout = null;
 
         this.createSubscriptionList = function () {
@@ -581,7 +579,12 @@
 
 
         this.cancelEditing = function (subscription) {
-            subscription.cancelEditing();
+            if (subscription.id() == -1) {
+                that.subscriptionsArray.splice(that.subscriptionsArray.indexOf(subscription), 1);
+            }
+            else {
+                subscription.cancelEditing();
+            }
             that.editing(false);
             that.selectedSubscription(null);
         };
