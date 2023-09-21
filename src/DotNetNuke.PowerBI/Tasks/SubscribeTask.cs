@@ -45,42 +45,53 @@ namespace DotNetNuke.PowerBI.Tasks
                     List<Subscription> subscriptions = SubscriptionsRepository.Instance.GetSubscriptionsByWorkspaceId(setting.WorkspaceId, setting.PortalId);
                     foreach (Subscription subscription in subscriptions)
                     {
-                        PortalSettings portalSettings = new PortalSettings(subscription.PortalId);
-
-                        if (subscription.Enabled)
+                        try
                         {
-                            if(DateTime.Now > subscription.StartDate && DateTime.Now < subscription.EndDate)
+                            PortalSettings portalSettings = new PortalSettings(subscription.PortalId);
+
+                            if (subscription.Enabled)
                             {
-                                DateTime currentDate = DateTime.Now;
-                                TimeSpan timeSinceLastProcessed = new TimeSpan();
-                                double totalDays = 30;
-                                if (subscription.LastProcessedOn.HasValue)
+                                if (DateTime.Now > subscription.StartDate && DateTime.Now < subscription.EndDate)
                                 {
-                                    timeSinceLastProcessed = currentDate - subscription.LastProcessedOn.Value;
-                                    totalDays = timeSinceLastProcessed.TotalDays;
-                                }
-
-
-                                TimeSpan repeatTime = subscription.RepeatTime;
-                                DateTime currentDateTime = TimeZoneInfo.ConvertTimeBySystemTimeZoneId(DateTime.Now, subscription.TimeZone);
-                                DateTime repeatDateTime = currentDateTime.Date + repeatTime;
-
-                                if (currentDateTime >= repeatDateTime)
-                                {
-                                    if ((subscription.RepeatPeriod.Equals("Daily") && totalDays >= 1)
-                                        || (subscription.RepeatPeriod.Equals("Weekly") && totalDays >= 7)
-                                            || (subscription.RepeatPeriod.Equals("Monthly") && totalDays >= 30))
+                                    DateTime currentDate = DateTime.Now;
+                                    TimeSpan timeSinceLastProcessed = new TimeSpan();
+                                    double totalDays = 30;
+                                    if (subscription.LastProcessedOn.HasValue)
                                     {
-                                        string result = SendSubscriptionsEmails(setting, tokenCredentials, subscription, portalSettings);
-                                        if (!string.IsNullOrEmpty(result))
+                                        timeSinceLastProcessed = currentDate - subscription.LastProcessedOn.Value;
+                                        totalDays = timeSinceLastProcessed.TotalDays;
+                                    }
+
+
+                                    TimeSpan repeatTime = subscription.RepeatTime;
+                                    DateTime currentDateTime = TimeZoneInfo.ConvertTimeBySystemTimeZoneId(DateTime.Now, subscription.TimeZone);
+                                    DateTime repeatDateTime = currentDateTime.Date + repeatTime;
+
+                                    if (currentDateTime >= repeatDateTime)
+                                    {
+                                        if ((subscription.RepeatPeriod.Equals("Daily") && totalDays >= 1)
+                                            || (subscription.RepeatPeriod.Equals("Weekly") && totalDays >= 7)
+                                                || (subscription.RepeatPeriod.Equals("Monthly") && totalDays >= 30))
                                         {
-                                            Logger.Error($"Error: {result}");
-                                            this.ScheduleHistoryItem.AddLogNote(result);
-                                            continue;
+                                            string result = SendSubscriptionsEmails(setting, tokenCredentials, subscription, portalSettings);
+                                            if (!string.IsNullOrEmpty(result))
+                                            {
+                                                Logger.Error($"Error: {result}");
+                                                this.ScheduleHistoryItem.AddLogNote(result);
+                                                continue;
+                                            }
                                         }
                                     }
                                 }
                             }
+
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.Error($"Error processing the subscription '{subscription.Name}'", ex);
+                            this.ScheduleHistoryItem.AddLogNote(ex.Message);
+                            subscription.LastProcessedOn = DateTime.Now;
+                            SubscriptionsRepository.Instance.EditSubscription(subscription);
                         }
                     }
                 }
