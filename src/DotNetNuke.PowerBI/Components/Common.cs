@@ -9,10 +9,12 @@ using Microsoft.PowerBI.Api.Models;
 using Microsoft.Rest;
 using System;
 using System.Collections.Generic;
+using System.Configuration;
 using System.Globalization;
 using System.Linq;
 using System.Net.Mail;
 using System.Net.Mime;
+using System.Runtime;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Web.UI.WebControls;
@@ -179,13 +181,28 @@ namespace DotNetNuke.PowerBI.Components
         public async Task<AuthenticationResult> DoAuthenticationAsync(PowerBISettings setting)
         {
             AuthenticationResult authenticationResult = null;
-            var authenticationContext = new AuthenticationContext(setting.AuthorityUrl);
+            if (setting.AuthenticationType.Equals("MasterUser"))
+            {
+                var authenticationContext = new AuthenticationContext(setting.AuthorityUrl);
 
-            // Authentication using master user credentials
-            var credential = new UserPasswordCredential(setting.Username, setting.Password);
-            authenticationResult = authenticationContext.AcquireTokenAsync(setting.ResourceUrl, setting.ApplicationId, credential).Result;
+                // Authentication using master user credentials
+                var credential = new UserPasswordCredential(setting.Username, setting.Password);
+                authenticationResult = authenticationContext.AcquireTokenAsync(setting.ResourceUrl, setting.ApplicationId, credential).Result;
+            }
+            else
+            {
+                // For app only authentication, we need the specific tenant id in the authority url
+                var tenantSpecificURL = setting.AuthorityUrl.Replace("common", setting.ServicePrincipalTenant);
+                var authenticationContext = new AuthenticationContext(tenantSpecificURL);
+
+                // Authentication using app credentials
+                var credential = new ClientCredential(setting.ServicePrincipalApplicationId, setting.ServicePrincipalApplicationSecret);
+                authenticationResult = authenticationContext.AcquireTokenAsync(setting.ResourceUrl, credential).Result;
+            }
             await Task.CompletedTask;
+
             return authenticationResult;
+
         }
         #endregion
 
@@ -212,14 +229,13 @@ namespace DotNetNuke.PowerBI.Components
 
                 CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
                 CancellationToken cancellationToken = cancellationTokenSource.Token;
-                const int c_maxNumberOfRetries = 6; /* Can be set to any desired number */
-                const int c_secToMillisec = 2000;
+                if (!int.TryParse(ConfigurationManager.AppSettings["PowerBI.Export.NumberOfRetries"], out int c_maxNumberOfRetries))
+                    c_maxNumberOfRetries = 2;
 
                 Export export = null;
                 int retryAttempt = 1;
                 do
                 {
-
                     var exportId = await PostExportRequest(reportId, tokenCredentials, setting, format, pageNames, urlFilter, locale);
                     var httpMessage = await PollExportRequest(reportId, exportId, pollingtimeOutInMinutes, cancellationToken, tokenCredentials, setting);
                     export = httpMessage?.Body;
@@ -233,7 +249,7 @@ namespace DotNetNuke.PowerBI.Components
                         // In such cases the recommended waiting time before retrying the entire export operation can be found in the RetryAfter header
                         var retryAfter = httpMessage.Response.Headers.RetryAfter ?? throw new ApplicationException("Export Error: Failed state with no RetryAfter header indicates that the export failed permanently.");
                         var retryAfterInSec = retryAfter.Delta.Value.Seconds;
-                        await Task.Delay(retryAfterInSec * c_secToMillisec);
+                        await Task.Delay(retryAfterInSec * 1000);
                     }
                 }
                 while (export.Status != ExportState.Succeeded && retryAttempt++ < c_maxNumberOfRetries);
@@ -244,9 +260,7 @@ namespace DotNetNuke.PowerBI.Components
                 }
 
                 ExportedFile exportedFile = await GetExportedFile(reportId, export, tokenCredentials, setting);
-
-                Attachment attachment = new Attachment(exportedFile.FileStream, export.ReportName + exportedFile.FileSuffix, MediaTypeNames.Application.Pdf);
-                return attachment;
+                return new Attachment(exportedFile.FileStream, export.ReportName + exportedFile.FileSuffix, MediaTypeNames.Application.Pdf);
             }
             catch (Exception ex)
             {
@@ -294,7 +308,7 @@ namespace DotNetNuke.PowerBI.Components
                 // The 'Client' object is an instance of the Power BI .NET SDK
                 using (var client = new PowerBIClient(new Uri(setting.ApiUrl), tokenCredentials))
                 {
-                    var export = await client.Reports.ExportToFileAsync(reportId, exportRequest);
+                    var export = await client.Reports.ExportToFileInGroupAsync(Guid.Parse(setting.WorkspaceId), reportId, exportRequest);
                     return export.Id;
 
                 }
@@ -304,20 +318,16 @@ namespace DotNetNuke.PowerBI.Components
                 throw new ApplicationException($"Post Export Error: {e.Message}");
             }
         }
-        public async Task<HttpOperationResponse<Export>> PollExportRequest(
-    Guid reportId,
-    string exportId,
-    int timeOutInMinutes,
-    CancellationToken token,
-    TokenCredentials tokenCredentials,
-    PowerBISettings setting)
+        public async Task<HttpOperationResponse<Export>> PollExportRequest(Guid reportId, string exportId, int timeOutInMinutes,
+                    CancellationToken token, TokenCredentials tokenCredentials, PowerBISettings setting)
         {
             try
             {
                 HttpOperationResponse<Export> httpMessage = null;
                 Export exportStatus = null;
                 DateTime startTime = DateTime.UtcNow;
-                const int c_secToMillisec = 1000;
+                if (!int.TryParse(ConfigurationManager.AppSettings["PowerBI.Export.PollInterval"], out int c_secToMillisec))
+                    c_secToMillisec = 4000;
 
                 var client = new PowerBIClient(new Uri(setting.ApiUrl), tokenCredentials);
                 do
@@ -328,7 +338,7 @@ namespace DotNetNuke.PowerBI.Components
                     }
 
                     // The 'Client' object is an instance of the Power BI .NET SDK
-                    httpMessage = await client.Reports.GetExportToFileStatusWithHttpMessagesAsync(reportId, exportId);
+                    httpMessage = await client.Reports.GetExportToFileStatusInGroupWithHttpMessagesAsync(Guid.Parse(setting.WorkspaceId), reportId, exportId);
                     exportStatus = httpMessage.Body;
 
                     if (exportStatus.Status == ExportState.Running || exportStatus.Status == ExportState.NotStarted)
@@ -364,7 +374,7 @@ namespace DotNetNuke.PowerBI.Components
                 if (export.Status == ExportState.Succeeded)
                 {
                     // The 'Client' object is an instance of the Power BI .NET SDK
-                    var fileStream = await client.Reports.GetFileOfExportToFileAsync(reportId, export.Id);
+                    var fileStream = await client.Reports.GetFileOfExportToFileInGroupAsync(Guid.Parse(setting.WorkspaceId), reportId, export.Id);
                     return new ExportedFile
                     {
                         FileStream = fileStream,
@@ -390,7 +400,7 @@ namespace DotNetNuke.PowerBI.Components
 
                 using (var client = new PowerBIClient(new Uri(settings.ApiUrl), tokenCredentials))
                 {
-                    pages = client.Reports.GetPages(reportId);
+                    pages = await client.Reports.GetPagesInGroupAsync(Guid.Parse(settings.WorkspaceId), reportId);
                 }
                 return pages;
             }

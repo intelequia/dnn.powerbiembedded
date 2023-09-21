@@ -18,12 +18,14 @@ using System.IO;
 using System.Linq;
 using System.Net.Mail;
 using System.Text;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement.Tab;
 using MailPriority = DotNetNuke.Services.Mail.MailPriority;
 using Subscription = DotNetNuke.PowerBI.Data.Subscriptions.Models.Subscription;
 using UserInfo = DotNetNuke.Entities.Users.UserInfo;
 
 namespace DotNetNuke.PowerBI.Tasks
 {
+
     public class SubscribeTask : SchedulerClient
     {
         private static readonly ILog Logger = LoggerSource.Instance.GetLogger(typeof(SubscribeTask));
@@ -41,7 +43,7 @@ namespace DotNetNuke.PowerBI.Tasks
                 List<PowerBISettings> settings = SharedSettingsRepository.Instance.GetAllSettings();
                 foreach (PowerBISettings setting in settings)
                 {
-                    TokenCredentials tokenCredentials = common.GetTokenCredentials(setting).Result;
+                    TokenCredentials tokenCredentials = null;
                     List<Subscription> subscriptions = SubscriptionsRepository.Instance.GetSubscriptionsByWorkspaceId(setting.WorkspaceId, setting.PortalId);
                     foreach (Subscription subscription in subscriptions)
                     {
@@ -49,20 +51,18 @@ namespace DotNetNuke.PowerBI.Tasks
                         {
                             PortalSettings portalSettings = new PortalSettings(subscription.PortalId);
 
-                        if (subscription.Enabled)
-                        {
-                            if(DateTime.Now.Date >= subscription.StartDate.Date && DateTime.Now.Date <= subscription.EndDate.Date)
+                            if (subscription.Enabled)
                             {
-                                DateTime currentDate = DateTime.Now;
-                                TimeSpan timeSinceLastProcessed = new TimeSpan();
-                                double totalDays = 30;
-                                if (subscription.LastProcessedOn.HasValue)
+                                if(DateTime.Now.Date >= subscription.StartDate.Date && DateTime.Now.Date <= subscription.EndDate.Date)
                                 {
-                                    timeSinceLastProcessed = currentDate - subscription.LastProcessedOn.Value;
-                                    totalDays = timeSinceLastProcessed.TotalDays;
-                                }
-
-
+                                    DateTime currentDate = DateTime.Now;
+                                    TimeSpan timeSinceLastProcessed = new TimeSpan();
+                                    int totalDays = 30;
+                                    if (subscription.LastProcessedOn.HasValue)
+                                    {
+                                        timeSinceLastProcessed = currentDate - subscription.LastProcessedOn.Value;
+                                        totalDays = (int) timeSinceLastProcessed.TotalDays;
+                                    }
                                     TimeSpan repeatTime = subscription.RepeatTime;
                                     DateTime currentDateTime = TimeZoneInfo.ConvertTimeBySystemTimeZoneId(DateTime.Now, subscription.TimeZone);
                                     DateTime repeatDateTime = currentDateTime.Date + repeatTime;
@@ -73,12 +73,20 @@ namespace DotNetNuke.PowerBI.Tasks
                                             || (subscription.RepeatPeriod.Equals("Weekly") && totalDays >= 7)
                                                 || (subscription.RepeatPeriod.Equals("Monthly") && totalDays >= 30))
                                         {
+                                            if (tokenCredentials == null)
+                                            {
+                                                tokenCredentials = tokenCredentials ?? common.GetTokenCredentials(setting).Result;
+                                            }
                                             string result = SendSubscriptionsEmails(setting, tokenCredentials, subscription, portalSettings);
                                             if (!string.IsNullOrEmpty(result))
                                             {
                                                 Logger.Error($"Error: {result}");
                                                 this.ScheduleHistoryItem.AddLogNote(result);
                                                 continue;
+                                            }
+                                            else
+                                            {
+                                                this.ScheduleHistoryItem.AddLogNote($"Processed subscription '{subscription.Name}'");
                                             }
                                         }
                                     }
@@ -108,7 +116,7 @@ namespace DotNetNuke.PowerBI.Tasks
         }
         private string SendSubscriptionsEmails(PowerBISettings setting, TokenCredentials tokenCredentials, Subscription subscription, PortalSettings portalSettings)
         {
-            DotNetNuke.PowerBI.Components.Common common = new DotNetNuke.PowerBI.Components.Common();
+            Components.Common common = new Components.Common();
             Attachment attachment = null;
             try
             {
