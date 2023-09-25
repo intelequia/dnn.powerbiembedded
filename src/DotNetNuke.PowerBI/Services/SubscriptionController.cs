@@ -33,6 +33,7 @@ namespace DotNetNuke.PowerBI.Services
             public int UserId { get; set; }
             public string ReportId { get; set; }
             public string GroupId { get; set; }
+            public int ModuleId { get; set; }
             public string Name { get; set; }
             public DateTime StartDate { get; set; }
             public DateTime EndDate { get; set; }
@@ -142,6 +143,7 @@ namespace DotNetNuke.PowerBI.Services
                     PortalId = subscriptionViewModel.PortalId,
                     ReportId = subscriptionViewModel.ReportId,
                     GroupId = subscriptionViewModel.GroupId,
+                    ModuleId = subscriptionViewModel.ModuleId,
                     Name = subscriptionViewModel.Name,
                     StartDate = subscriptionViewModel.StartDate,
                     EndDate = subscriptionViewModel.EndDate,

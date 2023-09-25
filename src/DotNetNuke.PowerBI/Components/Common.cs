@@ -1,8 +1,11 @@
 ﻿using DotNetNuke.Entities.Portals;
 using DotNetNuke.Entities.Users;
 using DotNetNuke.PowerBI.Data.Models;
+using DotNetNuke.PowerBI.Extensibility;
 using DotNetNuke.PowerBI.Models;
+using DotNetNuke.Security.Roles;
 using DotNetNuke.Services.Localization;
+using DotNetNuke.Entities.Modules;
 using Microsoft.IdentityModel.Clients.ActiveDirectory;
 using Microsoft.PowerBI.Api;
 using Microsoft.PowerBI.Api.Models;
@@ -14,11 +17,16 @@ using System.Globalization;
 using System.Linq;
 using System.Net.Mail;
 using System.Net.Mime;
+using System.Reflection;
 using System.Runtime;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Web.UI.WebControls;
 using UserInfo = DotNetNuke.Entities.Users.UserInfo;
+using DotNetNuke.Web.Mvc.Framework.Controllers;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement;
+using Page = Microsoft.PowerBI.Api.Models.Page;
 
 namespace DotNetNuke.PowerBI.Components
 {
@@ -202,7 +210,66 @@ namespace DotNetNuke.PowerBI.Components
             await Task.CompletedTask;
 
             return authenticationResult;
+        }
 
+        public string GetUsernameProperty(int moduleId, UserInfo userInfo)
+        {
+            var moduleController = new ModuleController();
+            string user = userInfo.Username;
+            var userPropertySetting = (string)moduleController.GetModule(moduleId).TabModuleSettings["PowerBIEmbedded_UserProperty"];
+            if (userPropertySetting?.ToLowerInvariant() == "email")
+            {
+                user = userInfo.Email;
+            }
+            else if (userPropertySetting == "PowerBiGroup")
+            {
+                var userProperty = userInfo.Profile.GetProperty("PowerBiGroup");
+                if (userProperty?.PropertyValue != null)
+                {
+                    user = userProperty.PropertyValue;
+                }
+            }
+            else if (userPropertySetting == "Custom" || userPropertySetting == "Custom User Profile Property")
+            {
+                var customProperties = (string)moduleController.GetModule(moduleId).TabModuleSettings["PowerBIEmbedded_CustomUserProperty"];
+                var matches = Regex.Matches(customProperties, @"\[PROFILE:(?<PROPERTY>[A-z]*)]");
+
+                foreach (Match match in matches)
+                {
+                    var userProperty = userInfo.Profile.GetProperty(match.Groups["PROPERTY"].Value);
+                    if (userProperty?.PropertyValue != null)
+                    {
+                        customProperties = customProperties.Replace(match.Value, userProperty.PropertyValue);
+                    }
+                }
+
+                user = customProperties;
+            }
+            else if (userPropertySetting == "Custom Extension Library")
+            {
+                var customExtensionLibrary = (string)moduleController.GetModule(moduleId).TabModuleSettings["PowerBIEmbedded_CustomExtensionLibrary"];
+                if (!string.IsNullOrEmpty(customExtensionLibrary))
+                {
+                    try
+                    {
+                        var type = Type.GetType(customExtensionLibrary, true);
+                        if (type.GetInterfaces().Contains(typeof(IRlsCustomExtension)))
+                        {
+                            IRlsCustomExtension extensionInstance = (IRlsCustomExtension)Activator.CreateInstance(type);
+                            user = extensionInstance.GetRlsValue(System.Web.HttpContext.Current);
+                        }
+                        else
+                        {
+                            throw new Exception($"Library '{customExtensionLibrary}' does not implement IRlsCustomExtension");
+                        }
+                    }
+                    catch (Exception cex)
+                    {
+                        throw new Exception($"Error instancing custom extension library '{customExtensionLibrary}'", cex);
+                    }
+                }
+            }
+            return user;
         }
         #endregion
 
@@ -213,6 +280,8 @@ namespace DotNetNuke.PowerBI.Components
             TokenCredentials tokenCredentials,
             PowerBISettings setting,
             string reportPages,
+            string rolesString,
+            string username,
             string locale = "en-us")
         {
             try
@@ -232,11 +301,12 @@ namespace DotNetNuke.PowerBI.Components
                 if (!int.TryParse(ConfigurationManager.AppSettings["PowerBI.Export.NumberOfRetries"], out int c_maxNumberOfRetries))
                     c_maxNumberOfRetries = 2;
 
+
                 Export export = null;
                 int retryAttempt = 1;
                 do
                 {
-                    var exportId = await PostExportRequest(reportId, tokenCredentials, setting, format, pageNames, urlFilter, locale);
+                    var exportId = await PostExportRequest(reportId, tokenCredentials, setting, format, rolesString, username, pageNames, urlFilter, locale);
                     var httpMessage = await PollExportRequest(reportId, exportId, pollingtimeOutInMinutes, cancellationToken, tokenCredentials, setting);
                     export = httpMessage?.Body;
                     if (export == null)
@@ -272,6 +342,8 @@ namespace DotNetNuke.PowerBI.Components
     TokenCredentials tokenCredentials,
     PowerBISettings setting,
     FileFormat format,
+    string rolesString,
+    string username,
     Pages pageNames = null, /* Get the page names from the GetPages REST API */
     string urlFilter = null,
     string locale = "en-us")
@@ -284,7 +356,29 @@ namespace DotNetNuke.PowerBI.Components
                     ExportReportPage exportPage = new ExportReportPage();
                     exportPage.PageName = page.Name;
                     pages.Add(exportPage);
+                
                 }
+                PortalSettings portalSettings = new PortalSettings(0);
+
+
+
+                Reports reports;
+                Report report;
+                Dataset dataset ;
+                using (var client = new PowerBIClient(new Uri(setting.ApiUrl), tokenCredentials))
+                {
+                    reports = await client.Reports.GetReportsInGroupAsync(Guid.Parse(setting.WorkspaceId)).ConfigureAwait(false);
+                    report = reports.Value.FirstOrDefault(r => r.Id.ToString().Equals(reportId.ToString(), StringComparison.InvariantCultureIgnoreCase));
+                    dataset = await client.Datasets.GetDatasetInGroupAsync(Guid.Parse(setting.WorkspaceId), report.DatasetId).ConfigureAwait(false);
+                }
+
+
+                var rls = new EffectiveIdentity(username, new List<string> { report.DatasetId });
+                var rolesLists = new List<string>();
+                rolesLists.AddRange(rolesString.Split(','));
+                rls.Roles = rolesLists;
+
+
                 var powerBIReportExportConfiguration = new PowerBIReportExportConfiguration
                 {
                     Settings = new ExportReportSettings
@@ -296,8 +390,14 @@ namespace DotNetNuke.PowerBI.Components
                     Pages = pages,
                     // ReportLevelFilters collection needs to be instantiated explicitly
                     ReportLevelFilters = !string.IsNullOrEmpty(urlFilter) ? new List<ExportFilter>() { new ExportFilter(urlFilter) } : null,
-
+                    Identities = null                
                 };
+
+                // Let's check if RLS is required
+                if ((bool)dataset.IsEffectiveIdentityRolesRequired || (bool)dataset.IsEffectiveIdentityRequired)
+                {
+                    powerBIReportExportConfiguration.Identities = new List<EffectiveIdentity> { rls };
+                }
 
                 var exportRequest = new ExportReportRequest
                 {

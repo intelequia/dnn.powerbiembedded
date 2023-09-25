@@ -18,6 +18,7 @@ namespace DotNetNuke.PowerBI.Data.Subscriptions.Models
         public int PortalId { get; set; }
         public string ReportId { get; set; }
         public string GroupId { get; set; }
+        public int ModuleId { get; set; }
         public string Name { get; set; }
         public DateTime StartDate { get; set; }
         public DateTime EndDate { get; set; }

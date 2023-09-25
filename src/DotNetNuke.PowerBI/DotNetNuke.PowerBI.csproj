@@ -234,6 +234,7 @@
     <Content Include="admin\personaBar\scripts\PBIEmbedded.js" />
     <Content Include="BuildScripts\watch.js" />
     <Content Include="css\vendors\select2.min.css" />
+    <None Include="Views\emailtemplate.cshtml" />
     <Content Include="images\addbookmark.png" />
     <Content Include="images\addsubscription.png" />
     <Content Include="images\bookmark.png" />
@@ -412,6 +413,6 @@
   <Target Name="AfterBuild" DependsOnTargets="PackageModule">
   </Target>
   <PropertyGroup>
-    <PostBuildEvent>IF $(ConfigurationName)==Debug copy $(TargetDir)$(TargetName).* C:\Websites\tmh2-admin.dnndev.me\bin /Y</PostBuildEvent>
+    <PostBuildEvent>IF $(ConfigurationName)==Debug copy $(TargetDir)$(TargetName).* C:\Websites\test2.dnndev.me\bin /Y</PostBuildEvent>
   </PropertyGroup>
 </Project>

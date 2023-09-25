@@ -5,6 +5,7 @@ BEGIN
         [PortalId] [int] NOT NULL,
         [ReportId] [nvarchar](100) NOT NULL,
         [GroupId] [nvarchar](100) NOT NULL,
+        [ModuleId] [int] NOT NULL,
         [Name] [nvarchar](100) NOT NULL,
         [StartDate] [datetime] NOT NULL,
         [EndDate] [datetime] NOT NULL,

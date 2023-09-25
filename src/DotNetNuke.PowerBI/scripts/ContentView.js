@@ -9,13 +9,14 @@
         }
     }
 
-    function SubscriptionModel(p, id, portalId, reportId, groupId, name, startDate, endDate, repeatPeriod, repeatTime, timeZone, emailSubject, message, reportPages, enabled, users, roles) {
+    function SubscriptionModel(p, id, portalId, reportId, groupId, name, startDate, endDate, repeatPeriod, repeatTime, timeZone, emailSubject, message, reportPages, enabled, users, roles, moduleId) {
         var that = this;
         var parent = p;
         this.id = ko.observable(id);
         this.portalId = ko.observable(portalId);
         this.reportId = ko.observable(reportId);
         this.groupId = ko.observable(groupId);
+        this.moduleId = ko.observable(moduleId);
         this.name = ko.observable(name).extend({ required: true });
         this.startDate = ko.observable(startDate).extend({ required: true });
         this.endDate = ko.observable(endDate).extend({ required: true });
@@ -303,6 +304,7 @@
                                 JSON.parse(subscription.Users),
                                 JSON.parse(subscription.Roles),
                                 context.PortalId,
+                                context.ModuleId,
                             );
                             subscriptions.push(b);
                         });
@@ -607,6 +609,7 @@
                 false,
                 [],
                 [],
+                context.ModuleId,
             );
             that.subscriptionsArray.push(b);
             b.editSubscription();
@@ -625,6 +628,7 @@
                     Id: subscription.id(),
                     ReportId: subscription.reportId(),
                     GroupId: subscription.groupId(),
+                    ModuleId: subscription.moduleId(),
                     PortalId: subscription.portalId(),
                     Name: subscription.name(),
                     StartDate: subscription.startDate(),
