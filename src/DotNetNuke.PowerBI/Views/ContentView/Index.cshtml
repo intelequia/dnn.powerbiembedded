@@ -43,14 +43,13 @@
                     <a href="#" class="edit" title="Edit" data-bind="click: pbiedit">
                         <div class="editImg"></div>Edit
                     </a>
-                }
-
-                @if (ViewBag.ShowSubscription)
-                {
-                    <a href="#" class="subscription" data-bind="click: openLateralTab">
-                        <div class="subscribeImg"></div>
-                        <span>@Dnn.LocalizeString("Subscriptions")</span>
-                    </a>
+                    if (ViewBag.ShowSubscription)
+                    {
+                        <a href="#" class="subscription" data-bind="click: openLateralTab">
+                            <div class="subscribeImg"></div>
+                            <span>@Dnn.LocalizeString("Subscriptions")</span>
+                        </a>
+                    }
                 }
                 @if (ViewBag.PrintVisible)
                 {
@@ -96,7 +95,7 @@
                 </div>
             </div>
         </div>
-        if (ViewBag.ShowSubscription)
+        if (ViewBag.ShowSubscription && ViewBag.CanEdit)
         {
 <div class="lateral-tab">
     <div class="close-panel">
