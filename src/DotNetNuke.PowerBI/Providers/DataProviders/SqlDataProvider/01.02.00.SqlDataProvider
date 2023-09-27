@@ -3,8 +3,8 @@ BEGIN
     CREATE TABLE {databaseOwner}[{objectQualifier}PBI_Subscriptions](
         [Id] [int] IDENTITY(1,1) NOT NULL PRIMARY KEY,
         [PortalId] [int] NOT NULL,
-        [ReportId] [nvarchar](100) NOT NULL,
-        [GroupId] [nvarchar](100) NOT NULL,
+        [ReportId] [varchar](38) NOT NULL,
+        [GroupId] [varchar](38) NOT NULL,
         [ModuleId] [int] NOT NULL,
         [Name] [nvarchar](100) NOT NULL,
         [StartDate] [datetime] NOT NULL,
