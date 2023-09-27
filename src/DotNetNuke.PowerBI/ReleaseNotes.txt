@@ -130,5 +130,6 @@
 
 	<b>Version 1.1.1</b>	
 	<p>fix: workspaces are now ordered alphabetically on settings.</p>
+	<p>feat: added option to hide refresh buttons on the toolbar.</p>
 	
 </div>

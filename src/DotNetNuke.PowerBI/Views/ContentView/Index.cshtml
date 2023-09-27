@@ -58,9 +58,12 @@
                 {
                     <a href="#" class="fullscreen" title="Full screen" data-bind="click: pbifullscreen"></a>
                 }
-
-                <a href="#" class="refresh" title="Refresh visual objects and data" data-bind="click: pbirefresh"></a>
-                <a href="#" class="reload" title="Reload visual and filters" data-bind="click: pbireload"></a>
+                
+                @if (ViewBag.RefreshVisible)
+                {
+                    <a href="#" class="refresh" title="Refresh visual objects and data" data-bind="click: pbirefresh"></a>
+                    <a href="#" class="reload" title="Reload visual and filters" data-bind="click: pbireload"></a>
+                }
             </div>
         }
 
