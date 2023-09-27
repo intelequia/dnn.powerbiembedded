@@ -27,6 +27,7 @@ using UserInfo = DotNetNuke.Entities.Users.UserInfo;
 using DotNetNuke.Web.Mvc.Framework.Controllers;
 using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 using Page = Microsoft.PowerBI.Api.Models.Page;
+using System.Web.Security;
 
 namespace DotNetNuke.PowerBI.Components
 {
@@ -356,7 +357,7 @@ namespace DotNetNuke.PowerBI.Components
                     ExportReportPage exportPage = new ExportReportPage();
                     exportPage.PageName = page.Name;
                     pages.Add(exportPage);
-                
+
                 }
                 PortalSettings portalSettings = new PortalSettings(0);
 
@@ -364,7 +365,7 @@ namespace DotNetNuke.PowerBI.Components
 
                 Reports reports;
                 Report report;
-                Dataset dataset ;
+                Dataset dataset;
                 using (var client = new PowerBIClient(new Uri(setting.ApiUrl), tokenCredentials))
                 {
                     reports = await client.Reports.GetReportsInGroupAsync(Guid.Parse(setting.WorkspaceId)).ConfigureAwait(false);
@@ -373,10 +374,7 @@ namespace DotNetNuke.PowerBI.Components
                 }
 
 
-                var rls = new EffectiveIdentity(username, new List<string> { report.DatasetId });
-                var rolesLists = new List<string>();
-                rolesLists.AddRange(rolesString.Split(','));
-                rls.Roles = rolesLists;
+
 
 
                 var powerBIReportExportConfiguration = new PowerBIReportExportConfiguration
@@ -390,12 +388,20 @@ namespace DotNetNuke.PowerBI.Components
                     Pages = pages,
                     // ReportLevelFilters collection needs to be instantiated explicitly
                     ReportLevelFilters = !string.IsNullOrEmpty(urlFilter) ? new List<ExportFilter>() { new ExportFilter(urlFilter) } : null,
-                    Identities = null                
+                    Identities = null
                 };
 
                 // Let's check if RLS is required
-                if ((bool)dataset.IsEffectiveIdentityRolesRequired || (bool)dataset.IsEffectiveIdentityRequired)
-                {
+                if (dataset != null
+                    && (dataset.IsEffectiveIdentityRequired.GetValueOrDefault(false) || dataset.IsEffectiveIdentityRolesRequired.GetValueOrDefault(false)))
+                { 
+                    var rls = new EffectiveIdentity(username, new List<string> { report.DatasetId });
+                    if (!string.IsNullOrWhiteSpace(rolesString) && dataset.IsEffectiveIdentityRolesRequired.GetValueOrDefault(false))
+                    {
+                        var rolesList = new List<string>();
+                        rolesList.AddRange(rolesString.Split(','));
+                        rls.Roles = rolesList;
+                    }
                     powerBIReportExportConfiguration.Identities = new List<EffectiveIdentity> { rls };
                 }
 
