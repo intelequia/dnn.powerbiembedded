@@ -109,6 +109,10 @@ namespace DotNetNuke.PowerBI.Tasks
         {
             var currentDate = DateTime.Now;
             var timeSinceLastProcessed = currentDate - (subscription.LastProcessedOn ?? currentDate);
+            const string daily = "Daily";
+            const string weekly = "Weekly";
+            const string monthly = "Monthly";
+
 
             // If LastProcessedOn is null, treat it as if it's been a long time since the last processing
             if (subscription.LastProcessedOn == null)
@@ -121,22 +125,25 @@ namespace DotNetNuke.PowerBI.Tasks
             var repeatDateTime = currentDateTime.Date + subscription.RepeatTime;
 
             return (currentDateTime >= repeatDateTime) &&
-                ((subscription.RepeatPeriod.Equals("Daily") && totalDays >= 1) ||
-                 (subscription.RepeatPeriod.Equals("Weekly") && totalDays >= 7) ||
-                 (subscription.RepeatPeriod.Equals("Monthly") && totalDays >= 30));
+                ((subscription.RepeatPeriod.Equals(daily) && totalDays >= 1) ||
+                 (subscription.RepeatPeriod.Equals(weekly) && totalDays >= 7) ||
+                 (subscription.RepeatPeriod.Equals(monthly) && totalDays >= 30));
         }
 
 
         private string CreateEmailBody(Subscription subscription)
         {
+            const string subscriptionName = "[[SubscriptionName]]";
+            const string emailBody = "[[EmailBody]]";
+            const string reportDate = "[[ReportDate]]";
             var templatePath = HostingEnvironment.MapPath("~\\DesktopModules\\MVC\\PowerBiEmbedded\\Views\\emailtemplate.cshtml");
             if (!string.IsNullOrEmpty(ConfigurationManager.AppSettings["PowerBI.Export.EmailTemplatePath"]))
                 templatePath = ConfigurationManager.AppSettings["PowerBI.Export.EmailTemplatePath"];
 
             var htmlBody = File.ReadAllText(templatePath);
-            htmlBody = htmlBody.Replace("[[SubscriptionName]]", subscription.Name);
-            htmlBody = htmlBody.Replace("[[EmailBody]]", subscription.Message);
-            htmlBody = htmlBody.Replace("[[ReportDate]]", DateTime.UtcNow.Date.ToShortDateString());
+            htmlBody = htmlBody.Replace(subscriptionName, subscription.Name);
+            htmlBody = htmlBody.Replace(emailBody, subscription.Message);
+            htmlBody = htmlBody.Replace(reportDate, DateTime.UtcNow.Date.ToShortDateString());
 
             return htmlBody;
         }
@@ -147,6 +154,7 @@ namespace DotNetNuke.PowerBI.Tasks
             var roles = RoleController.Instance.GetUserRoles(UserController.Instance.GetUserByDisplayname(subscription.PortalId, userInfo.DisplayName), true);
             var roleList = roles.Select(role => role.RoleName).ToList();
             var rolesString = string.Join(",", roleList);
+            const string reportName = "[[ReportName]]";
             Attachment attachment = null;
 
             try
@@ -164,7 +172,7 @@ namespace DotNetNuke.PowerBI.Tasks
             }
 
             var attachments = new List<Attachment> { attachment };
-            htmlBody = htmlBody.Replace("[[ReportName]]", attachment.Name);
+            htmlBody = htmlBody.Replace(reportName, attachment.Name);
 
             try
             {
