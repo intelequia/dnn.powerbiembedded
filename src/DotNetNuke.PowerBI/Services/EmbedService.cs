@@ -487,6 +487,37 @@ namespace DotNetNuke.PowerBI.Services
             }
         }
 
+        public async Task<Pages> GetReportPages(string reportId)
+        {
+            // Get token credentials for user
+            var getCredentialsResult = await GetTokenCredentials();
+            if (!getCredentialsResult)
+            {
+                // The error message set in GetTokenCredentials
+                return null;
+            }
+
+            // Create a Power BI Client object. It will be used to call Power BI APIs.
+            using (var client = new PowerBIClient(new Uri(Settings.ApiUrl), tokenCredentials))
+            {
+                // Get a list of reports for the given workspace.
+                var reports = await client.Reports.GetReportsInGroupAsync(Guid.Parse(Settings.WorkspaceId)).ConfigureAwait(false);
+                if (reports.Value.Count() == 0)
+                {
+                    return null;
+                }
+
+                Report report = reports.Value.FirstOrDefault(r => r.Id.ToString().Equals(reportId, StringComparison.InvariantCultureIgnoreCase));
+                if (report == null)
+                {
+                    return null;
+                }
+
+                var pages = await client.Reports.GetPagesInGroupAsync(Guid.Parse(Settings.WorkspaceId), report.Id).ConfigureAwait(false);
+                return pages;
+            }
+        }
+
         public async Task<EmbedConfig> GetDashboardEmbedConfigAsync(int userId, string username, string roles, string dashboardId, bool hasEditPermission)
         {
             string permission = hasEditPermission ? "edit" : "view";
@@ -763,7 +794,6 @@ namespace DotNetNuke.PowerBI.Services
             CachingProvider.Instance().Insert($"PBI_{Settings.PortalId}_{Settings.SettingsId}_TokenCredentials", tokenCredentials, null, authenticationResult.ExpiresOn.AddMinutes(-2).UtcDateTime, TimeSpan.Zero);
             return true;
         }
-
 
     }
 }

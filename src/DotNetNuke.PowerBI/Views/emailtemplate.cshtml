@@ -1,0 +1,61 @@
+﻿<!DOCTYPE html>
+
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="utf-8" />
+    <title>DNN Website monitoring</title>
+    <style>
+        /* Remove space around the email design. */
+        html,
+        body {
+            margin: 0 auto !important;
+            padding: 0 !important;
+            height: 100% !important;
+            width: 100% !important;
+        }
+        /* Stop Outlook resizing small text. */
+        * {
+            -ms-text-size-adjust: 100%;
+        }
+        /* Stop Outlook from adding extra spacing to tables. */
+        table,
+        td {
+            mso-table-lspace: 0pt !important;
+            mso-table-rspace: 0pt !important;
+        }
+        /* Use a better rendering method when resizing images in Outlook IE. */
+        img {
+            -ms-interpolation-mode: bicubic;
+        }
+        /* Prevent Windows 10 Mail from underlining links. Styles for underlined links should be inline. */
+        a {
+            text-decoration: none;
+        }
+
+        body {
+            font-family: 'Segoe UI', Arial;
+            background-color: #f0f0f0;
+            text-align: center;
+            margin: 0;
+            padding: 0;
+        }
+
+        .content {
+            display: block;
+            margin: 0px auto;
+            text-align: left;
+            width: 972px;
+            background-color: #ffffff;
+            padding: 10px;
+        }
+
+    </style>
+</head>
+<body width="100%" style="margin: 0; padding: 0 !important; mso-line-height-rule: exactly;">
+    <div class="content" style="background-color: white;">
+        <h1>[[SubscriptionName]]</h1>
+        <p>[[EmailBody]]</p>
+        <p>You're receiving this email because you subscribed to the '[[SubscriptionName]]' page of the '[[ReportName]]' report. The file attached was generated at [[ReportDate]] </p>
+    </div>
+</body>
+</html>

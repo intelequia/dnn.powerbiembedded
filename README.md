@@ -56,3 +56,6 @@ From the command line, enter the `<RepoRoot>\DotNetNuke.PowerBI\PBIEmbedded.Web`
 
 ### Build the module
 Now you can build the solution by opening the file `DotNetNuke.PowerBI.sln` in Visual Studio. Building the solution in "Release", will generate the React bundle and package it all together with the installation zip file, created under the "\releases" folder.
+#### Known issues
+**Problem**: When building the module on Release mode, you get an error message "error:0308010C:digital envelope routines::unsupported". 
+*Solution*: This can be caused when using newer versions of Node, with the OpenSSL plugin (see https://stackoverflow.com/questions/69692842/error-message-error0308010cdigital-envelope-routinesunsupported). The recommended solution is to set an environment variable `set NODE_OPTIONS=--openssl-legacy-provider`

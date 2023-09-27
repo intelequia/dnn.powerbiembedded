@@ -117,10 +117,133 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="btnAdd.Text" xml:space="preserve">
+    <value>Añadir</value>
+  </data>
+  <data name="btnDeleteSubscription.Text" xml:space="preserve">
+    <value>Eliminar</value>
+  </data>
+  <data name="btnEditSubscription.Text" xml:space="preserve">
+    <value>...</value>
+  </data>
+  <data name="btnRemove.Text" xml:space="preserve">
+    <value>Quitar</value>
+  </data>
+  <data name="EditSubscriptionDetails.Text" xml:space="preserve">
+    <value>Edite la información de esta suscripción.</value>
+  </data>
   <data name="Error.Text" xml:space="preserve">
     <value>Error al cargar el contenido. Por favor, reinténtelo más tarde.</value>
   </data>
   <data name="ErrorTitle.Text" xml:space="preserve">
     <value>Error</value>
+  </data>
+  <data name="NewSubscription.Text" xml:space="preserve">
+    <value>Añadir nueva suscripción</value>
+  </data>
+  <data name="NewSubscriptionDetails.Text" xml:space="preserve">
+    <value>Introduzca la información para la nueva suscripción.</value>
+  </data>
+  <data name="SubscriptionAvailablePages.Text" xml:space="preserve">
+    <value>Páginas Disponibles</value>
+  </data>
+  <data name="SubscriptionAvailableRoles.Text" xml:space="preserve">
+    <value>Roles Disponibles</value>
+  </data>
+  <data name="SubscriptionAvailableUsers.Text" xml:space="preserve">
+    <value>Usuarios Disponibles</value>
+  </data>
+  <data name="SubscriptionCancel.Text" xml:space="preserve">
+    <value>Cancelar</value>
+  </data>
+  <data name="SubscriptionCurrentPages.Text" xml:space="preserve">
+    <value>Páginas Actuales</value>
+  </data>
+  <data name="SubscriptionCurrentRoles.Text" xml:space="preserve">
+    <value>Roles Actuales</value>
+  </data>
+  <data name="SubscriptionCurrentUsers.Text" xml:space="preserve">
+    <value>Usuarios Actuales</value>
+  </data>
+  <data name="SubscriptionDaily.Text" xml:space="preserve">
+    <value>Diario</value>
+  </data>
+  <data name="SubscriptionEdit.Text" xml:space="preserve">
+    <value>Editar Suscripción</value>
+  </data>
+  <data name="SubscriptionEmailMessage.Text" xml:space="preserve">
+    <value>Mensaje del Email *</value>
+  </data>
+  <data name="SubscriptionEmailSubject.Text" xml:space="preserve">
+    <value>Asunto del Email *</value>
+  </data>
+  <data name="SubscriptionEnabled.Text" xml:space="preserve">
+    <value>Habilitado</value>
+  </data>
+  <data name="SubscriptionEndDate.Text" xml:space="preserve">
+    <value>Fecha de Finalización *</value>
+  </data>
+  <data name="SubscriptionList.Text" xml:space="preserve">
+    <value>Lista de suscripciones actuales:</value>
+  </data>
+  <data name="SubscriptionMonthly.Text" xml:space="preserve">
+    <value>Mensual</value>
+  </data>
+  <data name="SubscriptionName.Text" xml:space="preserve">
+    <value>Nombre *</value>
+  </data>
+  <data name="SubscriptionNoPages.Text" xml:space="preserve">
+    <value>Sin Páginas</value>
+  </data>
+  <data name="SubscriptionNoRoles.Text" xml:space="preserve">
+    <value>Sin Roles</value>
+  </data>
+  <data name="SubscriptionNoUsers.Text" xml:space="preserve">
+    <value>Sin Usuarios</value>
+  </data>
+  <data name="SubscriptionRepeatPeriod.Text" xml:space="preserve">
+    <value>Frecuencia de Repetición</value>
+  </data>
+  <data name="SubscriptionRepeatTime.Text" xml:space="preserve">
+    <value>Hora de Repetición *</value>
+  </data>
+  <data name="SubscriptionReportPages.Text" xml:space="preserve">
+    <value>Páginas del Reporte</value>
+  </data>
+  <data name="SubscriptionRoleQuery.Text" xml:space="preserve">
+    <value>Introduzca un rol...</value>
+  </data>
+  <data name="SubscriptionRoles.Text" xml:space="preserve">
+    <value>Roles</value>
+  </data>
+  <data name="Subscriptions.Text" xml:space="preserve">
+    <value>Suscripciones</value>
+  </data>
+  <data name="SubscriptionSave.Text" xml:space="preserve">
+    <value>Guardar</value>
+  </data>
+  <data name="SubscriptionSearchRoles.Text" xml:space="preserve">
+    <value>Añadir Roles</value>
+  </data>
+  <data name="SubscriptionSearchUsers.Text" xml:space="preserve">
+    <value>Añadir Usuarios</value>
+  </data>
+  <data name="SubscriptionsSubtitle.Text" xml:space="preserve">
+    <value>A continuación se muestra la lista de suscripciones para este informe. Pulsa sobre una suscripción para editarla o haz clic en el botón de añadir una nueva suscripción.</value>
+  </data>
+  <data name="SubscriptionStartDate.Text" xml:space="preserve">
+    <value>Fecha de Inicio *</value>
+  </data>
+  <data name="SubscriptionTimeZone.Text" xml:space="preserve">
+    <value>Zona Horaria</value>
+  </data>
+  <data name="SubscriptionUserQuery.Text" xml:space="preserve">
+    <value>Introduzca un usuario...</value>
+  </data>
+  <data name="SubscriptionUsers.Text" xml:space="preserve">
+    <value>Usuarios</value>
+  </data>
+  <data name="SubscriptionWeekly.Text" xml:space="preserve">
+    <value>Semanal</value>
   </data>
 </root>

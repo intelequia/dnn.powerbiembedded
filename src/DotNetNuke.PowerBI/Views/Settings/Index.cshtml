@@ -114,6 +114,12 @@
                 </div>
                 <div class="dnnFormItem">
                     <div class="leftGroup">
+                        <label>Show Subscriptions</label>
+                        @Html.CheckBoxFor(m => m.ShowSubscription, true)
+                    </div>
+                </div>
+                <div class="dnnFormItem">
+                    <div class="leftGroup">
                         <label>Toolbar Visible</label>
                         @Html.CheckBoxFor(m => m.ToolbarVisible, true)
                     </div>

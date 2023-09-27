@@ -15,6 +15,7 @@ using DotNetNuke.Services.Localization;
 using DotNetNuke.UI.Utilities;
 using DotNetNuke.Web.Mvc.Framework.ActionFilters;
 using DotNetNuke.Web.Mvc.Framework.Controllers;
+using Microsoft.PowerBI.Api.Models;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -152,11 +153,14 @@ namespace DotNetNuke.PowerBI.Controllers
                 }
 
 
-
-
+                Pages reportPages = embedService.GetReportPages(model.Id).Result;
+                ViewBag.ReportPages = reportPages;
                 ViewBag.CanEdit = hasEditPermission;
                 ViewBag.Locale = System.Threading.Thread.CurrentThread.CurrentUICulture.Name.Substring(0, 2);
 
+                ViewBag.TimeZones = TimeZoneInfo.GetSystemTimeZones();
+                ViewBag.PreferredTimeZone = User.Profile.PreferredTimeZone;
+                ViewBag.ShowSubscription = bool.Parse(GetSetting("PowerBIEmbedded_ShowSubscriptions", "false"));
                 ViewBag.FilterPaneVisible = bool.Parse(GetSetting("PowerBIEmbedded_FilterPaneVisible", "true"));
                 ViewBag.NavPaneVisible = bool.Parse(GetSetting("PowerBIEmbedded_NavPaneVisible", "true"));
                 ViewBag.OverrideVisualHeaderVisibility = bool.Parse(GetSetting("PowerBIEmbedded_OverrideVisualHeaderVisibility", "false"));
@@ -174,7 +178,6 @@ namespace DotNetNuke.PowerBI.Controllers
                 ViewBag.BackgroundImageUrl = GetSetting("PowerBIEmbedded_BackgroundImageUrl", "");
                 ViewBag.RefreshVisible = bool.Parse(GetSetting("PowerBIEmbedded_RefreshVisible", "true"));
 
-
                 // Sets the reports page on the viewbag
                 if (embedService != null)
                 {
@@ -186,7 +189,6 @@ namespace DotNetNuke.PowerBI.Controllers
                     ViewBag.ReportsPage = reportsPage;
                     ViewBag.DisabledCapacityMessage = embedService.Settings.DisabledCapacityMessage;
                 }
-
                 var currentLocale = LocaleController.Instance.GetLocale(ModuleContext.PortalId, CultureInfo.CurrentCulture.Name);
 
                 var context = new
@@ -213,6 +215,9 @@ namespace DotNetNuke.PowerBI.Controllers
                     ViewBag.PageName,
                     ViewBag.BackgroundImageUrl,
                     ViewBag.CanEdit,
+                    ViewBag.TimeZones,
+                    ViewBag.PreferredTimeZone,
+                    ViewBag.ReportPages,
                     model.ContentType,
                     Token = model.EmbedToken?.Token,
                     model.EmbedUrl,
@@ -223,7 +228,7 @@ namespace DotNetNuke.PowerBI.Controllers
                 DotNetNuke.Framework.JavaScriptLibraries.JavaScript.RequestRegistration(CommonJs.DnnPlugins);
                 ClientAPI.RegisterClientVariable(DnnPage, $"ViewContext_{ModuleContext.ModuleId}",
                     JsonConvert.SerializeObject(context, Formatting.None), true);
-
+                
 
                 return View(model);
             }

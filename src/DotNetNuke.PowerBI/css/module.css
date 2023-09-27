@@ -1,4 +1,4 @@
-.mini-navbar #dnn_Side_Menu {
+﻿.mini-navbar #dnn_Side_Menu {
     display: none;
 }
 
@@ -267,7 +267,7 @@
         color: black;
     }
 
-        .powerbiContentView .pbitoolbar .edit .divImg {
+        .powerbiContentView .pbitoolbar .edit .editImg {
             background-image: url('../images/edit.png');
             width: 16px;
             height: 100%;
@@ -275,8 +275,30 @@
             background-size: 16px;
             background-repeat: no-repeat;
             background-position-y: center;
+            margin-right: 5px;
         }
 
+    .powerbiContentView .pbitoolbar .subscription {
+        float: left;
+        margin-right: 10px;
+        margin-left: 10px;
+        text-decoration: none;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        color: black;
+    }
+
+        .powerbiContentView .pbitoolbar .subscription .subscribeImg {
+            background-image: url('../images/subscription.png');
+            width: 16px;
+            height: 100%;
+            display: inline-block;
+            background-size: 16px;
+            background-repeat: no-repeat;
+            background-position-y: center;
+            margin-right: 5px;
+        }
 
 .createBookmarks {
     background-image: url('../images/addbookmark.png');
@@ -290,19 +312,58 @@
     padding: 8px 8px 8px 8px !important
 }
 
-.deletebookmark {
-    background-image: url('../images/delete.png');
-    width: 16px;
-    display: inline-block !important;
-    background-size: 16px;
-    background-repeat: no-repeat;
-    background-position-y: center;
-    margin-right: 10px;
-    margin-left: 10px;
-    float: right;
-    position: relative;
-    padding: 8px 8px 8px 8px !important
+.addSubscription {
+    text-decoration: none;
+    border: 1px solid;
+    padding: 5px;
+    text-decoration: none;
 }
+    .addSubscription:hover,
+    .btnAdd:hover,
+    .createSubscription:hover,
+    .btnRemove:hover {
+        text-decoration: none;
+    }
+.subscriptionName {
+    cursor: pointer;
+    font-weight: bold;
+    line-height: 26px;
+}
+.subscriptionItem {
+    display: flow-root;
+}
+.createSubscription, .btnAdd, .editSubscription,
+.deleteSubscription, .btnRemove {
+    display: inline-block !important;
+    padding: 5px;
+    text-decoration: none;
+    border: 1px solid;
+    min-width: 50px;
+    text-align: center;
+}
+    .deleteSubscription, .editSubscription {
+        float: right;
+        display: flow-root;
+    }
+        .editSubscription {
+            margin-right: 5px;
+            min-width: 30px;
+        }
+
+
+        .deletebookmark {
+            background-image: url('../images/delete.png');
+            width: 16px;
+            display: inline-block !important;
+            background-size: 16px;
+            background-repeat: no-repeat;
+            background-position-y: center;
+            margin-right: 10px;
+            margin-left: 10px;
+            float: right;
+            position: relative;
+            padding: 8px 8px 8px 8px !important
+        }
 
 .not-valid {
     color: red;
@@ -339,8 +400,171 @@
     padding-top: 27px;
     border-right: solid 0px #C8C8C8
 }
+.lateral-tab {
+    height: 100%;
+    width: 0;
+    position: fixed;
+    z-index: 9999;
+    top: 0;
+    right: 0;
+    background-color: #FFFFFF;
+    overflow-x: hidden;
+    border-right: solid 0px #C8C8C8;
+    box-shadow: -1px 0px 20px 0px #000000;
+}
 
-    .sidenav a {
+.pbi-panel {
+    padding: 20px;
+}
+
+.lateral-tab * {
+    /*font-size: 16px;*/
+}
+
+    .close-panel {
+        position: absolute;
+        right: 10px;
+        top: 10px;
+        font-size: 2em;
+        z-index: 100;
+    }
+
+.lateral-tab .user-dropdown {
+    background-color: white;
+    width: 100%;
+    height: 150px;
+    overflow-y: scroll;
+    position: absolute;
+    box-shadow: 1px 1px 5px 0px #d3d3d3;
+    z-index: 1;
+}
+
+    .lateral-tab .user-dropdown li {
+        list-style: none;
+        display: flex;
+        justify-content: space-between;
+        padding: 10px;
+        cursor: pointer;
+    }
+
+        .lateral-tab .user-dropdown li:hover {
+            cursor: pointer;
+        }
+
+    .lateral-tab .subscriptions {
+        padding-left: 0px;
+        list-style: none;
+    }
+
+    .lateral-tab .subscriptions li {
+        margin-top: 10px;
+        margin-bottom: 10px;
+    }
+
+    .lateral-tab .subscriptions li > span:hover {
+        cursor: pointer;
+    }
+
+    .lateral-tab .removePageTable tr:hover, .lateral-tab .removeRoleTable tr:hover, .lateral-tab .removeUserTable tr:hover {
+        cursor: pointer;
+    }
+
+    .lateral-tab .addPageTable tr:hover {
+        cursor: pointer;
+    }
+
+    .lateral-tab table {
+        width: 100%;
+    }
+
+        .lateral-tab table tbody tr {
+            display: flex;
+            justify-content: space-between;
+            padding: 5px;
+        }
+        .lateral-tab table td {
+            display: flex;
+            flex-direction: column;
+        }
+
+            .lateral-tab table tbody tr td:first-child {
+                align-self: flex-start;
+            }
+
+            .lateral-tab table tbody tr td:last-child {
+                align-self: flex-end;
+            }
+
+.lateral-tab .actions {
+    display: block;
+    padding-top: 10px;
+    padding-bottom: 10px;
+    height: auto;
+    top: 0;
+    text-align: right;
+    width: 100%;
+    display: inline-block;
+}
+
+        .lateral-tab a {
+            cursor: pointer;
+            text-decoration: none;
+        }
+            .lateral-tab a:hover {
+                cursor: pointer;                
+            }
+
+
+    .lateral-tab h3.dnnFormSectionHead {
+        background-color: white;
+        width: 100%;
+        top: 0px;
+        margin: 0;
+        padding-top: 20px;
+        padding-bottom: 20px;
+        z-index: 99;
+    }
+
+    .lateral-tab .dnnForm {
+        margin-top: 10px;
+    }
+
+    .lateral-tab .dnnFormItem {
+        padding-top: 10px;
+        padding-bottom: 10px;
+    }
+
+    .lateral-tab .dnnFormItem input, .lateral-tab .dnnFormItem select {
+        width: 100%;
+        margin-bottom: 5px;
+    }
+
+        .lateral-tab .dnnFormItem input[type="checkbox"] {
+            height: auto;
+            width: auto;
+            margin-left: 5px;
+            padding: 0;
+        }
+
+    .lateral-tab .dnnFormItem label {
+        display: block;
+    }
+    .lateral-tab .dnnFormItem label.inline {
+        display: inline-block;
+        cursor: pointer;
+    }
+
+    .lateral-tab .dnnFormItem .full-width {
+        width: 100%;
+    }
+
+.subscription-user-header, .subscription-role-header, .subscription-page-header {
+    width: 100%;
+    background-color: #f0f0f0;
+    padding: 10px;
+}
+
+    .sidenav a, .lateral-tab .closebtn {
         padding: 8px 8px 8px 32px;
         text-decoration: none;
         font-size: 25px;
@@ -352,13 +576,17 @@
             color: #f1f1f1;
         }
 
-    .sidenav .closebtn {
-        position: absolute;
-        top: 0;
-        right: 25px;
-        font-size: 36px;
-        margin-left: 50px;
-    }
+        .lateral-tab .closebtn {
+            font-size: 36px;
+        }
+
+        .sidenav .closebtn, .lateral-tab .closebtn {
+            position: absolute;
+            top: 0;
+            right: 25px;
+            font-size: 36px;
+            margin-left: 50px;
+        }
 
 @media screen and (max-height: 450px) {
     .sidenav {
@@ -404,4 +632,41 @@
 
 #disabledCapacityMessage {
     padding: 20px;
-} 
+}
+
+.pbi-overlay {
+    position: fixed;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 9998;
+    display: none;
+}
+
+.lateral-tab h3.dnnFormSectionHead {
+    background-color: white;
+    width: 100%;
+    top: 0px;
+    margin: 0;
+    padding-top: 0px;
+    padding-bottom: 10px;
+    z-index: 99;
+    font-size: 1.8em;
+}
+
+.norows {
+    padding: 10px;
+}
+.lateral-tab input[type=date],
+.lateral-tab input[type=time] {
+    padding: 8px;
+    border: 1px solid #c9c9c9;
+    border-radius: 3px;
+    -webkit-box-shadow: 0px 1px 0px 0px rgba(255, 255, 255, 0.8), inset 0px 1px 2px 0px rgba(0, 0, 0, 0.1);
+    box-shadow: 0px 1px 0px 0px rgba(255, 255, 255, 0.8), inset 0px 1px 2px 0px rgba(0, 0, 0, 0.1);
+    color: #333;
+}

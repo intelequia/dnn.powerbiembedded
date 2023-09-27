@@ -9,7 +9,7 @@
     ClientResourceManager.RegisterScript(Dnn.DnnPage, "~/DesktopModules/MVC/PowerBIEmbedded/scripts/ContentView.js", 25);
     ClientResourceManager.RegisterStyleSheet(Dnn.DnnPage, "~/DesktopModules/MVC/PowerBIEmbedded/Css/module.css", 10, "DnnPageHeaderProvider");
 }
-
+<div class="pbi-overlay"></div>
 <div id="powerbiContentView_@Dnn.ActiveModule.ModuleID" class="powerbiContentView">
     @if (Model == null || string.IsNullOrEmpty(Model.Id))
     {
@@ -41,10 +41,16 @@
                 {
 
                     <a href="#" class="edit" title="Edit" data-bind="click: pbiedit">
-                        <div class="divImg"></div>&nbsp;Edit
+                        <div class="editImg"></div>Edit
                     </a>
+                    if (ViewBag.ShowSubscription)
+                    {
+                        <a href="#" class="subscription" data-bind="click: openLateralTab">
+                            <div class="subscribeImg"></div>
+                            <span>@Dnn.LocalizeString("Subscriptions")</span>
+                        </a>
+                    }
                 }
-
                 @if (ViewBag.PrintVisible)
                 {
                     <a href="#" class="print" title="Print report" data-bind="click: pbiprint"></a>
@@ -89,6 +95,185 @@
                 </div>
             </div>
         </div>
+        if (ViewBag.ShowSubscription && ViewBag.CanEdit)
+        {
+<div class="lateral-tab">
+    <div class="close-panel">
+        <a id="close-btn" data-bind="click: closeLateralTab"> <i class="fa fa-window-close-o"></i></a>
+    </div>
+    <div class="pbi-panel">
+        <h3 class="dnnFormSectionHead">@Dnn.LocalizeString("Subscriptions")</h3>
+        <!-- Subscriptions -->
+        <!-- Add new subscription form -->
+        <div class="dnnForm">
+            <p>@Dnn.LocalizeString("SubscriptionsSubtitle")</p>
+        </div>
+        <div class="actions">
+            <a class="addSubscription" data-bind="visible: !editing(), click: addNewSubscription">@Dnn.LocalizeString("NewSubscription")</a>
+        </div>
+
+        <!-- Edit subscriptions -->
+        <div data-bind="visible: (!editing() && subscriptionsArray() && subscriptionsArray().length > 0)">
+            <p>@Dnn.LocalizeString("SubscriptionList")</p>
+            <ul class="subscriptions" data-bind="foreach: subscriptionsArray">
+                <li class="subscriptionItem">
+                    <a class="deleteSubscription" data-bind="click: deleteSubscription">@Dnn.LocalizeString("btnDeleteSubscription")</a>
+                    <a class="editSubscription" data-bind="click: editSubscription">@Dnn.LocalizeString("btnEditSubscription")</a>
+                    <span class="subscriptionName" data-bind="text: name, click: editSubscription"></span>
+                </li>
+            </ul>
+        </div>
+
+        <!-- ko with: $root.selectedSubscription() -->
+        <div data-bind="visible: editing">
+            <div class="editorTitle">@Dnn.LocalizeString("EditSubscriptionDetails")</div>
+            <div class="dnnForm">
+                <fieldset class="dnnClear">
+                    <div class="dnnFormItem">
+                        <label for="txtEditSubscriptionName">@Dnn.LocalizeString("SubscriptionName")</label>
+                        <input type="text" id="txtEditSubscriptionName" class="full-width" data-bind="value: name">
+                        <div data-bind="validationMessage: name" class="not-valid"></div>
+                    </div>
+                    <div class="dnnFormItem">
+                        <label for="txtSearch">@Dnn.LocalizeString("SubscriptionSearchUsers")</label>
+                        <div class="searchbox">
+                            <input type="text" class="txtSearch" data-bind="value: editUserSearchQuery, valueUpdate: 'keyup'" placeholder="@Dnn.LocalizeString("SubscriptionUserQuery")" />
+                            <ul class="user-dropdown" data-bind="visible: editUserSearchQuery().length > 0 && availableUsers().length > 0, foreach: availableUsers">
+                                <li data-bind="click: $parent.addUserToSubscription">
+                                    <span data-bind="text: DisplayName"></span>
+                                    <a class="btnAdd">@Dnn.LocalizeString("btnAdd")</a>
+                                </li>
+                            </ul>
+                            <ul class="user-dropdown" data-bind="visible: editUserSearchQuery().length > 0 && availableUsers().length === 0">
+                                <li>@Dnn.LocalizeString("SubscriptionNoUsers")</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <!-- Current Users -->
+                    <div class="subscription-user-header">@Dnn.LocalizeString("SubscriptionCurrentUsers")</div>
+                    <table class="removeUserTable">
+                        <tbody data-bind="foreach: addedUsers">
+                            <tr data-bind="click: $parent.removeUserFromSubscription">
+                                <td><span data-bind="text: DisplayName"></span></td>
+                                <td><a class="btnRemove">@Dnn.LocalizeString("btnRemove")</a></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <div data-bind="visible: addedUsers().length === 0" class="norows">
+                        <span>@Dnn.LocalizeString("SubscriptionNoUsers")</span>
+                    </div>
+
+                    <div class="dnnFormItem">
+                        <label for="txtSearch">@Dnn.LocalizeString("SubscriptionSearchRoles")</label>
+                        <div class="searchbox">
+                            <input type="text" class="txtSearch" data-bind="value: editRoleSearchQuery, valueUpdate: 'keyup'" placeholder="@Dnn.LocalizeString("SubscriptionRoleQuery")" />
+                            <ul class="user-dropdown" data-bind="visible: editRoleSearchQuery().length > 0 && availableRoles().length > 0, foreach: availableRoles">
+                                <li data-bind="click: $parent.addRoleToSubscription">
+                                    <span data-bind="text: RoleName"></span>
+                                    <a class="btnAdd">@Dnn.LocalizeString("btnAdd")</a>
+                                </li>
+                            </ul>
+                            <ul class="user-dropdown" data-bind="visible: editRoleSearchQuery().length > 0 && availableRoles().length === 0">
+                                <li>@Dnn.LocalizeString("SubscriptionNoRoles")</li>
+                            </ul>
+                        </div>
+                    </div>
+
+
+                    <!-- Current Roles -->
+                    <div class="subscription-role-header">@Dnn.LocalizeString("SubscriptionCurrentRoles")</div>
+                    <table class="removeRoleTable">
+                        <tbody data-bind="foreach: addedRoles">
+                            <tr data-bind="click: $parent.removeRoleFromSubscription">
+                                <td><span data-bind="text: RoleName"></span></td>
+                                <td><a class="btnRemove">@Dnn.LocalizeString("btnRemove")</a></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <div data-bind="visible: addedRoles().length === 0" class="norows">
+                        <span>@Dnn.LocalizeString("SubscriptionNoRoles")</span>
+                    </div>
+
+                    <div class="dnnFormItem">
+                        <label for="dtEditStartDate">@Dnn.LocalizeString("SubscriptionStartDate")</label>
+                        <input type="date" id="dtEditStartDate" data-bind="value: startDate">
+                        <div data-bind="validationMessage: startDate" class="not-valid"></div>
+                    </div>
+                    <div class="dnnFormItem">
+                        <label for="dtEditEndDate">@Dnn.LocalizeString("SubscriptionEndDate")</label>
+                        <input type="date" id="dtEditEndDate" data-bind="attr: { min: startDate }, value: endDate">
+                        <div data-bind="validationMessage: endDate" class="not-valid"></div>
+                    </div>
+                    <div class="dnnFormItem">
+                        <label for="cboEditRepeatPeriod">@Dnn.LocalizeString("SubscriptionRepeatPeriod")</label>
+                        <select id="cboEditRepeatPeriod" data-bind="value: repeatPeriod">
+                            <option value="Daily">@Dnn.LocalizeString("SubscriptionDaily")</option>
+                            <option value="Weekly">@Dnn.LocalizeString("SubscriptionWeekly")</option>
+                            <option value="Monthly">@Dnn.LocalizeString("SubscriptionMonthly")</option>
+                        </select>
+                    </div>
+                    <div class="dnnFormItem">
+                        <label for="tmEditRepeatTime">@Dnn.LocalizeString("SubscriptionRepeatTime")</label>
+                        <input type="time" id="tmEditRepeatTime" data-bind="value: repeatTime">
+                        <div data-bind="validationMessage: repeatTime" class="not-valid"></div>
+                    </div>
+                    <div class="dnnFormItem">
+                        <label for="cboEditTimeZone">@Dnn.LocalizeString("SubscriptionTimeZone")</label>
+                        <select id="cboEditTimeZone" data-bind="options: $root.timesZones, optionsText: 'DisplayName', optionsValue: 'Id', value: timeZone">
+                        </select>
+                    </div>
+                    <div class="dnnFormItem">
+                        <label for="txtEditEmailSubject">@Dnn.LocalizeString("SubscriptionEmailSubject")</label>
+                        <input type="text" id="txtEditEmailSubject" class="full-width" data-bind="value: emailSubject">
+                        <div data-bind="validationMessage: emailSubject" class="not-valid"></div>
+
+                    </div>
+                    <div class="dnnFormItem">
+                        <label for="txtEditMessage">@Dnn.LocalizeString("SubscriptionEmailMessage")</label>
+                        <input type="text" id="txtEditMessage" class="full-width" data-bind="value: message">
+                        <div data-bind="validationMessage: message" class="not-valid"></div>
+
+                    </div>
+                    <!-- Available Pages -->
+                    <div class="subscription-page-header">@Dnn.LocalizeString("SubscriptionAvailablePages")</div>
+                    <table class="addPageTable">
+                        <tbody data-bind="foreach: availablePages">
+                            <tr data-bind="click: $parent.addPageToSubscription">
+                                <td><span data-bind="text: displayName"></span></td>
+                                <td><a class="btnAdd">@Dnn.LocalizeString("btnAdd")</a></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <div data-bind="visible: availablePages().length === 0" class="norows">
+                        <span>@Dnn.LocalizeString("SubscriptionNoPages")</span>
+                    </div>
+                    <!-- Current Pages -->
+                    <div class="subscription-page-header">@Dnn.LocalizeString("SubscriptionCurrentPages")</div>
+                    <table class="removePageTable">
+                        <tbody data-bind="foreach: addedPages">
+                            <tr data-bind="click: $parent.removePageFromSubscription">
+                                <td><span data-bind="text: displayName"></span></td>
+                                <td><a class="btnRemove">@Dnn.LocalizeString("btnRemove")</a></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <div data-bind="visible: addedPages().length === 0" class="norows">
+                        <span>@Dnn.LocalizeString("SubscriptionNoPages")</span>
+                    </div>
+                    <div class="dnnFormItem">
+                        <label class="inline" for="chkEditEnable">@Dnn.LocalizeString("SubscriptionEnabled")</label>
+                        <input type="checkbox" id="chkEditEnable" data-bind="checked: enabled" />
+                    </div>
+                </fieldset>
+                <a id="btnSaveEditSubscription" class="dnnPrimaryAction" data-bind="click: $root.saveEditedSubscription">@Dnn.LocalizeString("SubscriptionSave")</a>
+                <a id="btnSaveCancel" class="dnnSecondaryAction" data-bind="click: $root.cancelEditing">@Dnn.LocalizeString("SubscriptionCancel")</a>
+            </div>
+        </div>
+        <!-- /ko -->
+    </div>
+</div>
+        }
         <div id="embedContainer_@Dnn.ActiveModule.ModuleID" class="mobile-view active"></div>
     }
 </div>
+

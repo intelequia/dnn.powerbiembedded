@@ -1,0 +1,37 @@
+﻿IF (NOT EXISTS(SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'PBI_Subscriptions'))
+BEGIN
+    CREATE TABLE {databaseOwner}[{objectQualifier}PBI_Subscriptions](
+        [Id] [int] IDENTITY(1,1) NOT NULL PRIMARY KEY,
+        [PortalId] [int] NOT NULL,
+        [ReportId] [nvarchar](100) NOT NULL,
+        [GroupId] [nvarchar](100) NOT NULL,
+        [ModuleId] [int] NOT NULL,
+        [Name] [nvarchar](100) NOT NULL,
+        [StartDate] [datetime] NOT NULL,
+        [EndDate] [datetime] NOT NULL,
+        [RepeatPeriod] [nvarchar](100) NOT NULL,
+        [RepeatTime] [time] NOT NULL,
+        [TimeZone] [nvarchar](100) NOT NULL,
+        [EmailSubject] [nvarchar](100) NOT NULL,
+        [Message] [nvarchar](500) NOT NULL,
+        [ReportPages] [nvarchar](1000) NOT NULL,
+        [Enabled] [bit] NOT NULL,
+        [CreatedOn] [datetime] NOT NULL,
+        [CreatedBy] [int] NOT NULL,
+        [LastProcessedOn] [datetime] NULL,
+    )
+END
+IF (NOT EXISTS(SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'PBI_SubscriptionSubscribers'))
+BEGIN
+    CREATE TABLE {databaseOwner}[{objectQualifier}PBI_SubscriptionSubscribers](
+		[Id] [int] IDENTITY(1,1) NOT NULL PRIMARY KEY,
+		[SubscriptionId] [int] NOT NULL,
+		[UserId] [int] NULL,
+		[RoleId] [int] NULL,
+		[CreatedOn] [datetime] NOT NULL,
+		[CreatedBy] [int] NOT NULL,
+        CONSTRAINT FK_PBI_SubscriptionSubscribers_SubscriptionId FOREIGN KEY (SubscriptionId)
+            REFERENCES {objectQualifier}PBI_Subscriptions(Id)
+            ON DELETE CASCADE
+	)
+END
