@@ -111,7 +111,7 @@ namespace DotNetNuke.PowerBI.Services
             {
                 model.Workspaces = model.Workspaces.OrderBy(x => x.Name).ToList();
             }
-
+            
             // Create a Power BI Client object. It will be used to call Power BI APIs.
             using (var client = new PowerBIClient(new Uri(Settings.ApiUrl), tokenCredentials))
             {

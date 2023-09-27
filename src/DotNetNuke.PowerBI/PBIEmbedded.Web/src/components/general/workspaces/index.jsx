@@ -136,48 +136,51 @@ class Workspaces extends Component {
     renderedWorkspaces() {
         let i = 0;
         if (this.props.workspaces) {
-            return this.props.workspaces.map((item, index) => {
-                let id = "row-" + i++;
-                let settingsId = item.SettingsId;
-                return (
-                    <WorkspaceRow
-                        settingsId={settingsId}
-                        settingsGroupId={item.SettingsGroupId}
-                        settingsGroupName={item.SettingsGroupName}
-                        authenticationType={item.AuthenticationType}
-                        contentPageUrl={item.ContentPageUrl}
-                        index={index}
-                        key={"settings-" + index}
-                        closeOnClick={true}
-                        openId={this.state.openId}
-                        OpenCollapse={this.toggle.bind(this)}
-                        Collapse={this.collapse.bind(this)}
-                        onDelete={this.onDeleteWorkspaceSetting.bind(this, settingsId)}
-                        id={id}>
-                        <WorkspaceEditor
-                            workspaceDetail={item}
+            return this.props.workspaces
+                .slice().sort((a, b) => {
+                    return a.SettingsGroupName.localeCompare(b.SettingsGroupName);
+                }).map((item, index) => {
+                    let id = "row-" + i++;
+                    let settingsId = item.SettingsId;
+                    return (
+                        <WorkspaceRow
                             settingsId={settingsId}
                             settingsGroupId={item.SettingsGroupId}
                             settingsGroupName={item.SettingsGroupName}
                             authenticationType={item.AuthenticationType}
-                            username={item.Username}
-                            password={item.Password}
-                            servicePrincipalApplicationId={item.ServicePrincipalApplicationId}
-                            servicePrincipalApplicationSecret={item.ServicePrincipalApplicationSecret}
-                            servicePrincipalTenant={item.ServicePrincipalTenant}
-                            applicationId={item.ApplicationId}
-                            workspaceId={item.WorkspaceId}
                             contentPageUrl={item.ContentPageUrl}
-                            disabledCapacityMessage={item.DisabledCapacityMessage}
-                            inheritPermissions={item.InheritPermissions}
+                            index={index}
+                            key={"settings-" + index}
+                            closeOnClick={true}
+                            openId={this.state.openId}
+                            OpenCollapse={this.toggle.bind(this)}
                             Collapse={this.collapse.bind(this)}
-                            onUpdate={this.onUpdateWorkspaceSetting.bind(this)}
-                            onValidate={this.onValidateWorkspaceSetting.bind(this)}
-                            id={id}
-                            openId={this.state.openId} />
-                    </WorkspaceRow>
-                );
-            });
+                            onDelete={this.onDeleteWorkspaceSetting.bind(this, settingsId)}
+                            id={id}>
+                            <WorkspaceEditor
+                                workspaceDetail={item}
+                                settingsId={settingsId}
+                                settingsGroupId={item.SettingsGroupId}
+                                settingsGroupName={item.SettingsGroupName}
+                                authenticationType={item.AuthenticationType}
+                                username={item.Username}
+                                password={item.Password}
+                                servicePrincipalApplicationId={item.ServicePrincipalApplicationId}
+                                servicePrincipalApplicationSecret={item.ServicePrincipalApplicationSecret}
+                                servicePrincipalTenant={item.ServicePrincipalTenant}
+                                applicationId={item.ApplicationId}
+                                workspaceId={item.WorkspaceId}
+                                contentPageUrl={item.ContentPageUrl}
+                                disabledCapacityMessage={item.DisabledCapacityMessage}
+                                inheritPermissions={item.InheritPermissions}
+                                Collapse={this.collapse.bind(this)}
+                                onUpdate={this.onUpdateWorkspaceSetting.bind(this)}
+                                onValidate={this.onValidateWorkspaceSetting.bind(this)}
+                                id={id}
+                                openId={this.state.openId} />
+                        </WorkspaceRow>
+                    );
+                });
         }
     }
 

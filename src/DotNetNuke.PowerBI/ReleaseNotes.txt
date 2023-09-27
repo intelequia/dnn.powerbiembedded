@@ -128,7 +128,8 @@
 	<p>feat: added the edit permission to be able to edit reports.</p>
 	<p>feat: added a new config parameter "Hide Visualizers and Data when editing" to hide those panes while editing.</p>
 
-	<b>Version 1.1.1</b>
+	<b>Version 1.1.1</b>	
+	<p>fix: workspaces are now ordered alphabetically on settings.</p>
 	<p>feat: added option to hide refresh buttons on the toolbar.</p>
 	
 </div>
