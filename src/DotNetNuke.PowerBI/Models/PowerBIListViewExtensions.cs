@@ -95,11 +95,11 @@ namespace DotNetNuke.PowerBI.Models
             return settings;
         }
 
-        public static bool UserHasPermissionsToWorkspace(string settingsGroupId, UserInfo user)
+        public static bool UserHasPermissionsToWorkspace(string settingsGroupId, UserInfo user, int permissionId = 1)
         {
             return user.IsSuperUser
                 || user.IsInRole("Administrators")
-                || ObjectPermissionsRepository.Instance.HasPermissions(settingsGroupId, user.PortalID, 1, user);
+                || ObjectPermissionsRepository.Instance.HasPermissions(settingsGroupId, user.PortalID, permissionId, user);
         }
     }
 }

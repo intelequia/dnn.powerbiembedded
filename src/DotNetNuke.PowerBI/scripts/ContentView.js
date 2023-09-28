@@ -76,8 +76,9 @@
                 return;
             }
             let params = {
-                portalId: that.portalId,
                 searchName: query,
+                workspaceId: that.groupId(),
+                reportId: that.reportId(),
             }
             if (that.searchTimeout)
                 clearTimeout(that.searchTimeout);
@@ -109,8 +110,9 @@
                 return;
             }
             let params = {
-                portalId: portalId,
                 searchName: query,
+                workspaceId: that.groupId(),
+                reportId: that.reportId(),
             }
             if (that.searchTimeout)
                 clearTimeout(that.searchTimeout);
@@ -195,7 +197,9 @@
 
         this.deleteSubscription = function () {
             let params = {
-                Id: that.id()
+                Id: that.id(),
+                ReportId: that.reportId(),
+                groupId: that.groupId(),
             };
             var confirmed = confirm("Are you sure you want to delete " + that.name() + " subscription?");
             if (confirmed) {
@@ -265,6 +269,7 @@
 
         this.createSubscriptionList = function () {
             let params = {
+                workspaceId: that.report.config.groupId,
                 reportId: context.Id
             }
             Common.Call("GET", "GetSubscriptions", that.subscriptionsService, params,

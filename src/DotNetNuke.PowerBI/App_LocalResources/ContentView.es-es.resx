@@ -120,6 +120,9 @@
   <data name="btnAdd.Text" xml:space="preserve">
     <value>Añadir</value>
   </data>
+  <data name="btnCloseLateralTab.Text" xml:space="preserve">
+    <value>Cerrar</value>
+  </data>
   <data name="btnDeleteSubscription.Text" xml:space="preserve">
     <value>Eliminar</value>
   </data>
