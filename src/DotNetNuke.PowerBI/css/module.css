@@ -333,7 +333,7 @@
     display: flow-root;
 }
 .createSubscription, .btnAdd, .editSubscription,
-.deleteSubscription, .btnRemove {
+.deleteSubscription, .btnRemove, .btnCloseLateralTab {
     display: inline-block !important;
     padding: 5px;
     text-decoration: none;

@@ -1,15 +1,13 @@
 ﻿using DotNetNuke.Entities.Users;
 using DotNetNuke.PowerBI.Data;
-using DotNetNuke.PowerBI.Data.Bookmarks;
 using DotNetNuke.PowerBI.Data.Models;
+using DotNetNuke.PowerBI.Data.SharedSettings;
 using DotNetNuke.PowerBI.Data.Subscriptions;
 using DotNetNuke.PowerBI.Data.Subscriptions.Models;
+using DotNetNuke.PowerBI.Models;
 using DotNetNuke.Security;
 using DotNetNuke.Security.Roles;
-using DotNetNuke.Services.Social.Subscriptions.Entities;
 using DotNetNuke.Web.Api;
-using Microsoft.PowerBI.Api;
-using Microsoft.PowerBI.Api.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -17,7 +15,6 @@ using System.Net;
 using System.Net.Http;
 using System.Web.Http;
 using System.Web.Script.Serialization;
-using static DotNetNuke.PowerBI.Services.SubscriptionController;
 using Subscription = DotNetNuke.PowerBI.Data.Subscriptions.Models.Subscription;
 
 namespace DotNetNuke.PowerBI.Services
@@ -61,10 +58,17 @@ namespace DotNetNuke.PowerBI.Services
             public string RoleName { get; set; }
         }
         [HttpGet]
-        public HttpResponseMessage GetSubscriptions(string reportId)
+        public HttpResponseMessage GetSubscriptions(string workspaceId, string reportId)
         {
             try
             {
+                CheckWorkspaceAndReport(ref workspaceId, ref reportId);
+                string comparison = WorkspaceOrReport(workspaceId, reportId);
+                if (!UserHasPermission(comparison))
+                {
+                    return Request.CreateResponse(HttpStatusCode.Unauthorized, new { Success = false });
+                }
+
                 var userId = UserController.Instance.GetCurrentUserInfo().UserID;
                 var portalId = PortalSettings.PortalId;
                 var subscriptions = SubscriptionsRepository.Instance.GetSubscriptionsByReportId(reportId, portalId);
@@ -80,12 +84,7 @@ namespace DotNetNuke.PowerBI.Services
                             var user = UserController.Instance.GetUserById(portalId, subscriptionSubscriber.UserId.Value);
                             if (user != null)
                             {
-                                users.Add(new UserViewModel
-                                {
-                                    UserID = user.UserID,
-                                    DisplayName = user.DisplayName
-                                });
-
+                                users.Add(new UserViewModel { UserID = user.UserID, DisplayName = user.DisplayName });
                             }
                         }
                         else if (subscriptionSubscriber.RoleId.HasValue)
@@ -93,16 +92,11 @@ namespace DotNetNuke.PowerBI.Services
                             var role = RoleController.Instance.GetRoleById(portalId, subscriptionSubscriber.RoleId.Value);
                             if (role != null)
                             {
-                                roles.Add(new RoleViewModel
-                                {
-                                    RoleID = role.RoleID,
-                                    RoleName = role.RoleName
-                                });
+                                roles.Add(new RoleViewModel { RoleID = role.RoleID, RoleName = role.RoleName });
                             }
                         }
                     }
                     var serializer = new JavaScriptSerializer();
-
                     var usersArray = serializer.Serialize(users);
                     var rolesArray = serializer.Serialize(roles);
                     subscription.Users = usersArray;
@@ -110,30 +104,19 @@ namespace DotNetNuke.PowerBI.Services
                 }
                 if (subscriptions != null && subscriptions.Any())
                 {
-                    return Request.CreateResponse(HttpStatusCode.OK, new
-                    {
-                        Success = true,
-                        Data = subscriptions
-                    });
+                    return Request.CreateResponse(HttpStatusCode.OK, new { Success = true, Data = subscriptions });
                 }
 
-                return Request.CreateResponse(HttpStatusCode.OK, new
-                {
-                    Success = false,
-                });
+                return Request.CreateResponse(HttpStatusCode.OK, new { Success = false });
             }
             catch (Exception e)
             {
-                return Request.CreateResponse(HttpStatusCode.InternalServerError, new
-                {
-                    Success = false,
-                    Error = e
-                });
+                return Request.CreateResponse(HttpStatusCode.InternalServerError, new { Success = false, Error = e });
             }
         }
 
         [HttpPost]
-        public HttpResponseMessage AddSubscription(SubscriptionViewModel subscriptionViewModel)
+        private HttpResponseMessage AddSubscription(SubscriptionViewModel subscriptionViewModel)
         {
             try
             {
@@ -216,6 +199,16 @@ namespace DotNetNuke.PowerBI.Services
         {
             try
             {
+                int portalId = ActiveModule.PortalID;
+                bool hasInheritPermissions = SharedSettingsRepository.Instance.GetSettingsByGroupId(subscriptionViewModel.GroupId, portalId).InheritPermissions;
+                string comparison = hasInheritPermissions ? subscriptionViewModel.GroupId : subscriptionViewModel.ReportId;
+                if (!UserHasPermission(comparison))
+                {
+                    return Request.CreateResponse(HttpStatusCode.Unauthorized, new
+                    {
+                        Success = false,
+                    });
+                }
                 var serializer = new JavaScriptSerializer();
                 if (subscriptionViewModel.Id == -1)
                 {
@@ -300,6 +293,17 @@ namespace DotNetNuke.PowerBI.Services
         {
             try
             {
+                int portalId = ActiveModule.PortalID;
+                bool hasInheritPermissions = SharedSettingsRepository.Instance.GetSettingsByGroupId(subscriptionViewModel.GroupId, portalId).InheritPermissions;
+                string comparison = hasInheritPermissions ? subscriptionViewModel.GroupId : subscriptionViewModel.ReportId;
+
+                if (!UserHasPermission(comparison))
+                {
+                    return Request.CreateResponse(HttpStatusCode.Unauthorized, new
+                    {
+                        Success = false,
+                    });
+                }
                 bool success = SubscriptionsRepository.Instance.DeleteSubscription(subscriptionViewModel.Id);
                 if (success)
                 {
@@ -325,13 +329,29 @@ namespace DotNetNuke.PowerBI.Services
         }
 
         [HttpGet]
-        public HttpResponseMessage SearchUsers(int portalId, string searchName)
+        public HttpResponseMessage SearchUsers(string searchName, string workspaceId, string reportId)
         {
             try
             {
-                List<ObjectPermission> objectPermissions = ObjectPermissionsRepository.Instance.GetObjectPermissionsByPortalExtended(portalId)
-                .Where(permission => permission.PermissionID == 1 && permission.AllowAccess)
-                .ToList();
+                CheckWorkspaceAndReport(ref workspaceId, ref reportId);
+                string comparison = WorkspaceOrReport(workspaceId, reportId);
+                if (!UserHasPermission(comparison))
+                {
+                    return Request.CreateResponse(HttpStatusCode.Unauthorized, new
+                    {
+                        Success = false,
+                    });
+                }
+                int portalId = ActiveModule.PortalID;
+                List<ObjectPermission> objectPermissions = ObjectPermissionsRepository.Instance.GetObjectPermissionsExtended(comparison, portalId)
+                                    .Where(permission => permission.PermissionID == 1 && permission.AllowAccess)
+                                    .ToList();
+                RoleInfo administrators = RoleController.Instance.GetRoleByName(portalId, "Administrators");
+                objectPermissions.Add(new ObjectPermission
+                {
+                    RoleName = "Administrators",
+                    RoleID = administrators.RoleID
+                });
                 List<UserViewModel> users = new List<UserViewModel>();
                 foreach (ObjectPermission permission in objectPermissions)
                 {
@@ -384,7 +404,8 @@ namespace DotNetNuke.PowerBI.Services
                 {
                     Success = false,
                 });
-            } catch (Exception ex)
+            }
+            catch (Exception ex)
             {
                 return Request.CreateResponse(HttpStatusCode.InternalServerError, new
                 {
@@ -395,14 +416,25 @@ namespace DotNetNuke.PowerBI.Services
         }
 
         [HttpGet]
-        public HttpResponseMessage SearchRoles(int portalId, string searchName)
+        public HttpResponseMessage SearchRoles(string searchName, string workspaceId, string reportId)
         {
             try
             {
-                List<ObjectPermission> objectPermissions = ObjectPermissionsRepository.Instance.GetObjectPermissionsByPortalExtended(portalId)
-                .Where(permission => permission.PermissionID == 1 && permission.AllowAccess)
-                .ToList();
+                CheckWorkspaceAndReport(ref workspaceId, ref reportId);
+                string comparison = WorkspaceOrReport(workspaceId, reportId);
+                if (!UserHasPermission(comparison))
+                {
+                    return Request.CreateResponse(HttpStatusCode.Unauthorized, new
+                    {
+                        Success = false,
+                    });
+                }
+                int portalId = ActiveModule.PortalID;
+                List<ObjectPermission> objectPermissions = ObjectPermissionsRepository.Instance.GetObjectPermissionsExtended(comparison, portalId)
+                                    .Where(permission => permission.PermissionID == 1 && permission.AllowAccess)
+                                    .ToList();
                 List<RoleViewModel> roles = new List<RoleViewModel>();
+
                 foreach (ObjectPermission permission in objectPermissions)
                 {
                     if (permission.RoleID != null)
@@ -422,6 +454,17 @@ namespace DotNetNuke.PowerBI.Services
                         }
                     }
                 }
+                if ("administrators".Contains(searchName.ToLower()))
+                {
+                    RoleInfo administrators = RoleController.Instance.GetRoleByName(portalId, "Administrators");
+
+                    roles.Add(new RoleViewModel
+                    {
+                        RoleID = administrators.RoleID,
+                        RoleName = administrators.RoleName
+                    });
+                }
+
                 if (roles != null)
                 {
                     return Request.CreateResponse(HttpStatusCode.OK, new
@@ -434,13 +477,43 @@ namespace DotNetNuke.PowerBI.Services
                 {
                     Success = false,
                 });
-            } catch (Exception ex)
+            }
+            catch (Exception ex)
             {
                 return Request.CreateResponse(HttpStatusCode.InternalServerError, new
                 {
                     Success = false,
                     Error = ex
                 });
+            }
+        }
+
+        private bool UserHasPermission(string workspaceOrReport)
+        {
+            UserInfo currentUser = UserController.Instance.GetCurrentUserInfo();
+            return PowerBIListViewExtensions.UserHasPermissionsToWorkspace(workspaceOrReport, currentUser, 2);
+        }
+
+        private string WorkspaceOrReport(string workspaceId, string reportId)
+        {
+            int portalId = ActiveModule.PortalID;
+            bool hasInheritPermissions = SharedSettingsRepository.Instance.GetSettingsByGroupId(workspaceId, portalId).InheritPermissions;
+            return hasInheritPermissions ? workspaceId : reportId;
+        }
+
+        private void CheckWorkspaceAndReport(ref string workspaceId, ref string reportId)
+        {
+            var powerBISettingsGroupId = ActiveModule.TabModuleSettings["PowerBIEmbedded_SettingsGroupId"];
+            var contentItemId = ActiveModule.TabModuleSettings["PowerBIEmbedded_ContentItemId"];
+
+            if (powerBISettingsGroupId != null)
+            {
+                workspaceId = powerBISettingsGroupId.ToString();
+            }
+
+            if (contentItemId != null)
+            {
+                reportId = contentItemId.ToString().Substring(2);
             }
         }
     }

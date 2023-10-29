@@ -24,6 +24,7 @@ using System.Linq;
 using System.Net;
 using System.Text.RegularExpressions;
 using System.Web.Mvc;
+using static DotNetNuke.PowerBI.Services.SubscriptionController;
 
 namespace DotNetNuke.PowerBI.Controllers
 {
@@ -36,7 +37,6 @@ namespace DotNetNuke.PowerBI.Controllers
         public ActionResult Index()
         {
             var model = new EmbedConfig();
-            bool hasEditPermission = HasEditPermission();
 
             try
             {
@@ -120,6 +120,8 @@ namespace DotNetNuke.PowerBI.Controllers
                         }
                     }
                 }
+                bool hasEditPermission = HasEditPermission(embedService.Settings, Request["reportId"] ?? GetSetting("PowerBIEmbedded_ContentItemId").Substring(2));
+
 
                 if (!string.IsNullOrEmpty(Request["dashboardId"]))
                 {
@@ -247,60 +249,14 @@ namespace DotNetNuke.PowerBI.Controllers
                 : defaultValue;
         }
 
-        private bool HasEditPermission()
+        private bool HasEditPermission(PowerBISettings settings, string reportId)
         {
-            PortalSettings portalSettings = PortalController.Instance.GetCurrentPortalSettings();
-            int portalId = portalSettings.PortalId;
-            Entities.Users.UserInfo user = portalSettings.UserInfo;
-            bool hasEditPermission = false;
+            bool hasInheritPermissions = settings.InheritPermissions;
+            string comparison = hasInheritPermissions ? settings.SettingsGroupId : reportId;
+            PortalSettings portalSettings = ModuleContext.PortalSettings;
+            UserInfo user = portalSettings.UserInfo;
 
-            List<ObjectPermission> objectPermissions = ObjectPermissionsRepository.Instance.GetObjectPermissionsByPortal(portalId).ToList();
-            IList<UserRoleInfo> userRoles = RoleController.Instance.GetUserRoles(user, true);
-            bool isAdmin = RoleController.Instance.GetUserRoles(user, true).Any(role => role.RoleName == "Administrators");
-
-            if (isAdmin || user.IsSuperUser)
-            {
-                hasEditPermission = true;
-            }
-            else
-            {
-                var list = ObjectPermissionsRepository.Instance.GetObjectPermissionsByPortal(portalId).ToList();
-                foreach (var permission in list)
-                {
-                    foreach (var userRole in userRoles)
-                    {
-                        if (permission.RoleID == -1) // All Users
-                        {
-                            if (permission.PermissionID == 2 && permission.AllowAccess)
-                            {
-                                hasEditPermission = true;
-                            }
-                        }
-                        else
-                        {
-                            if (userRole.RoleID == permission.RoleID)
-                            {
-                                if (permission.PermissionID == 2 && permission.AllowAccess)
-                                {
-                                    hasEditPermission = true;
-                                }
-                            }
-                            else
-                            {
-                                if (userRole.UserID == permission.UserID)
-                                {
-                                    if (permission.PermissionID == 2 && permission.AllowAccess)
-                                    {
-                                        hasEditPermission = true;
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-
-            return hasEditPermission;
+            return PowerBIListViewExtensions.UserHasPermissionsToWorkspace(comparison, user, 2);
         }
     }
 }
