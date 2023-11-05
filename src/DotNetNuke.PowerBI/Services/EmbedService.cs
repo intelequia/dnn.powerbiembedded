@@ -564,6 +564,10 @@ namespace DotNetNuke.PowerBI.Services
                             rolesList.AddRange(roles.Split(','));
                             rls.Roles = rolesList;
                         }
+                        if (Components.Common.IsSuperUser())
+                        {
+                            rls.Roles.Add("SuperUsers");
+                        }
                         // Generate Embed Token with effective identities.
                         generateTokenRequestParameters = new GenerateTokenRequest(accessLevel: permission, identities: new List<EffectiveIdentity> { rls });
                     }
