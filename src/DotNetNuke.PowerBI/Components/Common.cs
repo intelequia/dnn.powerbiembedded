@@ -72,9 +72,9 @@ namespace DotNetNuke.PowerBI.Components
         public static UserInfo CurrentUser => UserController.Instance.GetCurrentUserInfo();
 
         public static bool IsSuperUser()
-        {
+        {            
             // Usuario no logueado
-            if (CurrentUser.UserID == -1)
+            if (CurrentUser == null || CurrentUser.UserID == -1)
                 return false;
 
             return CurrentUser.IsSuperUser;
