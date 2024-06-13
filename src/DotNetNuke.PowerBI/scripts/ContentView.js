@@ -379,13 +379,12 @@
                     language: context.Locale,
                     formatLocale: context.Locale
                 },
-                layoutType: that.isMobile ? (that.isLandscape ? that.models.LayoutType.MobileLandscape : that.models.LayoutType.MobilePortrait) : null
             },
             pageName: context.PageName
         };
 
         if (this.overrideVisualHeaderVisibility) {
-            this.config.settings.visualSettings = {
+            that.config.settings.visualSettings = {
                 visualHeaders: [
                     {
                         settings: {
@@ -398,31 +397,42 @@
 
         //override filter pane
         if (context.overrideFilterPaneVisibility) {
-            this.config.settings.filterPaneEnabled = context.FilterPaneVisible && !that.isMobile;
+            that.config.settings.filterPaneEnabled = context.FilterPaneVisible && !that.isMobile;
         }
 
         // Get a reference to the embedded report HTML element
         this.reportContainer = $('#embedContainer_' + context.ModuleId)[0];
+
         if (!that.isMobile && that.isLandscape) {
-            var h = that.defaultHeight !== '' ? that.defaultHeight : window.innerHeight - 50 - 20 - 39 - 20 - 10;
+        var h = that.defaultHeight !== '' ? that.defaultHeight : window.innerHeight - 50 - 20 - 39 - 20 - 10;
+
             $('#embedContainer_' + context.ModuleId).css("height", h + "px");
+        }
+
+        if (that.isMobile) {
+            that.config.settings.layoutType = that.models.LayoutType.Custom;
+            that.config.settings.customLayout = {
+                displayOption: that.models.DisplayOption.FitToWidth,
+                width: "100%",
+                height: "100%"
+            }
+            that.config.settings.panes = {
+                pageNavigation: {
+                    visible: false
+                }
+            }
+        }
+    
+        if (this.overrideFilterPaneVisibility) {
+            that.config.settings.panes = {
+                filters: {
+                    visible: context.FilterPaneVisible && !that.isMobile, // hide filter pane
+                }
+            }
         }
 
         // Embed the report and display it within the div container.
         this.report = powerbi.embed(that.reportContainer, that.config);
-
-
-        if (this.overrideFilterPaneVisibility) {
-            const newSettings = {
-                panes: {
-                    filters: {
-                        visible: context.FilterPaneVisible && !that.isMobile, // hide filter pane
-                    }
-                }
-            }
-            that.report.updateSettings(newSettings)
-                .catch(error => { console.log(error) });
-        }
 
         //Getreport bookmarks
         this.report.bookmarksManager.getBookmarks()
@@ -722,9 +732,11 @@
 
         window.onresize = function () {
             that.isMobile = window.innerWidth < 425 || window.innerHeight < 425;
+
             isLandscape = window.innerWidth > window.innerHeight;
             if (!that.isMobile && isLandscape) {
                 var h = that.defaultHeight !== '' ? that.defaultHeight : window.innerHeight - 50 - 20 - 39 - 20 - 10;
+
                 $('#embedContainer_' + context.ModuleId).css("height", h + "px");
             }
         }
