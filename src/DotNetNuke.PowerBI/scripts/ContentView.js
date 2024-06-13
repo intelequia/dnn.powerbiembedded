@@ -408,20 +408,6 @@
 
             $('#embedContainer_' + context.ModuleId).css("height", h + "px");
         }
-
-        if (that.isMobile) {
-            that.config.settings.layoutType = that.models.LayoutType.Custom;
-            that.config.settings.customLayout = {
-                displayOption: that.models.DisplayOption.FitToWidth,
-                width: "100%",
-                height: "100%"
-            }
-            that.config.settings.panes = {
-                pageNavigation: {
-                    visible: false
-                }
-            }
-        }
     
         if (this.overrideFilterPaneVisibility) {
             that.config.settings.panes = {
@@ -432,7 +418,7 @@
         }
 
         // Embed the report and display it within the div container.
-        this.report = powerbi.embed(that.reportContainer, that.config);
+        this.report = powerbi.load(that.reportContainer, that.config);
 
         //Getreport bookmarks
         this.report.bookmarksManager.getBookmarks()
@@ -478,7 +464,40 @@
             });
         });
 
+        this.setCustomLayout = function () {
+            that.config.settings.layoutType = that.models.LayoutType.Custom;
+            that.config.settings.customLayout = {
+                displayOption: that.models.DisplayOption.FitToWidth,
+                width: "100%",
+                height: "100%"
+            }
+            that.config.settings.panes = {
+                pageNavigation: {
+                    visible: false
+                },
+            }
+        }
 
+        this.report.on("loaded", async function () {
+            if (that.isMobile && that.config.settings.layoutType != that.models.LayoutType.MobilePortrait) {
+                var page = await that.report.getActivePage()
+                const hasLayout = await page.hasLayout(that.models.LayoutType.MobilePortrait);
+                if (hasLayout) {
+                    that.config.settings.layoutType = that.models.LayoutType.MobilePortrait;
+                    await powerbi.reset(that.reportContainer);
+                    that.report = powerbi.embed(that.reportContainer, that.config);
+                } else {
+                    if (that.config.settings.layoutType != that.models.LayoutType.Custom) {
+                        that.setCustomLayout();
+                        await powerbi.reset(that.reportContainer);
+                        that.report = powerbi.embed(that.reportContainer, that.config);
+                    }
+                }
+            }
+            else {
+                await that.report.render();
+            }
+        })
 
         this.createBookmarksList = function () {
             let params = {
@@ -701,6 +720,9 @@
             const newSettings = {
                 panes: {
                     filters: {
+                        visible: true
+                    },
+                    pageNavigation: {
                         visible: true
                     },
                     visualizations: {
