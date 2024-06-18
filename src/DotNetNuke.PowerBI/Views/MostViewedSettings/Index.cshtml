@@ -1,0 +1,56 @@
+﻿@inherits DotNetNuke.Web.Mvc.Framework.DnnWebViewPage<DotNetNuke.PowerBI.Controllers.MostViewedSettingsController.SettingsModel>
+@using System.Web.Mvc
+@using DotNetNuke.Web.Mvc.Helpers
+@using DotNetNuke.Web.Client.ClientResourceManagement
+@{
+    ClientResourceManager.RegisterScript(Dnn.DnnPage, "~/DesktopModules/MVC/PowerBIEmbedded/scripts/module-settings.js", 25, "DnnPageHeaderProvider");
+    ClientResourceManager.RegisterStyleSheet(Dnn.DnnPage, "~/DesktopModules/MVC/PowerBIEmbedded/Css/module.css", 9, "DnnPageHeaderProvider");
+}
+@using DotNetNuke.UI.Utilities
+@using DotNetNuke.Common.Utilities
+
+<div id="PowerBISettings" class="dnnForm">
+    <div class="dnnFormExpandContent"><a href="">@Dnn.LocalizeString("ExpandAll")</a></div>
+    <h2 class="dnnFormSectionHead"><a href="#">Application Insights Settings</a></h2>
+    <fieldset id="ListViewGroupSettings">
+        <div class="dnnFormItem">
+            <div class="leftGroup">
+                <label>Application Id</label>
+                @Html.TextBoxFor(m => m.ApplicationInsightsAppId)
+            </div>
+        </div>
+        <div class="dnnFormItem">
+            <div class="leftGroup">
+                <label>Application Secret</label>
+                @Html.PasswordFor(m => m.ApplicationInsightsAppSecret)
+            </div>
+        </div>
+    </fieldset>
+
+</div>
+
+<script type="text/javascript">
+
+    jQuery(function ($) {
+        var setupModule = function () {
+            $('#PowerBISettings').dnnPanels();
+            $('#PowerBISettings .dnnFormExpandContent a').dnnExpandAll({
+                targetArea: '#PowerBISettings'
+            });
+        };
+        setupModule();
+        Sys.WebForms.PageRequestManager.getInstance().add_endRequest(function () {
+            setupModule();
+        });
+
+        var context = {
+            PortalId: parseInt('@Dnn.ActiveModule.PortalID'),
+            ModuleId: parseInt('@Dnn.ActiveModule.ModuleID'),
+            TabId: parseInt('@Dnn.ActiveModule.TabID'),
+        };
+
+        // Initialize
+        var settings = new app.settings(context);
+        settings.init();
+    });
+</script>

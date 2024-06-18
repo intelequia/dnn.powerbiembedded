@@ -276,5 +276,60 @@
         </component>
       </components>
     </package>
+	  <package name="PowerBIEmbeddedMostViewed" type="Module" version="01.02.00">
+		  <friendlyName>PowerBI Embedded Most Viewed</friendlyName>
+		  <description>A set of modules to embed PowerBI Embedded dashboards and reports into a DNN Platform installation.</description>
+		  <iconFile>~/DesktopModules/MVC/PowerBIEmbedded/images/powerbi.png</iconFile>
+		  <owner>
+			  <name>Intelequia</name>
+			  <organization>Intelequia</organization>
+			  <url>https://intelequia.com</url>
+			  <email>support@intelequia.com</email>
+		  </owner>
+		  <license src="License.txt"></license>
+		  <releaseNotes src="ReleaseNotes.txt"></releaseNotes>
+		  <azureCompatible>true</azureCompatible>
+		  <dependencies>
+			  <dependency type="CoreVersion">09.03.02</dependency>
+		  </dependencies>
+
+		  <components>
+			  <component type="Module">
+				  <desktopModule>
+					  <moduleName>DotNetNuke.PowerBI.MostViewed</moduleName>
+					  <foldername>PowerBIEmbedded</foldername>
+					  <businessControllerClass></businessControllerClass>
+					  <moduleDefinitions>
+						  <moduleDefinition>
+							  <friendlyName>PowerBI Embedded Most Viewed</friendlyName>
+							  <defaultCacheTime>0</defaultCacheTime>
+							  <moduleControls>
+								  <moduleControl>
+									  <controlKey />
+									  <controlSrc>DotNetNuke.PowerBI.Controllers/MostViewed/Index.mvc</controlSrc>
+									  <supportsPartialRendering>False</supportsPartialRendering>
+									  <controlTitle>PowerBI Most Viewed</controlTitle>
+									  <controlType>View</controlType>
+									  <iconFile />
+									  <helpUrl />
+									  <viewOrder>0</viewOrder>
+								  </moduleControl>
+								  <moduleControl>
+									  <controlKey>Settings</controlKey>
+									  <controlSrc>DotNetNuke.PowerBI.Controllers/MostViewedSettings/Index.mvc</controlSrc>
+									  <supportsPartialRendering>False</supportsPartialRendering>
+									  <controlTitle>PowerBI Embedded Most Viewed Settings</controlTitle>
+									  <controlType>Edit</controlType>
+									  <iconFile />
+									  <helpUrl />
+									  <viewOrder>0</viewOrder>
+								  </moduleControl>
+							  </moduleControls>
+						  </moduleDefinition>
+					  </moduleDefinitions>
+				  </desktopModule>
+			  </component>
+		  </components>
+	  </package>	  
   </packages>
 </dotnetnuke>

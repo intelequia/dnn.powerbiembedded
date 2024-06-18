@@ -13,7 +13,7 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>DotNetNuke.PowerBI</RootNamespace>
     <AssemblyName>DotNetNuke.PowerBI</AssemblyName>
-    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
     <UseIISExpress>true</UseIISExpress>
     <IISExpressSSLPort />
     <IISExpressAnonymousAuthentication />
@@ -190,7 +190,9 @@
     <Compile Include="Components\RouteMapper.cs" />
     <Compile Include="Controllers\CalendarViewController.cs" />
     <Compile Include="Controllers\ContentViewController.cs" />
+    <Compile Include="Controllers\MostViewedController.cs" />
     <Compile Include="Controllers\ListViewController.cs" />
+    <Compile Include="Controllers\MostViewerSettingsController.cs" />
     <Compile Include="Controllers\SettingsController.cs" />
     <Compile Include="Data\Bookmarks\BookmarksRepository.cs" />
     <Compile Include="Data\Bookmarks\IBookmarksRepository.cs" />
@@ -209,10 +211,12 @@
     <Compile Include="Data\Subscriptions\SubscriptionsSubscribersRepository.cs" />
     <Compile Include="Models\EmbedConfig.cs" />
     <Compile Include="Models\ExportedFile.cs" />
+    <Compile Include="Models\PowerBIMostViewed.cs" />
     <Compile Include="Models\PowerBIApiExtensions.cs" />
     <Compile Include="Models\PowerBICalendarView.cs" />
     <Compile Include="Models\PowerBIListView.cs" />
     <Compile Include="Models\PowerBIListViewExtensions.cs" />
+    <Compile Include="Models\ReportWithWorkspace.cs" />
     <Compile Include="Models\TileEmbedConfig.cs" />
     <Compile Include="Models\Workspace.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -296,6 +300,8 @@
     <Content Include="Providers\DataProviders\SqlDataProvider\01.00.21.SqlDataProvider" />
     <Content Include="package.json" />
     <Content Include="Providers\DataProviders\SqlDataProvider\01.02.00.SqlDataProvider" />
+    <Content Include="Views\MostViewedSettings\Index.cshtml" />
+    <Content Include="Views\MostViewed\Index.cshtml" />
     <None Include="web.Debug.config">
       <DependentUpon>web.config</DependentUpon>
     </None>
@@ -349,6 +355,11 @@
     </Content>
   </ItemGroup>
   <ItemGroup />
+  <ItemGroup>
+    <Content Include="App_LocalResources\MostViewed.resx">
+      <SubType>Designer</SubType>
+    </Content>
+  </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>
     <VSToolsPath Condition="'$(VSToolsPath)' == ''">$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)</VSToolsPath>
