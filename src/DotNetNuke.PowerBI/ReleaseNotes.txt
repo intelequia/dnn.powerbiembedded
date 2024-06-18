@@ -138,5 +138,8 @@
 
 	<b>Version 1.2.1</b>
 	<p>fix: improved permissions methods.</p>
+
+	<b>Version 1.2.3</b>
+	<p>fix: changed rendering method for mobile devices</p>
 	
 </div>
