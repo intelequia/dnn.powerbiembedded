@@ -83,17 +83,17 @@
     <Reference Include="Microsoft.IdentityModel.Clients.ActiveDirectory, Version=5.2.1.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.IdentityModel.Clients.ActiveDirectory.5.2.1\lib\net45\Microsoft.IdentityModel.Clients.ActiveDirectory.dll</HintPath>
     </Reference>
-    <Reference Include="Microsoft.PowerBI.Api, Version=4.5.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\packages\Microsoft.PowerBI.Api.4.5.0\lib\netstandard2.0\Microsoft.PowerBI.Api.dll</HintPath>
+    <Reference Include="Microsoft.PowerBI.Api, Version=4.22.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.PowerBI.Api.4.22.0\lib\netstandard2.0\Microsoft.PowerBI.Api.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.Rest.ClientRuntime, Version=2.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\packages\Microsoft.Rest.ClientRuntime.2.3.22\lib\net461\Microsoft.Rest.ClientRuntime.dll</HintPath>
+      <HintPath>..\packages\Microsoft.Rest.ClientRuntime.2.3.24\lib\net461\Microsoft.Rest.ClientRuntime.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.Web.Infrastructure, Version=1.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.Web.Infrastructure.1.0.0.0\lib\net40\Microsoft.Web.Infrastructure.dll</HintPath>
     </Reference>
-    <Reference Include="Newtonsoft.Json, Version=11.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
-      <HintPath>..\packages\Newtonsoft.Json.11.0.2\lib\net45\Newtonsoft.Json.dll</HintPath>
+    <Reference Include="Newtonsoft.Json, Version=13.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>..\packages\Newtonsoft.Json.13.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.ComponentModel.Composition" />
@@ -234,6 +234,8 @@
     <Content Include="admin\personaBar\scripts\PBIEmbedded.js" />
     <Content Include="BuildScripts\watch.js" />
     <Content Include="css\vendors\select2.min.css" />
+    <Content Include="scripts\powerbi.js" />
+    <Content Include="scripts\powerbi.js.map" />
     <None Include="Views\emailtemplate.cshtml" />
     <Content Include="images\addbookmark.png" />
     <Content Include="images\addsubscription.png" />
@@ -276,7 +278,6 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="scripts\module-settings.js" />
-    <Content Include="scripts\powerbi.js" />
     <Content Include="scripts\powerbi.min.js" />
     <Content Include="scripts\vendors\knockout.min.js" />
     <Content Include="scripts\vendors\knockout.validation.min.js" />
@@ -292,7 +293,6 @@
     <Content Include="Providers\DataProviders\SqlDataProvider\01.00.06.SqlDataProvider" />
     <Content Include="Views\CalendarView\Index.cshtml" />
     <Content Include="Providers\DataProviders\SqlDataProvider\01.00.07.SqlDataProvider" />
-    <Content Include="scripts\powerbi.js.map" />
     <Content Include="Providers\DataProviders\SqlDataProvider\01.00.21.SqlDataProvider" />
     <Content Include="package.json" />
     <Content Include="Providers\DataProviders\SqlDataProvider\01.02.00.SqlDataProvider" />
@@ -407,12 +407,13 @@
     </Task>
   </UsingTask>
   <Target Name="SampleTarget" BeforeTargets="PackageModule" Condition=" '$(Configuration)' == 'Release' ">
+	<SetEnvironmentVariableTask Name="NODE_OPTIONS" Value="--openssl-legacy-provider" />
     <SetEnvironmentVariableTask Name="NODE_ENV" Value="production" />
     <Exec Command="webpack --mode production --env production" WorkingDirectory="PBIEmbedded.Web" />
   </Target>
   <Target Name="AfterBuild" DependsOnTargets="PackageModule">
   </Target>
   <PropertyGroup>
-    <PostBuildEvent>IF $(ConfigurationName)==Debug copy $(TargetDir)$(TargetName).* C:\Websites\test2.dnndev.me\bin /Y</PostBuildEvent>
+    <PostBuildEvent>IF $(ConfigurationName)==Debug copy $(TargetDir)$(TargetName).* C:\Websites\tmh2-admin.dnndev.me\bin /Y</PostBuildEvent>
   </PropertyGroup>
 </Project>

@@ -141,5 +141,8 @@
 
 	<b>Version 1.2.3</b>
 	<p>fix: changed rendering method for mobile devices</p>
+
+	<b>Version 1.2.4</b>
+	<p>maintenance: upgrade PowerBI API packages to the latest version</p>
 	
 </div>
