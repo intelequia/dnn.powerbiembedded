@@ -1,4 +1,6 @@
-﻿using DotNetNuke.PowerBI.Models;
+﻿using DotNetNuke.Instrumentation;
+using DotNetNuke.PowerBI.Controllers;
+using DotNetNuke.PowerBI.Models;
 using DotNetNuke.Security;
 using DotNetNuke.Web.Api;
 using System;
@@ -12,6 +14,8 @@ namespace DotNetNuke.PowerBI.Services
     [DnnModuleAuthorize(AccessLevel = SecurityAccessLevel.View)]
     public class ModuleSettingsController : DnnApiController
     {
+        private static readonly ILog Logger = LoggerSource.Instance.GetLogger(typeof(ModuleSettingsController));
+
         [HttpGet]
         [DnnAuthorize]
         public HttpResponseMessage GetContentItemsByGroup(string groupId)
@@ -34,6 +38,7 @@ namespace DotNetNuke.PowerBI.Services
             }
             catch (Exception ex)
             {
+                Logger.Error(ex);
                 return Request.CreateResponse(HttpStatusCode.InternalServerError);
             }
         }
