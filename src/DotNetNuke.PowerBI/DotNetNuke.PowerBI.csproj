@@ -407,6 +407,7 @@
     </Task>
   </UsingTask>
   <Target Name="SampleTarget" BeforeTargets="PackageModule" Condition=" '$(Configuration)' == 'Release' ">
+	<SetEnvironmentVariableTask Name="NODE_OPTIONS" Value="--openssl-legacy-provider" />
     <SetEnvironmentVariableTask Name="NODE_ENV" Value="production" />
     <Exec Command="webpack --mode production --env production" WorkingDirectory="PBIEmbedded.Web" />
   </Target>
