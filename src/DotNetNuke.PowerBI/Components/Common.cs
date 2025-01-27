@@ -395,7 +395,7 @@ namespace DotNetNuke.PowerBI.Components
                 if (dataset != null
                     && (dataset.IsEffectiveIdentityRequired.GetValueOrDefault(false) || dataset.IsEffectiveIdentityRolesRequired.GetValueOrDefault(false)))
                 { 
-                    var rls = new EffectiveIdentity(username, new List<string> { report.DatasetId });
+                    var rls = new EffectiveIdentity( username, datasets: new List<string> { report.DatasetId });
                     if (!string.IsNullOrWhiteSpace(rolesString) && dataset.IsEffectiveIdentityRolesRequired.GetValueOrDefault(false))
                     {
                         var rolesList = new List<string>();

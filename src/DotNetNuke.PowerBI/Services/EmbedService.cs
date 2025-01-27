@@ -468,7 +468,7 @@ namespace DotNetNuke.PowerBI.Services
                         && (dataset.IsEffectiveIdentityRequired.GetValueOrDefault(false) || dataset.IsEffectiveIdentityRolesRequired.GetValueOrDefault(false)))
                     //&& !dataset.IsOnPremGatewayRequired.GetValueOrDefault(false))
                     {
-                        var rls = new EffectiveIdentity(username, new List<string> { report.DatasetId });
+                        var rls = new EffectiveIdentity(username, datasets: new List<string> { report.DatasetId });
                         if (!string.IsNullOrWhiteSpace(roles) && dataset.IsEffectiveIdentityRolesRequired.GetValueOrDefault(false))
                         {
                             var rolesList = new List<string>();
@@ -568,7 +568,7 @@ namespace DotNetNuke.PowerBI.Services
                     // This is how you create embed token with effective identities
                     if (!string.IsNullOrWhiteSpace(username))
                     {
-                        var rls = new EffectiveIdentity(username, new List<string> { dashboardId });
+                        var rls = new EffectiveIdentity(username, datasets: new List<string> { dashboardId });
                         if (!string.IsNullOrWhiteSpace(roles))
                         {
                             var rolesList = new List<string>();
