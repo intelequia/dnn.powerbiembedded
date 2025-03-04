@@ -120,7 +120,10 @@ namespace DotNetNuke.PowerBI.Controllers
                         }
                     }
                 }
-                bool hasEditPermission = HasEditPermission(embedService.Settings, Request["reportId"] ?? GetSetting("PowerBIEmbedded_ContentItemId").Substring(2));
+                var contentItemId = GetSetting("PowerBIEmbedded_ContentItemId");
+                string itemId = contentItemId.Length > 2 ? contentItemId.Substring(2) : ""; 
+
+                bool hasEditPermission = HasEditPermission(embedService.Settings, Request["reportId"] ?? itemId);
 
 
                 if (!string.IsNullOrEmpty(Request["dashboardId"]))
@@ -136,14 +139,14 @@ namespace DotNetNuke.PowerBI.Controllers
                 else if (!string.IsNullOrEmpty(GetSetting("PowerBIEmbedded_ContentItemId")))
                 {
                     var roles = string.Join(",", ModuleContext.PortalSettings.UserInfo.Roles);
-                    var contentItemId = GetSetting("PowerBIEmbedded_ContentItemId");
+                    
                     if (contentItemId.Substring(0, 2) == "D_")
                     {
-                        model = embedService.GetDashboardEmbedConfigAsync(ModuleContext.PortalSettings.UserId, user, roles, contentItemId.Substring(2), hasEditPermission).Result;
+                        model = embedService.GetDashboardEmbedConfigAsync(ModuleContext.PortalSettings.UserId, user, roles, itemId, hasEditPermission).Result;
                     }
                     else
                     {
-                        model = embedService.GetReportEmbedConfigAsync(ModuleContext.PortalSettings.UserId, user, roles, contentItemId.Substring(2), hasEditPermission).Result;
+                        model = embedService.GetReportEmbedConfigAsync(ModuleContext.PortalSettings.UserId, user, roles, itemId, hasEditPermission).Result;
                     }
                 }
 
