@@ -10,6 +10,7 @@ using Microsoft.Rest;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -114,7 +115,7 @@ namespace DotNetNuke.PowerBI.Services
             
             // Create a Power BI Client object. It will be used to call Power BI APIs.
             using (var client = new PowerBIClient(new Uri(Settings.ApiUrl), tokenCredentials))
-            {
+            {                
                 var dashboards = client.Dashboards.GetDashboardsInGroupAsync(Guid.Parse(Settings.WorkspaceId)).GetAwaiter().GetResult();
                 model.Dashboards.AddRange(dashboards.Value?.OrderBy(x => x.DisplayName));
 
@@ -384,6 +385,37 @@ namespace DotNetNuke.PowerBI.Services
             }
             return false;
         }
+
+        public async Task<Stream> DownloadReportAsync(Guid workspaceId, Guid reportId)
+        {
+            // Get token credentials for user
+            var getCredentialsResult = await GetTokenCredentials();
+            if (!getCredentialsResult)
+            {
+                throw new ApplicationException("Can't download report. Authentication failed.");
+            }
+            // Create a Power BI Client object. It will be used to call Power BI APIs.
+            using (var client = new PowerBIClient(new Uri(Settings.ApiUrl), tokenCredentials))
+            {
+                return await client.Reports.ExportReportAsync(workspaceId, reportId, DownloadType.IncludeModel);
+            }
+        }
+
+        public async Task<Export> ExportReportAsync(Guid workspaceId, Guid reportId, FileFormat format)
+        {
+            // Get token credentials for user
+            var getCredentialsResult = await GetTokenCredentials();
+            if (!getCredentialsResult)
+            {
+                throw new ApplicationException("Can't export report. Authentication failed.");
+            }
+            // Create a Power BI Client object. It will be used to call Power BI APIs.
+            using (var client = new PowerBIClient(new Uri(Settings.ApiUrl), tokenCredentials))
+            {
+                return await client.Reports.ExportToFileAsync(workspaceId, reportId, new ExportReportRequest(format));
+            }
+        }
+
         public async Task<EmbedConfig> GetReportEmbedConfigAsync(int userId, string username, string roles, string reportId, bool hasEditPermission)
         {
             var model = (EmbedConfig)CachingProvider.Instance().GetItem($"PBI_{Settings.PortalId}_{Settings.SettingsId}_{userId}_{username}_{roles}_{Thread.CurrentThread.CurrentUICulture.Name}_Report_{reportId}");

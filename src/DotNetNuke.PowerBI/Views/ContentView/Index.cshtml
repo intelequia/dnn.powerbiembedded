@@ -36,41 +36,68 @@
 
         if (ViewBag.ToolbarVisible)
         {
-            <div class="pbitoolbar">
-                @if (ViewBag.CanEdit)
-                {
+<div class="pbitoolbar">
+    @if (ViewBag.CanEdit)
+    {
 
-                    <a href="#" class="edit" title="Edit" data-bind="click: pbiedit">
-                        <div class="editImg"></div>Edit
-                    </a>
-                    if (ViewBag.ShowSubscription)
-                    {
-                        <a href="#" class="subscription" data-bind="click: openLateralTab">
-                            <div class="subscribeImg"></div>
-                            <span>@Dnn.LocalizeString("Subscriptions")</span>
-                        </a>
-                    }
-                }
-                @if (ViewBag.PrintVisible)
-                {
-                    <a href="#" class="print" title="Print report" data-bind="click: pbiprint"></a>
-                }
-
-                @if (ViewBag.BookmarksVisible)
-                {
-                    <a href="#" class="bookmarks" title="Bookmarks" data-bind="click: openNav"></a>
-                }
-                @if (ViewBag.FullScreenVisible)
-                {
-                    <a href="#" class="fullscreen" title="Full screen" data-bind="click: pbifullscreen"></a>
-                }
-                
-                @if (ViewBag.RefreshVisible)
-                {
-                    <a href="#" class="refresh" title="Refresh visual objects and data" data-bind="click: pbirefresh"></a>
-                    <a href="#" class="reload" title="Reload visual and filters" data-bind="click: pbireload"></a>
-                }
+        <a href="#" class="edit" title="Edit" data-bind="click: pbiedit">
+            <div class="editImg"></div>Edit
+        </a>
+    }
+    @if (ViewBag.CanDownload)
+    {
+        <a href="#" class="download" title="Download a copy of your report and data (.pbix)" data-bind="click: pbidownload">
+            <div class="downloadImg"></div>Download
+        </a>
+    }
+    @if (ViewBag.CanExport)
+    {
+        <a href="#" class="export" title="Export report" data-bind="click: pbiexport">
+            <div class="exportImg"></div>Export
+            <div class="chevron"></div>            
+        </a>
+        <div class="mnuExport">
+            <div class="content">
+                <a href="#" class="excel" title="Analyze in Excel" data-bind="click: pbiexportExcel">
+                    <div class="excelImg"></div>Analyze in Excel
+                </a>
+                <a href="#" class="powerpoint" title="Powerpoint" data-bind="click: pbiexportPowerpoint">
+                    <div class="powerpointImg"></div>PowerPoint
+                </a>
+                <a href="#" class="pdf" title="PDF" data-bind="click: pbiexportPDF">
+                    <div class="pdfImg"></div>PDF
+                </a>
             </div>
+        </div>
+    }
+
+    @if (ViewBag.ShowSubscription)
+    {
+        <a href="#" class="subscription" data-bind="click: openLateralTab">
+            <div class="subscribeImg"></div>
+            <span>@Dnn.LocalizeString("Subscriptions")</span>
+        </a>
+    }
+    @if (ViewBag.PrintVisible)
+    {
+        <a href="#" class="print" title="Print report" data-bind="click: pbiprint"></a>
+    }
+
+    @if (ViewBag.BookmarksVisible)
+    {
+        <a href="#" class="bookmarks" title="Bookmarks" data-bind="click: openNav"></a>
+    }
+    @if (ViewBag.FullScreenVisible)
+    {
+        <a href="#" class="fullscreen" title="Full screen" data-bind="click: pbifullscreen"></a>
+    }
+
+    @if (ViewBag.RefreshVisible)
+    {
+        <a href="#" class="refresh" title="Refresh visual objects and data" data-bind="click: pbirefresh"></a>
+        <a href="#" class="reload" title="Reload visual and filters" data-bind="click: pbireload"></a>
+    }
+</div>
         }
 
 

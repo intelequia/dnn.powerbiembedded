@@ -264,6 +264,14 @@
         }
         this.subscriptionsService.baseUrl = that.subscriptionsService.framework.getServiceRoot(that.subscriptionsService.path);
 
+        this.exportsService = {
+            //path: "PowerBI/Services",
+            path: "Subscription/Exports",
+            controller: "Exports",
+            framework: $.ServicesFramework(context.ModuleId)
+        }
+        this.exportsService.baseUrl = that.exportsService.framework.getServiceRoot(that.exportsService.path);
+
 
         this.searchTimeout = null;
 
@@ -735,6 +743,79 @@
             };
             await that.report.updateSettings(newSettings);
         };
+
+        this.pbidownload = async function () {
+            var options = {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/octet-stream',
+                    'TabId': that.exportsService.framework.getTabId(),
+                    'ModuleId': that.exportsService.framework.getModuleId()
+                }
+            }
+
+            var afValue = that.exportsService.framework.getAntiForgeryValue();
+            if (afValue) {
+                const additionalHeaders = {
+                    'RequestVerificationToken': afValue,
+                };
+                options.headers = {
+                    ...options.headers,
+                    ...additionalHeaders
+                }
+            }
+
+            fetch(that.exportsService.baseUrl + 'Download?sid=' + context.WorkspaceId + '&rid=' + context.Id, options)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Error downloading the file');
+                    }
+                    // Obtener el nombre del fichero desde el encabezado Content-Disposition
+                    const disposition = response.headers.get('Content-Disposition');
+                    let filename = 'downloaded_file';
+                    if (disposition && disposition.indexOf('filename=') !== -1) {
+                        const filenameRegex = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/;
+                        const matches = filenameRegex.exec(disposition);
+                        if (matches != null && matches[1]) {
+                            filename = matches[1].replace(/['"]/g, '');
+                        }
+                    }
+                    return response.blob().then(blob => ({ blob, filename }));
+                })
+                .then(({ blob, filename }) => {
+                    // Crear una URL temporal para el blob
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.style.display = 'none';
+                    a.download = filename;
+                    document.body.appendChild(a);
+                    a.click();
+                    // Limpiar
+                    window.URL.revokeObjectURL(url);
+                    a.remove();
+                })
+                .catch(error => {
+                    console.error('Error downloading the file:', error);
+                    alert('There was an error downloading the file.');
+                });
+        };
+        this.pbiexport = async function () {
+            $(".powerbiContentView .mnuexport").css("left", $(".powerbiContentView .export").position().left);
+            $(".powerbiContentView .mnuexport").css("top", $(".powerbiContentView .export").height() + 1);
+            $(".powerbiContentView .mnuexport").toggle();
+        };
+        this.pbiexportExcel = async function () {
+
+        };
+        this.pbiexportPowerpoint = async function () {
+
+        };
+        this.pbiexportPDF = async function () {
+
+        };
+
+
         this.pbireload = function () {
             that.report.reload();
         }

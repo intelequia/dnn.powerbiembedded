@@ -256,10 +256,20 @@
         margin-right: 10px;
         margin-left: 10px;
     }
-    .powerbiContentView .pbitoolbar .edit {
+    .powerbiContentView .pbitoolbar a:hover {
+        background-color: #ebebeb;
+    }
+    .powerbiContentView .pbitoolbar .edit,
+    .powerbiContentView .pbitoolbar .subscription,
+    .powerbiContentView .pbitoolbar .download,
+    .powerbiContentView .pbitoolbar .export,
+    .powerbiContentView .pbitoolbar .excel,
+    .powerbiContentView .pbitoolbar .powerpoint,
+    .powerbiContentView .pbitoolbar .pdf
+    {
         float: left;
-        margin-right: 10px;
-        margin-left: 10px;
+        padding-right: 10px;
+        padding-left: 10px;
         text-decoration: none;
         height: 100%;
         display: flex;
@@ -268,7 +278,7 @@
     }
 
         .powerbiContentView .pbitoolbar .edit .editImg {
-            background-image: url('../images/edit.png');
+            background-image: url('../images/edit.svg');
             width: 16px;
             height: 100%;
             display: inline-block;
@@ -277,17 +287,26 @@
             background-position-y: center;
             margin-right: 5px;
         }
-
-    .powerbiContentView .pbitoolbar .subscription {
-        float: left;
-        margin-right: 10px;
-        margin-left: 10px;
-        text-decoration: none;
-        height: 100%;
-        display: flex;
-        align-items: center;
-        color: black;
-    }
+        .powerbiContentView .pbitoolbar .download .downloadImg {
+            background-image: url('../images/download.svg');
+            width: 16px;
+            height: 100%;
+            display: inline-block;
+            background-size: 16px;
+            background-repeat: no-repeat;
+            background-position-y: center;
+            margin-right: 5px;
+        }
+        .powerbiContentView .pbitoolbar .export .exportImg {
+            background-image: url('../images/export.svg');
+            width: 16px;
+            height: 100%;
+            display: inline-block;
+            background-size: 16px;
+            background-repeat: no-repeat;
+            background-position-y: center;
+            margin-right: 5px;
+        }
 
         .powerbiContentView .pbitoolbar .subscription .subscribeImg {
             background-image: url('../images/subscription.png');
@@ -299,6 +318,62 @@
             background-position-y: center;
             margin-right: 5px;
         }
+        .powerbiContentView .pbitoolbar .excel .excelImg {
+            background-image: url('../images/excel.svg');
+            width: 16px;
+            height: 100%;
+            display: inline-block;
+            background-size: 16px;
+            background-repeat: no-repeat;
+            background-position-y: center;
+            margin-right: 5px;
+        }
+        .powerbiContentView .pbitoolbar .powerpoint .powerpointImg {
+            background-image: url('../images/powerpoint.svg');
+            width: 16px;
+            height: 100%;
+            display: inline-block;
+            background-size: 16px;
+            background-repeat: no-repeat;
+            background-position-y: center;
+            margin-right: 5px;
+        }
+        .powerbiContentView .pbitoolbar .pdf .pdfImg {
+            background-image: url('../images/pdf.svg');
+            width: 16px;
+            height: 100%;
+            display: inline-block;
+            background-size: 16px;
+            background-repeat: no-repeat;
+            background-position-y: center;
+            margin-right: 5px;
+        }
+
+    .powerbiContentView .pbitoolbar .mnuexport {       
+        display: none;
+        position: absolute;
+        width: 150px;
+        top: 63px;
+        background: #fff;
+        left: 165px;
+        box-shadow: 0 2px 4px -1px rgba(0, 0, 0, .2), 0 4px 5px 0 rgba(0, 0, 0, .14), 0 1px 10px 0 rgba(0, 0, 0, .12);
+        height: 100px;
+    }
+        .powerbiContentView .pbitoolbar .mnuexport .content {
+            display: grid;
+            height: 100%
+        }
+
+    .powerbiContentView .pbitoolbar .chevron {
+        background-image: url('../images/chevron.png');
+        width: 14px;
+        height: 16px;
+        display: inline-block;
+        background-size: 14px;
+        background-repeat: no-repeat;
+        background-position-y: center;
+        margin-left: 5px;
+    }
 
 .createBookmarks {
     background-image: url('../images/addbookmark.png');

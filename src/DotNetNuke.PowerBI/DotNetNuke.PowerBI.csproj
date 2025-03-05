@@ -189,6 +189,7 @@
     <Compile Include="Components\MenuController.cs" />
     <Compile Include="Components\RouteMapper.cs" />
     <Compile Include="Controllers\CalendarViewController.cs" />
+    <Compile Include="Services\ExportsController.cs" />
     <Compile Include="Controllers\ContentViewController.cs" />
     <Compile Include="Controllers\ListViewController.cs" />
     <Compile Include="Controllers\SettingsController.cs" />
@@ -234,6 +235,13 @@
     <Content Include="admin\personaBar\scripts\PBIEmbedded.js" />
     <Content Include="BuildScripts\watch.js" />
     <Content Include="css\vendors\select2.min.css" />
+    <Content Include="images\chevron.png" />
+    <Content Include="images\download.svg" />
+    <Content Include="images\edit.svg" />
+    <Content Include="images\excel.svg" />
+    <Content Include="images\export.svg" />
+    <Content Include="images\pdf.svg" />
+    <Content Include="images\powerpoint.svg" />
     <Content Include="scripts\powerbi.js" />
     <Content Include="scripts\powerbi.js.map" />
     <None Include="Views\emailtemplate.cshtml" />
@@ -407,7 +415,7 @@
     </Task>
   </UsingTask>
   <Target Name="SampleTarget" BeforeTargets="PackageModule" Condition=" '$(Configuration)' == 'Release' ">
-	<SetEnvironmentVariableTask Name="NODE_OPTIONS" Value="--openssl-legacy-provider" />
+    <SetEnvironmentVariableTask Name="NODE_OPTIONS" Value="--openssl-legacy-provider" />
     <SetEnvironmentVariableTask Name="NODE_ENV" Value="production" />
     <Exec Command="webpack --mode production --env production" WorkingDirectory="PBIEmbedded.Web" />
   </Target>

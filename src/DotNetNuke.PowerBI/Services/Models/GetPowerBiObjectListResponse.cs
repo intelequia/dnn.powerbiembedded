@@ -21,7 +21,8 @@ namespace DotNetNuke.PowerBI.Services.Models
         public enum PermissionType
         {
             View = 1,
-            Edit = 2
+            Edit = 2,
+            Download = 3
         }
 
         public string Id;
@@ -81,7 +82,17 @@ namespace DotNetNuke.PowerBI.Services.Models
                             View = false,
                         });
                     }
-
+                    if (permission.PermissionID == 3)
+                    {
+                        rolePermission.Permissions.Add(new Dnn.PersonaBar.Library.DTO.Permission()
+                        {
+                            AllowAccess = permission.AllowAccess,
+                            FullControl = false,
+                            PermissionId = permission.PermissionID,
+                            PermissionName = "Download",
+                            View = false,
+                        });
+                    }
 
                 }
                 else
@@ -109,6 +120,19 @@ namespace DotNetNuke.PowerBI.Services.Models
                         {
                             PermissionID = permission.PermissionID,
                             PermissionName = "Edit",
+                            AllowAccess = permission.AllowAccess,
+                            UserID = permission.UserID.Value,
+                            DisplayName = user.DisplayName,
+                            Username = user.Username,
+                        };
+                    }
+
+                    if (permission.PermissionID == 3)
+                    {
+                        permissionBase = new ModulePermissionInfo
+                        {
+                            PermissionID = permission.PermissionID,
+                            PermissionName = "Download",
                             AllowAccess = permission.AllowAccess,
                             UserID = permission.UserID.Value,
                             DisplayName = user.DisplayName,

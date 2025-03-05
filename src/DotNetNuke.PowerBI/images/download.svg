@@ -1,0 +1,6 @@
+<svg height="100%" width="100%" focusable="false" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">
+	<path key="0" class="OfficeIconColors_HighContrast" d="M3,15h9v1H3V15z M12.352,8.352l-0.703-0.703L8,11.32V0H7v11.32L3.352,7.648L2.648,8.352L7.5,13.242
+	L12.352,8.352z"></path>
+	<path key="1" d="M3,16v-1h9v1H3z" fill="#3a3a38"></path>
+	<path key="2" d="M12.352,8.352L7.5,13.242L2.648,8.352l0.703-0.703L7,11.32V0h1v11.32l3.648-3.672L12.352,8.352z" fill="#2e8aca"></path>
+</svg>
