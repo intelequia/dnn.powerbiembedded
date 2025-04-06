@@ -237,11 +237,14 @@
     <Content Include="css\vendors\select2.min.css" />
     <Content Include="images\chevron.png" />
     <Content Include="images\download.svg" />
+    <Content Include="images\downloading.svg" />
     <Content Include="images\edit.svg" />
+    <Content Include="images\error.svg" />
     <Content Include="images\excel.svg" />
     <Content Include="images\export.svg" />
     <Content Include="images\pdf.svg" />
     <Content Include="images\powerpoint.svg" />
+    <Content Include="images\success.svg" />
     <Content Include="scripts\powerbi.js" />
     <Content Include="scripts\powerbi.js.map" />
     <None Include="Views\emailtemplate.cshtml" />

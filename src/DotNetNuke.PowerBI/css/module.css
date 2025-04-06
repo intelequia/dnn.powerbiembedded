@@ -196,6 +196,47 @@
     vertical-align: middle;
     text-align: right;
 }
+    .powerbiContentView .pbitoolbar .exportQueue {
+        background-image: url('../images/downloading.svg');
+        background-size: 16px;
+        background-repeat: no-repeat;
+        background-position-y: center;
+        background-position-x: 10px;
+        font-size: 0.8em;
+        width: 145px;
+        height: 100%;
+        display: inline-block;
+        margin-right: 10px;
+        margin-left: 10px;
+        line-height: 41px;
+        vertical-align: top;
+        padding-top: 2px;
+        color: #000000;
+        padding-right: 10px;
+    }
+        .powerbiContentView .pbitoolbar .exportQueue.succeeded {
+            background-image: url('../images/success.svg');
+        }
+        .powerbiContentView .pbitoolbar .exportQueue.failed {
+            background-image: url('../images/error.svg');
+        }
+        .powerbiContentView .pbitoolbar .exportQueue.exporting {
+            background-image: url('../images/downloading.svg');
+        }
+        .powerbiContentView .pbitoolbar .exportQueue span {
+            height: 41px;
+            display: inline-block;
+            padding-top: 12px;
+        }
+        .powerbiContentView .pbitoolbar .exportQueue p {
+            margin: 5px;
+        }
+        .powerbiContentView .pbitoolbar .exportQueue ul {
+            margin: 0;
+            margin-left: 5px;
+            margin-right: 5px;
+        }
+
 
     .powerbiContentView .pbitoolbar .print {
         background-image: url('../images/print.png');
@@ -357,12 +398,75 @@
         background: #fff;
         left: 165px;
         box-shadow: 0 2px 4px -1px rgba(0, 0, 0, .2), 0 4px 5px 0 rgba(0, 0, 0, .14), 0 1px 10px 0 rgba(0, 0, 0, .12);
-        height: 100px;
+        height: 70px;
     }
         .powerbiContentView .pbitoolbar .mnuexport .content {
             display: grid;
             height: 100%
         }
+
+    .powerbiContentView .pbitoolbar .mnuQueue {
+        display: none;
+        position: absolute;
+        top: 63px;
+        background: #fff;
+        left: 165px;
+        box-shadow: 0 2px 4px -1px rgba(0, 0, 0, .2), 0 4px 5px 0 rgba(0, 0, 0, .14), 0 1px 10px 0 rgba(0, 0, 0, .12);
+    }
+
+        .powerbiContentView .pbitoolbar .mnuQueue .content {
+            display: grid;
+            height: 100%;
+            padding: 5px;
+            text-align: left;
+            font-size: 0.9em;
+        }
+        .powerbiContentView .pbitoolbar .mnuQueue .content p {
+            margin: 5px;
+        }
+            .powerbiContentView .pbitoolbar .mnuQueue .content ul {
+                list-style: none;
+                padding: 0px;
+                margin: 0px;
+                margin-left: 5px;
+                margin-right: 5px;
+
+            }
+            .powerbiContentView .pbitoolbar .mnuQueue .content ul li {
+                padding-top: 5px;
+                padding-bottom: 5px;                
+            }
+
+                .powerbiContentView .pbitoolbar .mnuQueue .content ul li.succeeded {
+                    padding-left: 20px;
+                    background-image: url('../images/success.svg');
+                    background-repeat: no-repeat;
+                    background-position: 0px center;
+                    background-size: 16px;
+                }
+                .powerbiContentView .pbitoolbar .mnuQueue .content ul li.failed {
+                    padding-left: 20px;
+                    background-image: url('../images/error.svg');
+                    background-repeat: no-repeat;
+                    background-position: 0px center;
+                    background-size: 16px;
+                }
+
+                .powerbiContentView .pbitoolbar .mnuQueue .content ul li.exporting {
+                    padding-left: 20px;
+                    background-image: url('../images/downloading.svg');
+                    background-repeat: no-repeat;
+                    background-position: 0px center;
+                    background-size: 16px;
+                }
+
+            .powerbiContentView .pbitoolbar .mnuQueue .content .cancelExports {
+                color: #000000;
+                margin-left: 5px;
+                margin-right: 5px;
+                padding-top: 5px;
+                padding-bottom: 5px;
+            }
 
     .powerbiContentView .pbitoolbar .chevron {
         background-image: url('../images/chevron.png');

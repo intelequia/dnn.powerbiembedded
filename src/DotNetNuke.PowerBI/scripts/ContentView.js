@@ -234,6 +234,28 @@
         });
     }
 
+    function ExportItemModel(id, createdDateTime, lastActionDateTime, reportId, reportName, status, percentComplete, resourceLocation, resourceFileExtension, expirationTime) {
+        var that = this;
+        this.id = ko.observable(id);
+        this.createdDateTime = ko.observable(createdDateTime);
+        this.lastActionDateTime = ko.observable(lastActionDateTime);
+        this.reportId = ko.observable(reportId);
+        this.reportName = ko.observable(reportName);
+        this.status = ko.observable(status);
+        this.percentComplete = ko.observable(percentComplete);
+        this.resourceLocation = ko.observable(resourceLocation);
+        this.resourceFileExtension = ko.observable(resourceFileExtension);
+        this.expirationTime = ko.observable(expirationTime);
+        this.interval = null;
+        this.exportStatusClass = ko.computed(function () {
+            switch (that.status()) {
+                case "Succeeded": return "succeeded";
+                case "Failed": return "failed";
+                default: return "exporting";
+            }
+        });
+    }
+
     app.View = function (c) {
         var that = this;
         var context = c;
@@ -243,7 +265,7 @@
         this.selectedBookmark = ko.observable(null);
         this.newBookmarkName = ko.observable('').extend({ required: true });
         this.bookmarksService = {
-            path: "Bookmarks",
+            path: "PowerBI/Services",
             controller: "Bookmarks",
             framework: $.ServicesFramework(context.ModuleId)
         }
@@ -258,15 +280,14 @@
         this.editing = ko.observable(false);
 
         this.subscriptionsService = {
-            path: "Subscription",
+            path: "PowerBI/Services",
             controller: "Subscription",
             framework: $.ServicesFramework(context.ModuleId)
         }
         this.subscriptionsService.baseUrl = that.subscriptionsService.framework.getServiceRoot(that.subscriptionsService.path);
 
         this.exportsService = {
-            //path: "PowerBI/Services",
-            path: "Subscription/Exports",
+            path: "PowerBI/Services",
             controller: "Exports",
             framework: $.ServicesFramework(context.ModuleId)
         }
@@ -765,7 +786,7 @@
                 }
             }
 
-            fetch(that.exportsService.baseUrl + 'Download?sid=' + context.WorkspaceId + '&rid=' + context.Id, options)
+            fetch(that.exportsService.baseUrl + '/' + that.exportsService.controller + '/Download?sid=' + context.WorkspaceId + '&rid=' + context.Id, options)
                 .then(response => {
                     if (!response.ok) {
                         throw new Error('Error downloading the file');
@@ -800,20 +821,227 @@
                     alert('There was an error downloading the file.');
                 });
         };
+        this.showQueue = async function () {
+            $(".powerbiContentView .mnuQueue").css("left", $(".powerbiContentView .exportQueue").position().left);
+            $(".powerbiContentView .mnuQueue").css("top", $(".powerbiContentView .exportQueue").height() + 1);
+            $(".powerbiContentView .mnuQueue").toggle();
+        };
+        this.cancelAllExports = async function () {
+            // Cancel all exports
+            for (var i = 0; i < that.exportsQueue().length; i++) {
+                var item = that.exportsQueue()[i];
+                if (item.interval) {
+                    clearInterval(item.interval);
+                    item.interval = null;
+
+                }
+            }                        
+            that.exportsQueue.removeAll();
+            that.exportsQueue.valueHasMutated();
+            $(".powerbiContentView .mnuQueue").toggle();
+        };
         this.pbiexport = async function () {
             $(".powerbiContentView .mnuexport").css("left", $(".powerbiContentView .export").position().left);
             $(".powerbiContentView .mnuexport").css("top", $(".powerbiContentView .export").height() + 1);
             $(".powerbiContentView .mnuexport").toggle();
         };
         this.pbiexportExcel = async function () {
-
+            $(".powerbiContentView .mnuexport").hide();            
+            that.exportToFile('xlsx');
         };
-        this.pbiexportPowerpoint = async function () {
-
+        this.pbiexportPowerpoint = async function () {            
+            $(".powerbiContentView .mnuexport").hide();
+            that.exportToFile('pptx');
         };
-        this.pbiexportPDF = async function () {
-
+        this.pbiexportPDF = async function () {            
+            $(".powerbiContentView .mnuexport").hide();
+            that.exportToFile('pdf');
         };
+        this.exportsQueue = ko.observableArray([]);
+        this.exportsQueueStatus = ko.computed(function () {
+            var status = "succeeded";
+            that.exportsQueue().forEach(item => {
+                if (item.status() == "Failed") {
+                    status = "failed";
+                }
+                else if (item.status() == "NotStarted" || item.status() == "Undefined" || item.status() == "Running" ) {
+                    status = "exporting";
+                }
+            });
+            return status;
+        });
+        this.exportsQueue.subscribe(function () {
+            that.exportsQueue().forEach(item => {
+                if (!item.interval && item.percentComplete() == 0) {
+                    item.interval = setInterval(() => {
+                        var options = {
+                            method: 'GET',
+                            headers: {
+                                'Content-Type': 'application/octet-stream',
+                                'TabId': that.exportsService.framework.getTabId(),
+                                'ModuleId': that.exportsService.framework.getModuleId()
+                            }
+                        }
+
+                        var afValue = that.exportsService.framework.getAntiForgeryValue();
+                        if (afValue) {
+                            const additionalHeaders = {
+                                'RequestVerificationToken': afValue,
+                            };
+                            options.headers = {
+                                ...options.headers,
+                                ...additionalHeaders
+                            }
+                        }
+                        let params = {
+                            sid: context.WorkspaceId,
+                            rid: context.Id,
+                            exportId: item.id()
+                        }
+                        Common.CallWithOptions("GET", "ExportStatus", that.exportsService, params, options,
+                            function (data) {
+                                if (data) {
+
+                                    item.percentComplete(data.percentComplete);
+                                    item.status(data.status);
+                                    item.lastActionDateTime(data.lastActionDateTime);
+                                    item.resourceLocation(data.resourceLocation);
+                                    item.resourceFileExtension(data.ResourceFileExtension);
+                                    item.expirationTime(data.expirationTime);
+                                    if (item.percentComplete() >= 100) {
+                                        that.downloadExportedFile(item);
+                                        clearInterval(item.interval);
+                                        item.interval = null;
+                                    }
+                                    that.exportsQueue.valueHasMutated();
+                                }
+                                else {
+                                    alert("There was an error exporting the file.");
+                                }
+                            },
+                            function (error) {
+                                console.log(error);
+                            },
+                            function () {
+                            }
+                        );
+                    }, 5000);
+                }
+            });
+        });
+
+        this.downloadExportedFile = function (item) {
+            var options = {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/octet-stream',
+                    'TabId': that.exportsService.framework.getTabId(),
+                    'ModuleId': that.exportsService.framework.getModuleId()
+                }
+            }
+
+            var afValue = that.exportsService.framework.getAntiForgeryValue();
+            if (afValue) {
+                const additionalHeaders = {
+                    'RequestVerificationToken': afValue,
+                };
+                options.headers = {
+                    ...options.headers,
+                    ...additionalHeaders
+                }
+            }
+
+            fetch(that.exportsService.baseUrl + '/' + that.exportsService.controller + '/GetExportedFile?sid=' + context.WorkspaceId + '&rid=' + context.Id + '&exportid=' + item.id() + '&resourceFileExtension=' + item.resourceFileExtension(), options)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Error downloading the file');
+                    }
+                    // Obtener el nombre del fichero desde el encabezado Content-Disposition
+                    const disposition = response.headers.get('Content-Disposition');
+                    let filename = 'downloaded_file';
+                    if (disposition && disposition.indexOf('filename=') !== -1) {
+                        const filenameRegex = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/;
+                        const matches = filenameRegex.exec(disposition);
+                        if (matches != null && matches[1]) {
+                            filename = matches[1].replace(/['"]/g, '');
+                        }
+                    }
+                    return response.blob().then(blob => ({ blob, filename }));
+                })
+                .then(({ blob, filename }) => {
+                    // Crear una URL temporal para el blob
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.style.display = 'none';
+                    a.download = filename;
+                    document.body.appendChild(a);
+                    a.click();
+                    // Limpiar
+                    window.URL.revokeObjectURL(url);
+                    a.remove();
+                })
+                .catch(error => {
+                    console.error('Error downloading the file:', error);
+                    alert('There was an error downloading the file.');
+                });
+
+        }
+
+        this.exportToFile = function (format) {
+            var options = {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/octet-stream',
+                    'TabId': that.exportsService.framework.getTabId(),
+                    'ModuleId': that.exportsService.framework.getModuleId()
+                }
+            }
+
+            var afValue = that.exportsService.framework.getAntiForgeryValue();
+            if (afValue) {
+                const additionalHeaders = {
+                    'RequestVerificationToken': afValue,
+                };
+                options.headers = {
+                    ...options.headers,
+                    ...additionalHeaders
+                }
+            }
+            let params = {
+                sid: context.WorkspaceId,
+                rid: context.Id,
+                format: format
+            }
+
+            Common.CallWithOptions("GET", "Export", that.exportsService, params, options,
+                function (data) {
+                    if (data) {
+                        that.exportsQueue().push(new ExportItemModel(
+                            data.id,
+                            data.createdDateTime,
+                            data.lastActionDateTime,
+                            data.reportId,
+                            data.reportName,
+                            data.status,
+                            data.percentComplete,
+                            data.resourceLocation,
+                            data.ResourceFileExtension,
+                            data.expirationTime
+                        ));
+                        that.exportsQueue.valueHasMutated();
+                    }
+                    else {
+                        alert("There was an error exporting the file.");
+                    }
+                },
+                function (error) {
+                    console.log(error);
+                },
+                function () {
+                }
+            );
+        }
 
 
         this.pbireload = function () {

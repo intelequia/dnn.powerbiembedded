@@ -1,4 +1,5 @@
-﻿using DotNetNuke.Instrumentation;
+﻿using Dnn.PersonaBar.Library.DTO;
+using DotNetNuke.Instrumentation;
 using DotNetNuke.PowerBI.Data.Models;
 using DotNetNuke.PowerBI.Data.SharedSettings;
 using DotNetNuke.PowerBI.Models;
@@ -14,6 +15,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 
 namespace DotNetNuke.PowerBI.Services
 {
@@ -401,7 +403,7 @@ namespace DotNetNuke.PowerBI.Services
             }
         }
 
-        public async Task<Export> ExportReportAsync(Guid workspaceId, Guid reportId, FileFormat format)
+        public async Task<Export> GetExportStatusAsync(Guid workspaceId, Guid reportId, string exportId)
         {
             // Get token credentials for user
             var getCredentialsResult = await GetTokenCredentials();
@@ -412,7 +414,119 @@ namespace DotNetNuke.PowerBI.Services
             // Create a Power BI Client object. It will be used to call Power BI APIs.
             using (var client = new PowerBIClient(new Uri(Settings.ApiUrl), tokenCredentials))
             {
-                return await client.Reports.ExportToFileAsync(workspaceId, reportId, new ExportReportRequest(format));
+                return await client.Reports.GetExportToFileStatusInGroupAsync(workspaceId, reportId, exportId);
+            }
+        }
+
+        public async Task<Stream> GetExportedFileAsync(Guid workspaceId, Guid reportId, string exportId, string resourceFileExtension)
+        {
+            // Get token credentials for user
+            var getCredentialsResult = await GetTokenCredentials();
+            if (!getCredentialsResult)
+            {
+                throw new ApplicationException("Can't export report. Authentication failed.");
+            }
+            // Create a Power BI Client object. It will be used to call Power BI APIs.
+            using (var client = new PowerBIClient(new Uri(Settings.ApiUrl), tokenCredentials))
+            {
+                return await client.Reports.GetFileOfExportToFileAsync(workspaceId, reportId, exportId);
+            }
+        }
+
+        public async Task<Export> ExportReportAsync(Guid workspaceId, Guid reportId, FileFormat format, 
+                string user,
+                string roles,
+                IList<string> pageNames = null, /* Get the page names from the GetPages REST API */
+                string urlFilter = null)
+        {
+            // Get token credentials for user
+            var getCredentialsResult = await GetTokenCredentials();
+            if (!getCredentialsResult)
+            {
+                throw new ApplicationException("Can't export report. Authentication failed.");
+            }            
+
+            List<EffectiveIdentity> identities = null;
+            if (!string.IsNullOrWhiteSpace(user))
+            {
+                // Create a Power BI Client object. It will be used to call Power BI APIs.
+                using (var client = new PowerBIClient(new Uri(Settings.ApiUrl), tokenCredentials))
+                {
+                    Report report = null;
+                    var model = new EmbedConfig();
+                    if (await ValidateWorkspaceAndCapacity(client, model).ConfigureAwait(false))
+                    {
+                        // Get a list of reports for the given workspace.
+                        var reports = await client.Reports.GetReportsInGroupAsync(Guid.Parse(Settings.WorkspaceId)).ConfigureAwait(false);
+                        if (reports.Value.Count() == 0)
+                        {
+                            throw new ApplicationException("No reports were found in the workspace");
+                        }
+
+                        report = reports.Value.FirstOrDefault(r => r.Id.ToString().Equals(reportId.ToString(), StringComparison.InvariantCultureIgnoreCase));
+                        if (report == null)
+                        {
+                            throw new ApplicationException("No report with the given ID was found in the workspace. Make sure ReportId is valid.");
+                        }
+                    }
+                    else
+                    {
+                        throw new ApplicationException(model.ErrorMessage);
+                    }
+                    // Check if the dataset has effective identity required
+                    // var dataset = await client.Datasets.GetDatasetAsync(report.DatasetId).ConfigureAwait(false);
+                    // The line above returns an unauthorization exception when using "Service Principal" credentials. Seems a bug in the PowerBI API.
+                    Dataset dataset = null;
+                    try
+                    {
+                        dataset = client.Datasets.GetDataset(report.DatasetId);
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.Warn($"Couldn't find dataset '{report.DatasetId}'", ex);
+                        dataset = client.Datasets.GetDatasets(Guid.Parse(Settings.WorkspaceId)).Value.FirstOrDefault(x => x.Id == report.DatasetId);
+                    }
+
+                    if (dataset != null
+                        && (dataset.IsEffectiveIdentityRequired.GetValueOrDefault(false) || dataset.IsEffectiveIdentityRolesRequired.GetValueOrDefault(false)))
+                    //&& !dataset.IsOnPremGatewayRequired.GetValueOrDefault(false))
+                    {
+                        var rls = new EffectiveIdentity(user, datasets: new List<string> { report.DatasetId });
+                        if (!string.IsNullOrWhiteSpace(roles) && dataset.IsEffectiveIdentityRolesRequired.GetValueOrDefault(false))
+                        {
+                            var rolesList = new List<string>();
+                            rolesList.AddRange(roles.Split(','));
+                            rls.Roles = rolesList;
+                        }
+                        identities = new List<EffectiveIdentity> { rls };
+                    }
+                }
+            }
+
+            var powerBIReportExportConfiguration = new PowerBIReportExportConfiguration
+            {
+                Settings = new ExportReportSettings
+                {
+                    Locale = "en-us",
+                },
+                // Note that page names differ from the page display names
+                // To get the page names use the GetPages REST API
+                Pages = pageNames?.Select(pn => new ExportReportPage(pageName: pn)).ToList(),
+                // ReportLevelFilters collection needs to be instantiated explicitly
+                ReportLevelFilters = !string.IsNullOrEmpty(urlFilter) ? new List<ExportFilter>() { new ExportFilter(urlFilter) } : null,       
+                Identities = identities
+            };
+
+            var exportRequest = new ExportReportRequest
+            {
+                Format = format,
+                PowerBIReportConfiguration = powerBIReportExportConfiguration,
+            };
+
+            // Create a Power BI Client object. It will be used to call Power BI APIs.
+            using (var client = new PowerBIClient(new Uri(Settings.ApiUrl), tokenCredentials))
+            {
+                return await client.Reports.ExportToFileAsync(workspaceId, reportId, exportRequest);
             }
         }
 

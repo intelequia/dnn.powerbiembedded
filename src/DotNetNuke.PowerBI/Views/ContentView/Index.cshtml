@@ -54,13 +54,13 @@
     {
         <a href="#" class="export" title="Export report" data-bind="click: pbiexport">
             <div class="exportImg"></div>Export
-            <div class="chevron"></div>            
+            <div class="chevron"></div>
         </a>
         <div class="mnuExport">
             <div class="content">
-                <a href="#" class="excel" title="Analyze in Excel" data-bind="click: pbiexportExcel">
+                <!-- <a href="#" class="excel" title="Analyze in Excel" data-bind="click: pbiexportExcel">
                     <div class="excelImg"></div>Analyze in Excel
-                </a>
+                </a> -->
                 <a href="#" class="powerpoint" title="Powerpoint" data-bind="click: pbiexportPowerpoint">
                     <div class="powerpointImg"></div>PowerPoint
                 </a>
@@ -77,6 +77,19 @@
             <div class="subscribeImg"></div>
             <span>@Dnn.LocalizeString("Subscriptions")</span>
         </a>
+    }
+    @if (ViewBag.CanExport)
+    {
+        <a href="#" class="exportQueue" title="Export queue" style="display: none;" data-bind="visible: exportsQueue().length > 0, click: showQueue, attr: {'class': 'exportQueue ' + exportsQueueStatus() }"><span data-bind="text: 'Exporting ' + exportsQueue().length + ' reports...'" /></a>
+        <div class="mnuQueue"> 
+            <div class="content">
+                <p><strong>Export queue</strong></p>
+                <ul data-bind="foreach: exportsQueue">
+                    <li data-bind="attr: {'class': exportStatusClass }"><span class="exportsQueueItem" data-bind="text: (reportName() ?? reportId()) + (percentComplete() < 100 ? ' (' + percentComplete() + '%)': '')"></span></li>
+                </ul>
+                <a href="#" class="cancelExports" title="Cancel all exports" data-bind="click: cancelAllExports">Cancel all</a>
+            </div>
+        </div>
     }
     @if (ViewBag.PrintVisible)
     {

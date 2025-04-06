@@ -21,7 +21,7 @@ foreach ($filter in $filters)
 }
 
 $searchPath = 'C:\dev\dnn.powerbiembedded\src\DotNetNuke.PowerBI\admin\personaBar'
-$destinationPath = 'C:\Websites\userportal.dnndev.me\DesktopModules\Admin\Dnn.PersonaBar\Modules\Dnn.PowerBI'
+$destinationPath = 'C:\Websites\tmh2-admin.dnndev.me\DesktopModules\Admin\Dnn.PersonaBar\Modules\Dnn.PowerBI'
 $filters = @('*.ascx', '*.css', '*.js', '*.resx', '*.cshtml', '*.html')
 
 foreach ($filter in $filters)
