@@ -125,7 +125,7 @@
                     </div>
                 </div>
                 <div class="dnnFormItem">
-                    <div class="leftGroup"  >
+                    <div class="leftGroup">
                         <label>Refresh Visible</label>
                         @Html.CheckBoxFor(m => m.RefreshVisible, true)
                     </div>
@@ -146,6 +146,24 @@
                     <div class="leftGroup">
                         <label>Bookmarks Visible</label>
                         @Html.CheckBoxFor(m => m.BookmarksVisible, true)
+                    </div>
+                </div>
+                <div class="dnnFormItem">
+                    <div class="leftGroup">
+                        <label>Edit Visible (by permissions)</label>
+                        @Html.CheckBoxFor(m => m.EditVisible, true)
+                    </div>
+                </div>
+                <div class="dnnFormItem">
+                    <div class="leftGroup">
+                        <label>Download Visible (by permissions)</label>
+                        @Html.CheckBoxFor(m => m.DownloadVisible, true)
+                    </div>
+                </div>
+                <div class="dnnFormItem">
+                    <div class="leftGroup">
+                        <label>Export Visible (by permissions)</label>
+                        @Html.CheckBoxFor(m => m.ExportVisible, true)
                     </div>
                 </div>
                 <div class="dnnFormItem">

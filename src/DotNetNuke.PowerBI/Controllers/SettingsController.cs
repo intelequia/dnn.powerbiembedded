@@ -55,6 +55,9 @@ namespace DotNetNuke.PowerBI.Controllers
             public bool FullScreenVisible { get; set; }
             public bool BookmarksVisible { get; set; }
             public bool RefreshVisible { get; set; }
+            public bool EditVisible { get; set; }
+            public bool DownloadVisible { get; set; }
+            public bool ExportVisible { get; set; }
             public bool ApplicationInsightsEnabled { get; set; }
             public string BackgroundImageUrl { get; set; }
             public string Height { get; set; }
@@ -97,6 +100,9 @@ namespace DotNetNuke.PowerBI.Controllers
                     ApplicationInsightsEnabled = bool.Parse(GetSetting("PowerBIEmbedded_ApplicationInsightsEnabled", "False")),
                     BackgroundImageUrl = GetSetting("PowerBIEmbedded_BackgroundImageUrl", ""),
                     RefreshVisible = bool.Parse(GetSetting("PowerBIEmbedded_RefreshVisible", "True")),
+                    EditVisible = bool.Parse(GetSetting("PowerBIEmbedded_EditVisible", "False")),
+                    DownloadVisible = bool.Parse(GetSetting("PowerBIEmbedded_DownloadVisible", "False")),
+                    ExportVisible = bool.Parse(GetSetting("PowerBIEmbedded_ExportVisible", "False"))
                 };
 
                 if (model.IsContentView)
@@ -175,6 +181,9 @@ namespace DotNetNuke.PowerBI.Controllers
                 ModuleController.Instance.UpdateTabModuleSetting(this.ModuleContext.TabModuleId, "PowerBIEmbedded_FullScreenVisible", settings.FullScreenVisible.ToString());
                 ModuleController.Instance.UpdateTabModuleSetting(this.ModuleContext.TabModuleId, "PowerBIEmbedded_BookmarksVisible", settings.BookmarksVisible.ToString());
                 ModuleController.Instance.UpdateTabModuleSetting(this.ModuleContext.TabModuleId, "PowerBIEmbedded_RefreshVisible", settings.RefreshVisible.ToString());
+                ModuleController.Instance.UpdateTabModuleSetting(this.ModuleContext.TabModuleId, "PowerBIEmbedded_EditVisible", settings.EditVisible.ToString());
+                ModuleController.Instance.UpdateTabModuleSetting(this.ModuleContext.TabModuleId, "PowerBIEmbedded_DownloadVisible", settings.DownloadVisible.ToString());
+                ModuleController.Instance.UpdateTabModuleSetting(this.ModuleContext.TabModuleId, "PowerBIEmbedded_ExportVisible", settings.ExportVisible.ToString());
                 ModuleController.Instance.UpdateTabModuleSetting(this.ModuleContext.TabModuleId, "PowerBIEmbedded_UserProperty", settings.UserProperty);
                 ModuleController.Instance.UpdateTabModuleSetting(this.ModuleContext.TabModuleId, "PowerBIEmbedded_CustomUserProperty", settings.CustomUserProperty);
                 ModuleController.Instance.UpdateTabModuleSetting(this.ModuleContext.TabModuleId, "PowerBIEmbedded_CustomExtensionLibrary", settings.CustomExtensionLibrary);

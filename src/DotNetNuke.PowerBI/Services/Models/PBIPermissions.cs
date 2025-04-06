@@ -35,7 +35,13 @@ namespace DotNetNuke.PowerBI.Services.Models
                 FullControl = false,
                 View = false
             });
-
+            PermissionDefinitions.Add(new Permission()
+            {
+                PermissionId = 3,
+                PermissionName = "Download",
+                FullControl = false,
+                View = false
+            });
         }
     }
 }

@@ -504,16 +504,16 @@ namespace DotNetNuke.PowerBI.Services
         private void CheckWorkspaceAndReport(ref string workspaceId, ref string reportId)
         {
             var powerBISettingsGroupId = ActiveModule.TabModuleSettings["PowerBIEmbedded_SettingsGroupId"];
-            var contentItemId = ActiveModule.TabModuleSettings["PowerBIEmbedded_ContentItemId"];
+            var contentItemId = ActiveModule.TabModuleSettings["PowerBIEmbedded_ContentItemId"]?.ToString();
 
             if (powerBISettingsGroupId != null)
             {
                 workspaceId = powerBISettingsGroupId.ToString();
             }
 
-            if (contentItemId != null)
+            if (!string.IsNullOrEmpty(contentItemId) && contentItemId.Length > 2)
             {
-                reportId = contentItemId.ToString().Substring(2);
+                reportId = contentItemId.Substring(2);
             }
         }
     }

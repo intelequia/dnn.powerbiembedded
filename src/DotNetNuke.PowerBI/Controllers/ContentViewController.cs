@@ -120,7 +120,11 @@ namespace DotNetNuke.PowerBI.Controllers
                         }
                     }
                 }
-                bool hasEditPermission = HasEditPermission(embedService.Settings, Request["reportId"] ?? GetSetting("PowerBIEmbedded_ContentItemId").Substring(2));
+                var contentItemId = GetSetting("PowerBIEmbedded_ContentItemId");
+                string itemId = contentItemId.Length > 2 ? contentItemId.Substring(2) : ""; 
+
+                bool hasEditPermission = HasPermission(embedService.Settings, Request["reportId"] ?? itemId, 2);
+                bool hasDownloadPermission = HasPermission(embedService.Settings, Request["reportId"] ?? itemId, 3);
 
 
                 if (!string.IsNullOrEmpty(Request["dashboardId"]))
@@ -136,14 +140,14 @@ namespace DotNetNuke.PowerBI.Controllers
                 else if (!string.IsNullOrEmpty(GetSetting("PowerBIEmbedded_ContentItemId")))
                 {
                     var roles = string.Join(",", ModuleContext.PortalSettings.UserInfo.Roles);
-                    var contentItemId = GetSetting("PowerBIEmbedded_ContentItemId");
+                    
                     if (contentItemId.Substring(0, 2) == "D_")
                     {
-                        model = embedService.GetDashboardEmbedConfigAsync(ModuleContext.PortalSettings.UserId, user, roles, contentItemId.Substring(2), hasEditPermission).Result;
+                        model = embedService.GetDashboardEmbedConfigAsync(ModuleContext.PortalSettings.UserId, user, roles, itemId, hasEditPermission).Result;
                     }
                     else
                     {
-                        model = embedService.GetReportEmbedConfigAsync(ModuleContext.PortalSettings.UserId, user, roles, contentItemId.Substring(2), hasEditPermission).Result;
+                        model = embedService.GetReportEmbedConfigAsync(ModuleContext.PortalSettings.UserId, user, roles, itemId, hasEditPermission).Result;
                     }
                 }
 
@@ -157,7 +161,9 @@ namespace DotNetNuke.PowerBI.Controllers
 
                 Pages reportPages = embedService.GetReportPages(model.Id).Result;
                 ViewBag.ReportPages = reportPages;
-                ViewBag.CanEdit = hasEditPermission;
+                ViewBag.CanEdit = hasEditPermission && bool.Parse(GetSetting("PowerBIEmbedded_EditVisible", "false"));
+                ViewBag.CanDownload = hasDownloadPermission && bool.Parse(GetSetting("PowerBIEmbedded_DownloadVisible", "false"));
+                ViewBag.CanExport = hasDownloadPermission && bool.Parse(GetSetting("PowerBIEmbedded_ExportVisible", "false"));
                 ViewBag.Locale = System.Threading.Thread.CurrentThread.CurrentUICulture.Name.Substring(0, 2);
 
                 ViewBag.TimeZones = TimeZoneInfo.GetSystemTimeZones();
@@ -179,6 +185,7 @@ namespace DotNetNuke.PowerBI.Controllers
                 ViewBag.PageName = GetSetting("PowerBIEmbedded_PageName");
                 ViewBag.BackgroundImageUrl = GetSetting("PowerBIEmbedded_BackgroundImageUrl", "");
                 ViewBag.RefreshVisible = bool.Parse(GetSetting("PowerBIEmbedded_RefreshVisible", "true"));
+                
 
                 // Sets the reports page on the viewbag
                 if (embedService != null)
@@ -217,13 +224,16 @@ namespace DotNetNuke.PowerBI.Controllers
                     ViewBag.PageName,
                     ViewBag.BackgroundImageUrl,
                     ViewBag.CanEdit,
+                    ViewBag.CanDownload,
+                    ViewBag.CanExport,
                     ViewBag.TimeZones,
                     ViewBag.PreferredTimeZone,
                     ViewBag.ReportPages,
                     model.ContentType,
                     Token = model.EmbedToken?.Token,
                     model.EmbedUrl,
-                    model.Id
+                    model.Id,
+                    embedService.Settings.WorkspaceId,
                 };
                 ServicesFramework.Instance.RequestAjaxScriptSupport();
                 ServicesFramework.Instance.RequestAjaxAntiForgerySupport();
@@ -249,14 +259,14 @@ namespace DotNetNuke.PowerBI.Controllers
                 : defaultValue;
         }
 
-        private bool HasEditPermission(PowerBISettings settings, string reportId)
+        private bool HasPermission(PowerBISettings settings, string reportId, int permissionId)
         {
             bool hasInheritPermissions = settings.InheritPermissions;
             string comparison = hasInheritPermissions ? settings.SettingsGroupId : reportId;
             PortalSettings portalSettings = ModuleContext.PortalSettings;
             UserInfo user = portalSettings.UserInfo;
 
-            return PowerBIListViewExtensions.UserHasPermissionsToWorkspace(comparison, user, 2);
+            return PowerBIListViewExtensions.UserHasPermissionsToWorkspace(comparison, user, permissionId);
         }
     }
 }
