@@ -144,5 +144,10 @@
 
 	<b>Version 1.2.4</b>
 	<p>maintenance: upgrade PowerBI API packages to the latest version</p>
-	
+
+	<b>Version 1.3.0</b>
+	<p>feat: allow to specify pbix download permissions on the persona bar</p>
+	<p>feat: new option in the content view settings to show the download pbix</p>
+	<p>feat: new option in the content view settings to show the export to pdf and pptx</p>
+	<p>feat: new menus to download pbix, export to pdf and pptx</p>	
 </div>
