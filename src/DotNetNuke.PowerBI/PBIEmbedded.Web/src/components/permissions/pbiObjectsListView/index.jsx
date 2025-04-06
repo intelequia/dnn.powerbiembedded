@@ -159,6 +159,15 @@ class PbiObjectsListView extends Component {
                 permissionKey: null,
                 permissionName: "Edit",
                 view: false,
+            },
+            {
+                allowAccess: false,
+                fullControl: false,
+                permissionCode: null,
+                permissionId: 3,
+                permissionKey: null,
+                permissionName: "Download",
+                view: false,
             }
         ];
         let permissions = {
