@@ -398,8 +398,23 @@ namespace DotNetNuke.PowerBI.Services
             }
             // Create a Power BI Client object. It will be used to call Power BI APIs.
             using (var client = new PowerBIClient(new Uri(Settings.ApiUrl), tokenCredentials))
-            {
-                return await client.Reports.ExportReportAsync(workspaceId, reportId, DownloadType.IncludeModel);
+            {       
+                try
+                {
+                    return await client.Reports.ExportReportInGroupAsync(workspaceId, reportId, DownloadType.IncludeModel);
+                }
+                catch (HttpOperationException ex)
+                {
+                    if (ex.Response.StatusCode == System.Net.HttpStatusCode.BadRequest)
+                    {
+                        return await client.Reports.ExportReportInGroupAsync(workspaceId, reportId, DownloadType.LiveConnect);
+                    }
+                    else
+                    {
+                        throw;
+                    }
+                }
+                
             }
         }
 
