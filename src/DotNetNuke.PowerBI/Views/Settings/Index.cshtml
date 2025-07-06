@@ -183,12 +183,20 @@
     </fieldset>
     <h2 class="dnnFormSectionHead"><a href="#">Role Level Security (RLS)</a></h2>
     <fieldset id="ListViewGroupSettings">
+        <div class="dnnFormItem">
+            <div class="leftGroup">
+                <p class="dnnFormMessage dnnFormInfo">
+                    RLS controls what data users can see in Power BI reports based on their DNN user properties. 
+                    <a href="https://github.com/intelequia/dnn.powerbiembedded/blob/master/docs/RLS-Configuration.md" target="_blank">View RLS Configuration Guide</a>
+                </p>
+            </div>
+        </div>
         @{
             if (Model.IsContentView)
             {
                 <div class="dnnFormItem">
                     <div class="leftGroup">
-                        <label>User Property</label>
+                        <label>User Property Method</label>
                         @{
                             var userPropertiesItems = new List<SelectListItem>();
                             if (ViewBag.UserProperties != null)
@@ -204,18 +212,27 @@
                             }
                         }
                         @Html.DropDownListFor(m => m.UserProperty, userPropertiesItems, "Choose one...")
+                        <div class="dnnFormMessage dnnFormInfo">
+                            Select how to identify users in Power BI reports. Options include Username, Email, PowerBiGroup profile property, Custom profile property template, or Custom extension library.
+                        </div>
                     </div>
                 </div>
                 <div class="dnnFormItem">
                     <div class="leftGroup">
-                        <label>Custom user profile property</label> 
-                        @Html.TextBoxFor(m => m.CustomUserProperty)
+                        <label>Custom User Profile Property Template</label> 
+                        @Html.TextBoxFor(m => m.CustomUserProperty, new { placeholder = "e.g., [PROFILE:Department] or [PROFILE:FirstName].[PROFILE:LastName]" })
+                        <div class="dnnFormMessage dnnFormInfo">
+                            Use when "Custom User Profile Property" is selected. Enter template using [PROFILE:PropertyName] syntax to reference DNN profile properties.
+                        </div>
                     </div>
                 </div>
                 <div class="dnnFormItem">
                     <div class="leftGroup">
-                        <label>Custom extension library</label>
-                        @Html.TextBoxFor(m => m.CustomExtensionLibrary)
+                        <label>Custom Extension Library Type</label>
+                        @Html.TextBoxFor(m => m.CustomExtensionLibrary, new { placeholder = "e.g., MyNamespace.MyRlsExtension, MyAssembly" })
+                        <div class="dnnFormMessage dnnFormInfo">
+                            Use when "Custom Extension Library" is selected. Enter the fully qualified type name of your class that implements IRlsCustomExtension.
+                        </div>
                     </div>
                 </div>
             }
