@@ -44,6 +44,14 @@ namespace DotNetNuke.PowerBI.Data.Models
         public DateTime ModifiedOn { get; set; }
         public bool InheritPermissions { get; set; }
         public string DisabledCapacityMessage { get; set; }
+        
+        // Azure Management API credentials for capacity management
+        public string AzureManagementSubscriptionId { get; set; }
+        public string AzureManagementResourceGroup { get; set; }
+        public string AzureManagementCapacityName { get; set; }
+        public string AzureManagementClientId { get; set; }
+        public string AzureManagementClientSecret { get; set; }
+        public string AzureManagementTenantId { get; set; }
 
         public PowerBISettings()
         {
@@ -86,6 +94,12 @@ namespace DotNetNuke.PowerBI.Data.Models
                 settings.SettingsGroupName = sharedSettings.SettingsGroupName;
                 settings.InheritPermissions = sharedSettings.InheritPermissions;
                 settings.DisabledCapacityMessage = sharedSettings.DisabledCapacityMessage;
+                settings.AzureManagementSubscriptionId = sharedSettings.AzureManagementSubscriptionId;
+                settings.AzureManagementResourceGroup = sharedSettings.AzureManagementResourceGroup;
+                settings.AzureManagementCapacityName = sharedSettings.AzureManagementCapacityName;
+                settings.AzureManagementClientId = sharedSettings.AzureManagementClientId;
+                settings.AzureManagementClientSecret = sharedSettings.AzureManagementClientSecret;
+                settings.AzureManagementTenantId = sharedSettings.AzureManagementTenantId;
             }
             return settings;
         }

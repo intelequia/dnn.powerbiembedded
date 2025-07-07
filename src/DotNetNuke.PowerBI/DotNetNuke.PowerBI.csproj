@@ -189,6 +189,7 @@
     <Compile Include="Components\MenuController.cs" />
     <Compile Include="Components\RouteMapper.cs" />
     <Compile Include="Controllers\CalendarViewController.cs" />
+    <Compile Include="Controllers\CapacityManagementController.cs" />
     <Compile Include="Services\ExportsController.cs" />
     <Compile Include="Controllers\ContentViewController.cs" />
     <Compile Include="Controllers\ListViewController.cs" />
@@ -196,6 +197,9 @@
     <Compile Include="Data\Bookmarks\BookmarksRepository.cs" />
     <Compile Include="Data\Bookmarks\IBookmarksRepository.cs" />
     <Compile Include="Data\Bookmarks\Models\Bookmark.cs" />
+    <Compile Include="Data\CapacityRules\CapacityRulesRepository.cs" />
+    <Compile Include="Data\CapacityRules\ICapacityRulesRepository.cs" />
+    <Compile Include="Data\CapacityRules\Models\CapacityRule.cs" />
     <Compile Include="Data\IObjectPermissionsRepository.cs" />
     <Compile Include="Data\Models\ObjectPermission.cs" />
     <Compile Include="Data\SharedSettings\ISharedSettingsRepository.cs" />
@@ -219,13 +223,16 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Services\ModuleSettingsController.cs" />
     <Compile Include="Services\BookmarksController.cs" />
+    <Compile Include="Services\CapacityManagementService.cs" />
     <Compile Include="Services\EmbedService.cs" />
+    <Compile Include="Services\ICapacityManagementService.cs" />
     <Compile Include="Services\IEmbedService.cs" />
     <Compile Include="Services\Models\GetPowerBiObjectListResponse.cs" />
     <Compile Include="Services\Models\PBIPermissions.cs" />
     <Compile Include="Services\Models\SavePowerBiObjectsPermissionsInput.cs" />
     <Compile Include="Services\PBIEmbeddedController.cs" />
     <Compile Include="Services\SubscriptionController.cs" />
+    <Compile Include="Tasks\CapacityRuleTask.cs" />
     <Compile Include="Tasks\SubscribeTask.cs" />
   </ItemGroup>
   <ItemGroup>

@@ -1,0 +1,64 @@
+-- Create PBI_CapacityRules table for storing capacity management rules
+IF (NOT EXISTS(SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'PBI_CapacityRules'))
+BEGIN
+    CREATE TABLE {databaseOwner}[{objectQualifier}PBI_CapacityRules](
+        [RuleId] [int] IDENTITY(1,1) NOT NULL PRIMARY KEY,
+        [PortalId] [int] NOT NULL,
+        [SettingsId] [int] NOT NULL,
+        [RuleName] [nvarchar](100) NOT NULL,
+        [RuleDescription] [nvarchar](500) NULL,
+        [IsEnabled] [bit] NOT NULL DEFAULT 1,
+        [RuleType] [nvarchar](50) NOT NULL DEFAULT 'TimeBasedStart',
+        [ScheduleExpression] [nvarchar](100) NULL,
+        [ExecutionTime] [time] NOT NULL DEFAULT '08:00:00',
+        [DaysOfWeek] [nvarchar](20) NOT NULL DEFAULT '1,2,3,4,5',
+        [Action] [nvarchar](10) NOT NULL DEFAULT 'Start',
+        [TimeZoneId] [nvarchar](100) NOT NULL DEFAULT 'UTC',
+        [LastExecutedOn] [datetime] NULL,
+        [CreatedOn] [datetime] NOT NULL DEFAULT GETDATE(),
+        [CreatedBy] [int] NOT NULL,
+        [ModifiedOn] [datetime] NOT NULL DEFAULT GETDATE(),
+        [ModifiedBy] [int] NOT NULL,
+        [IsDeleted] [bit] NOT NULL DEFAULT 0,
+        CONSTRAINT FK_PBI_CapacityRules_SettingsId FOREIGN KEY (SettingsId)
+            REFERENCES {objectQualifier}PBI_Settings(SettingsId)
+            ON DELETE CASCADE
+    )
+END
+
+-- Add Azure Management API credentials columns to PBI_Settings table
+IF NOT EXISTS(SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'PBI_Settings' AND COLUMN_NAME = 'AzureManagementSubscriptionId')
+BEGIN
+    ALTER TABLE {databaseOwner}[{objectQualifier}PBI_Settings]
+    ADD [AzureManagementSubscriptionId] [nvarchar](100) NULL
+END
+
+IF NOT EXISTS(SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'PBI_Settings' AND COLUMN_NAME = 'AzureManagementResourceGroup')
+BEGIN
+    ALTER TABLE {databaseOwner}[{objectQualifier}PBI_Settings]
+    ADD [AzureManagementResourceGroup] [nvarchar](100) NULL
+END
+
+IF NOT EXISTS(SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'PBI_Settings' AND COLUMN_NAME = 'AzureManagementCapacityName')
+BEGIN
+    ALTER TABLE {databaseOwner}[{objectQualifier}PBI_Settings]
+    ADD [AzureManagementCapacityName] [nvarchar](100) NULL
+END
+
+IF NOT EXISTS(SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'PBI_Settings' AND COLUMN_NAME = 'AzureManagementClientId')
+BEGIN
+    ALTER TABLE {databaseOwner}[{objectQualifier}PBI_Settings]
+    ADD [AzureManagementClientId] [nvarchar](100) NULL
+END
+
+IF NOT EXISTS(SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'PBI_Settings' AND COLUMN_NAME = 'AzureManagementClientSecret')
+BEGIN
+    ALTER TABLE {databaseOwner}[{objectQualifier}PBI_Settings]
+    ADD [AzureManagementClientSecret] [nvarchar](500) NULL
+END
+
+IF NOT EXISTS(SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'PBI_Settings' AND COLUMN_NAME = 'AzureManagementTenantId')
+BEGIN
+    ALTER TABLE {databaseOwner}[{objectQualifier}PBI_Settings]
+    ADD [AzureManagementTenantId] [nvarchar](100) NULL
+END

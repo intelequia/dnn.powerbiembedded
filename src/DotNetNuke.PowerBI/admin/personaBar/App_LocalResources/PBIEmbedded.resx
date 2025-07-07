@@ -335,4 +335,109 @@ To integrate a PowerBI workspace into DNN, you need to setup a set of properties
   <data name="lblDisabledCapacityMessage.Text" xml:space="preserve">
     <value>Paused Capacity Message</value>
   </data>
+  <data name="CapacityManagement.Text" xml:space="preserve">
+    <value>Capacity Management</value>
+  </data>
+  <data name="lblCapacityStatus.Text" xml:space="preserve">
+    <value>Capacity Status</value>
+  </data>
+  <data name="lblCapacityActions.Text" xml:space="preserve">
+    <value>Capacity Actions</value>
+  </data>
+  <data name="lblCapacityRules.Text" xml:space="preserve">
+    <value>Capacity Rules</value>
+  </data>
+  <data name="StartCapacity.Text" xml:space="preserve">
+    <value>Start Capacity</value>
+  </data>
+  <data name="PauseCapacity.Text" xml:space="preserve">
+    <value>Pause Capacity</value>
+  </data>
+  <data name="RefreshStatus.Text" xml:space="preserve">
+    <value>Refresh Status</value>
+  </data>
+  <data name="CapacityRunning.Text" xml:space="preserve">
+    <value>Running</value>
+  </data>
+  <data name="CapacityPaused.Text" xml:space="preserve">
+    <value>Paused</value>
+  </data>
+  <data name="CapacityUnknown.Text" xml:space="preserve">
+    <value>Unknown</value>
+  </data>
+  <data name="AddRule.Text" xml:space="preserve">
+    <value>Add Rule</value>
+  </data>
+  <data name="EditRule.Text" xml:space="preserve">
+    <value>Edit Rule</value>
+  </data>
+  <data name="DeleteRule.Text" xml:space="preserve">
+    <value>Delete Rule</value>
+  </data>
+  <data name="RuleName.Text" xml:space="preserve">
+    <value>Rule Name</value>
+  </data>
+  <data name="RuleAction.Text" xml:space="preserve">
+    <value>Action</value>
+  </data>
+  <data name="RuleTime.Text" xml:space="preserve">
+    <value>Time</value>
+  </data>
+  <data name="RuleDays.Text" xml:space="preserve">
+    <value>Days</value>
+  </data>
+  <data name="RuleEnabled.Text" xml:space="preserve">
+    <value>Enabled</value>
+  </data>
+  <data name="CapacityNotConfigured.Text" xml:space="preserve">
+    <value>Azure Management API credentials are not configured for this workspace</value>
+  </data>
+  <data name="CapacityStartSuccess.Text" xml:space="preserve">
+    <value>Capacity started successfully</value>
+  </data>
+  <data name="CapacityPauseSuccess.Text" xml:space="preserve">
+    <value>Capacity paused successfully</value>
+  </data>
+  <data name="CapacityActionError.Text" xml:space="preserve">
+    <value>Error performing capacity action</value>
+  </data>
+  <data name="lblAzureManagementCredentials.Text" xml:space="preserve">
+    <value>Azure Management API Credentials</value>
+  </data>
+  <data name="lblAzureManagementSubscriptionId.Text" xml:space="preserve">
+    <value>Azure Subscription ID</value>
+  </data>
+  <data name="lblAzureManagementSubscriptionId.Help" xml:space="preserve">
+    <value>The Azure Subscription ID where the Power BI capacity is located</value>
+  </data>
+  <data name="lblAzureManagementResourceGroup.Text" xml:space="preserve">
+    <value>Resource Group</value>
+  </data>
+  <data name="lblAzureManagementResourceGroup.Help" xml:space="preserve">
+    <value>The Azure Resource Group name where the Power BI capacity is located</value>
+  </data>
+  <data name="lblAzureManagementCapacityName.Text" xml:space="preserve">
+    <value>Capacity Name</value>
+  </data>
+  <data name="lblAzureManagementCapacityName.Help" xml:space="preserve">
+    <value>The name of the Power BI capacity in Azure</value>
+  </data>
+  <data name="lblAzureManagementClientId.Text" xml:space="preserve">
+    <value>Client ID</value>
+  </data>
+  <data name="lblAzureManagementClientId.Help" xml:space="preserve">
+    <value>The Azure AD Application Client ID with permissions to manage the Power BI capacity</value>
+  </data>
+  <data name="lblAzureManagementClientSecret.Text" xml:space="preserve">
+    <value>Client Secret</value>
+  </data>
+  <data name="lblAzureManagementClientSecret.Help" xml:space="preserve">
+    <value>The Azure AD Application Client Secret</value>
+  </data>
+  <data name="lblAzureManagementTenantId.Text" xml:space="preserve">
+    <value>Tenant ID</value>
+  </data>
+  <data name="lblAzureManagementTenantId.Help" xml:space="preserve">
+    <value>The Azure AD Tenant ID</value>
+  </data>
 </root>

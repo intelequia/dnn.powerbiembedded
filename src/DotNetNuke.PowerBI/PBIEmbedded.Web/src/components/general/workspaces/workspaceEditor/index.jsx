@@ -26,7 +26,13 @@ class WorkspaceEditor extends Component {
                 ServicePrincipalTenant: "",
                 ContentPageUrl: "",
                 DisabledCapacityMessage: "",
-                InheritPermissions: false
+                InheritPermissions: false,
+                AzureManagementSubscriptionId: "",
+                AzureManagementResourceGroup: "",
+                AzureManagementCapacityName: "",
+                AzureManagementClientId: "",
+                AzureManagementClientSecret: "",
+                AzureManagementTenantId: ""
             },
             error: {
                 SettingsGroupName: false,
@@ -39,7 +45,13 @@ class WorkspaceEditor extends Component {
                 ServicePrincipalApplicationSecret: false,
                 ServicePrincipalTenant: false,
                 ContentPageUrl: false,
-                DisabledCapacityMessage: false
+                DisabledCapacityMessage: false,
+                AzureManagementSubscriptionId: false,
+                AzureManagementResourceGroup: false,
+                AzureManagementCapacityName: false,
+                AzureManagementClientId: false,
+                AzureManagementClientSecret: false,
+                AzureManagementTenantId: false
             },
             triedToSubmit: false
         };
@@ -62,6 +74,12 @@ class WorkspaceEditor extends Component {
         state.workspaceDetail["ContentPageUrl"] = props.contentPageUrl || "";
         state.workspaceDetail["DisabledCapacityMessage"] = props.disabledCapacityMessage || "";
         state.workspaceDetail["InheritPermissions"] = props.inheritPermissions;
+        state.workspaceDetail["AzureManagementSubscriptionId"] = props.azureManagementSubscriptionId || "";
+        state.workspaceDetail["AzureManagementResourceGroup"] = props.azureManagementResourceGroup || "";
+        state.workspaceDetail["AzureManagementCapacityName"] = props.azureManagementCapacityName || "";
+        state.workspaceDetail["AzureManagementClientId"] = props.azureManagementClientId || "";
+        state.workspaceDetail["AzureManagementClientSecret"] = props.azureManagementClientSecret || "";
+        state.workspaceDetail["AzureManagementTenantId"] = props.azureManagementTenantId || "";
 
         state.error["SettingsGroupName"] = (props.settingsGroupName === null);
         state.error["AuthenticationType"] = (props.authenticationType === null);
@@ -74,6 +92,12 @@ class WorkspaceEditor extends Component {
         state.error["ServicePrincipalTenant"] = (props.servicePrincipalTenant === null);
         state.error["ContentPageUrl"] = (props.contentPageUrl === null);
         state.error["DisabledCapacityMessage"] = false; // (props.disabledCapacityMessage === null);
+        state.error["AzureManagementSubscriptionId"] = false; // Optional fields
+        state.error["AzureManagementResourceGroup"] = false;
+        state.error["AzureManagementCapacityName"] = false;
+        state.error["AzureManagementClientId"] = false;
+        state.error["AzureManagementClientSecret"] = false;
+        state.error["AzureManagementTenantId"] = false;
 
     }
 
@@ -353,6 +377,75 @@ class WorkspaceEditor extends Component {
                         errorMessage={resx.get("lblDisabledCapacityMessage.Error")}
                         value={this.state.workspaceDetail.DisabledCapacityMessage}
                         onChange={this.onSettingChange.bind(this, "DisabledCapacityMessage")}
+                    />
+                    
+                    <h3>{resx.get("lblAzureManagementCredentials")}</h3>
+                    
+                    <SingleLineInputWithError
+                        withLabel={true}
+                        label={resx.get("lblAzureManagementSubscriptionId")}
+                        tooltipMessage={resx.get("lblAzureManagementSubscriptionId.Help")}
+                        inputStyle={{ margin: "0" }}
+                        error={this.state.error.AzureManagementSubscriptionId}
+                        errorMessage={resx.get("lblAzureManagementSubscriptionId.Error")}
+                        value={this.state.workspaceDetail.AzureManagementSubscriptionId}
+                        onChange={this.onSettingChange.bind(this, "AzureManagementSubscriptionId")}
+                    />
+                    
+                    <SingleLineInputWithError
+                        withLabel={true}
+                        label={resx.get("lblAzureManagementResourceGroup")}
+                        tooltipMessage={resx.get("lblAzureManagementResourceGroup.Help")}
+                        inputStyle={{ margin: "0" }}
+                        error={this.state.error.AzureManagementResourceGroup}
+                        errorMessage={resx.get("lblAzureManagementResourceGroup.Error")}
+                        value={this.state.workspaceDetail.AzureManagementResourceGroup}
+                        onChange={this.onSettingChange.bind(this, "AzureManagementResourceGroup")}
+                    />
+                    
+                    <SingleLineInputWithError
+                        withLabel={true}
+                        label={resx.get("lblAzureManagementCapacityName")}
+                        tooltipMessage={resx.get("lblAzureManagementCapacityName.Help")}
+                        inputStyle={{ margin: "0" }}
+                        error={this.state.error.AzureManagementCapacityName}
+                        errorMessage={resx.get("lblAzureManagementCapacityName.Error")}
+                        value={this.state.workspaceDetail.AzureManagementCapacityName}
+                        onChange={this.onSettingChange.bind(this, "AzureManagementCapacityName")}
+                    />
+                    
+                    <SingleLineInputWithError
+                        withLabel={true}
+                        label={resx.get("lblAzureManagementClientId")}
+                        tooltipMessage={resx.get("lblAzureManagementClientId.Help")}
+                        inputStyle={{ margin: "0" }}
+                        error={this.state.error.AzureManagementClientId}
+                        errorMessage={resx.get("lblAzureManagementClientId.Error")}
+                        value={this.state.workspaceDetail.AzureManagementClientId}
+                        onChange={this.onSettingChange.bind(this, "AzureManagementClientId")}
+                    />
+                    
+                    <SingleLineInputWithError
+                        withLabel={true}
+                        label={resx.get("lblAzureManagementClientSecret")}
+                        tooltipMessage={resx.get("lblAzureManagementClientSecret.Help")}
+                        inputStyle={{ margin: "0" }}
+                        error={this.state.error.AzureManagementClientSecret}
+                        errorMessage={resx.get("lblAzureManagementClientSecret.Error")}
+                        value={this.state.workspaceDetail.AzureManagementClientSecret}
+                        onChange={this.onSettingChange.bind(this, "AzureManagementClientSecret")}
+                        type="password"
+                    />
+                    
+                    <SingleLineInputWithError
+                        withLabel={true}
+                        label={resx.get("lblAzureManagementTenantId")}
+                        tooltipMessage={resx.get("lblAzureManagementTenantId.Help")}
+                        inputStyle={{ margin: "0" }}
+                        error={this.state.error.AzureManagementTenantId}
+                        errorMessage={resx.get("lblAzureManagementTenantId.Error")}
+                        value={this.state.workspaceDetail.AzureManagementTenantId}
+                        onChange={this.onSettingChange.bind(this, "AzureManagementTenantId")}
                     />                                    
 
                 </InputGroup>
