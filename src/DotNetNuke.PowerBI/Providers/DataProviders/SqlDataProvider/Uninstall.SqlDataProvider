@@ -1,1 +1,30 @@
-﻿
+-- Drop tables in reverse order due to foreign key constraints
+IF EXISTS(SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'PBI_CapacityRules')
+BEGIN
+    DROP TABLE {databaseOwner}[{objectQualifier}PBI_CapacityRules]
+END
+
+IF EXISTS(SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'PBI_SubscriptionSubscribers')
+BEGIN
+    DROP TABLE {databaseOwner}[{objectQualifier}PBI_SubscriptionSubscribers]
+END
+
+IF EXISTS(SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'PBI_Subscriptions')
+BEGIN
+    DROP TABLE {databaseOwner}[{objectQualifier}PBI_Subscriptions]
+END
+
+IF EXISTS(SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'PBI_ObjectPermissions')
+BEGIN
+    DROP TABLE {databaseOwner}[{objectQualifier}PBI_ObjectPermissions]
+END
+
+IF EXISTS(SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'PBI_Bookmarks')
+BEGIN
+    DROP TABLE {databaseOwner}[{objectQualifier}PBI_Bookmarks]
+END
+
+IF EXISTS(SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'PBI_Settings')
+BEGIN
+    DROP TABLE {databaseOwner}[{objectQualifier}PBI_Settings]
+END

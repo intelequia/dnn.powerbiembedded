@@ -153,4 +153,12 @@
 
 	<b>Version 1.3.1</b>
 	<p>fix: allow to download pbix for LiveConnect reports</p>
+
+	<b>Version 1.3.2</b>
+	<p>feat: added Power BI capacity management with pause/start capabilities</p>
+	<p>feat: added time-based rules for automated capacity scheduling</p>
+	<p>feat: added Azure Management API integration for capacity control</p>
+	<p>feat: added new PersonaBar tab for capacity management</p>
+	<p>feat: added settings for Azure Management API credentials</p>
+	<p>feat: added scheduler task for automated rule evaluation</p>
 </div>

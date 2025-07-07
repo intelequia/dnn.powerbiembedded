@@ -7,6 +7,7 @@ using DotNetNuke.PowerBI.Services;
 using DotNetNuke.Services.Scheduling;
 using System;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace DotNetNuke.PowerBI.Tasks
 {
@@ -23,11 +24,20 @@ namespace DotNetNuke.PowerBI.Tasks
         {
             try
             {
-                var common = new Common();
-                var capacityManagementService = new CapacityManagementService();
-                var settings = SharedSettingsRepository.Instance.GetAllSettings();
-
                 this.ScheduleHistoryItem.AddLogNote("Starting capacity rule evaluation");
+                DoWorkAsync().Wait();
+            }
+            catch (Exception ex)
+            {
+                HandleException(ex, "Error in capacity rule evaluation");
+            }
+        }
+
+        private async Task DoWorkAsync()
+        {
+            var common = new Common();
+            var capacityManagementService = new CapacityManagementService();
+            var settings = SharedSettingsRepository.Instance.GetAllSettings();
 
                 foreach (var setting in settings.AsParallel())
                 {
@@ -103,14 +113,8 @@ namespace DotNetNuke.PowerBI.Tasks
                     }
                 }
 
-                this.ScheduleHistoryItem.AddLogNote("Completed capacity rule evaluation");
-                this.ScheduleHistoryItem.Succeeded = true;
-            }
-            catch (Exception ex)
-            {
-                HandleException(ex, "Error in capacity rule evaluation");
-            }
-        }
+            this.ScheduleHistoryItem.AddLogNote("Completed capacity rule evaluation");
+            this.ScheduleHistoryItem.Succeeded = true;
 
         private bool IsRuleDue(CapacityRule rule)
         {
