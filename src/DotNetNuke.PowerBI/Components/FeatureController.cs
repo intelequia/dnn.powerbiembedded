@@ -212,48 +212,93 @@ namespace DotNetNuke.PowerBI
                 }
 
                 // Programmed Task for Subscribers.
-                var fullName = "DotNetNuke.PowerBI.Tasks.SubscribeTask, DotNetNuke.PowerBI";
-                var startTime = DateTime.Now;
-                var timeLapse = 15;
-                var timeLapseMeasurement = "m";
-                var retryTimeLapse = 5;
-                var retryTimeLapseMeasurement = "m";
-                var retainHistoryNum = 0;
-                var attachToEvent = "";
-                var catchUpEnabled = false;
-                var enabled = true;
-                var objectDependencies = "";
-                var servers = "";
-                var friendlyName = "Subscribers Email Sender";
+                var subscribeTaskFullName = "DotNetNuke.PowerBI.Tasks.SubscribeTask, DotNetNuke.PowerBI";
+                var subscribeTaskStartTime = DateTime.Now;
+                var subscribeTaskTimeLapse = 15;
+                var subscribeTaskTimeLapseMeasurement = "m";
+                var subscribeTaskRetryTimeLapse = 5;
+                var subscribeTaskRetryTimeLapseMeasurement = "m";
+                var subscribeTaskRetainHistoryNum = 0;
+                var subscribeTaskAttachToEvent = "";
+                var subscribeTaskCatchUpEnabled = false;
+                var subscribeTaskEnabled = true;
+                var subscribeTaskObjectDependencies = "";
+                var subscribeTaskServers = "";
+                var subscribeTaskFriendlyName = "Subscribers Email Sender";
 
-                var task = SchedulingController.GetSchedule()
-                    .FirstOrDefault(x => x.TypeFullName == fullName);
+                var subscribeTask = SchedulingController.GetSchedule()
+                    .FirstOrDefault(x => x.TypeFullName == subscribeTaskFullName);
 
-                task = task ?? new ScheduleItem();
+                subscribeTask = subscribeTask ?? new ScheduleItem();
 
-                task.ScheduleStartDate = startTime;
-                task.TimeLapse = timeLapse;
-                task.TimeLapseMeasurement = timeLapseMeasurement;
-                task.RetryTimeLapse = retryTimeLapse;
-                task.RetainHistoryNum = retainHistoryNum;
-                task.AttachToEvent = attachToEvent;
-                task.CatchUpEnabled = catchUpEnabled;
-                task.Enabled = enabled;
-                task.ObjectDependencies = objectDependencies;
-                task.Servers = servers;
-                task.FriendlyName = friendlyName;
+                subscribeTask.ScheduleStartDate = subscribeTaskStartTime;
+                subscribeTask.TimeLapse = subscribeTaskTimeLapse;
+                subscribeTask.TimeLapseMeasurement = subscribeTaskTimeLapseMeasurement;
+                subscribeTask.RetryTimeLapse = subscribeTaskRetryTimeLapse;
+                subscribeTask.RetainHistoryNum = subscribeTaskRetainHistoryNum;
+                subscribeTask.AttachToEvent = subscribeTaskAttachToEvent;
+                subscribeTask.CatchUpEnabled = subscribeTaskCatchUpEnabled;
+                subscribeTask.Enabled = subscribeTaskEnabled;
+                subscribeTask.ObjectDependencies = subscribeTaskObjectDependencies;
+                subscribeTask.Servers = subscribeTaskServers;
+                subscribeTask.FriendlyName = subscribeTaskFriendlyName;
 
-                if (task.ScheduleID > 0)
+                if (subscribeTask.ScheduleID > 0)
                 {
-                    SchedulingController.UpdateSchedule(task);
+                    SchedulingController.UpdateSchedule(subscribeTask);
                 }
                 else
                 {
                     // Add the scheduled task
                     SchedulingController.AddSchedule(
-                        fullName, timeLapse, timeLapseMeasurement, retryTimeLapse, retryTimeLapseMeasurement,
-                        retainHistoryNum, attachToEvent, catchUpEnabled, enabled, objectDependencies, servers,
-                        friendlyName, startTime);
+                        subscribeTaskFullName, subscribeTaskTimeLapse, subscribeTaskTimeLapseMeasurement, subscribeTaskRetryTimeLapse, subscribeTaskRetryTimeLapseMeasurement,
+                        subscribeTaskRetainHistoryNum, subscribeTaskAttachToEvent, subscribeTaskCatchUpEnabled, subscribeTaskEnabled, subscribeTaskObjectDependencies, subscribeTaskServers,
+                        subscribeTaskFriendlyName, subscribeTaskStartTime);
+                }
+
+                // Programmed Task for Capacity Rule Evaluation.
+                var capacityRuleTaskFullName = "DotNetNuke.PowerBI.Tasks.CapacityRuleTask, DotNetNuke.PowerBI";
+                var capacityRuleTaskStartTime = DateTime.Now;
+                var capacityRuleTaskTimeLapse = 5; // Run every 5 minutes
+                var capacityRuleTaskTimeLapseMeasurement = "m";
+                var capacityRuleTaskRetryTimeLapse = 2;
+                var capacityRuleTaskRetryTimeLapseMeasurement = "m";
+                var capacityRuleTaskRetainHistoryNum = 10;
+                var capacityRuleTaskAttachToEvent = "";
+                var capacityRuleTaskCatchUpEnabled = false;
+                var capacityRuleTaskEnabled = true;
+                var capacityRuleTaskObjectDependencies = "";
+                var capacityRuleTaskServers = "";
+                var capacityRuleTaskFriendlyName = "Capacity Rule Evaluator";
+
+                var capacityRuleTask = SchedulingController.GetSchedule()
+                    .FirstOrDefault(x => x.TypeFullName == capacityRuleTaskFullName);
+
+                capacityRuleTask = capacityRuleTask ?? new ScheduleItem();
+
+                capacityRuleTask.ScheduleStartDate = capacityRuleTaskStartTime;
+                capacityRuleTask.TimeLapse = capacityRuleTaskTimeLapse;
+                capacityRuleTask.TimeLapseMeasurement = capacityRuleTaskTimeLapseMeasurement;
+                capacityRuleTask.RetryTimeLapse = capacityRuleTaskRetryTimeLapse;
+                capacityRuleTask.RetainHistoryNum = capacityRuleTaskRetainHistoryNum;
+                capacityRuleTask.AttachToEvent = capacityRuleTaskAttachToEvent;
+                capacityRuleTask.CatchUpEnabled = capacityRuleTaskCatchUpEnabled;
+                capacityRuleTask.Enabled = capacityRuleTaskEnabled;
+                capacityRuleTask.ObjectDependencies = capacityRuleTaskObjectDependencies;
+                capacityRuleTask.Servers = capacityRuleTaskServers;
+                capacityRuleTask.FriendlyName = capacityRuleTaskFriendlyName;
+
+                if (capacityRuleTask.ScheduleID > 0)
+                {
+                    SchedulingController.UpdateSchedule(capacityRuleTask);
+                }
+                else
+                {
+                    // Add the scheduled task
+                    SchedulingController.AddSchedule(
+                        capacityRuleTaskFullName, capacityRuleTaskTimeLapse, capacityRuleTaskTimeLapseMeasurement, capacityRuleTaskRetryTimeLapse, capacityRuleTaskRetryTimeLapseMeasurement,
+                        capacityRuleTaskRetainHistoryNum, capacityRuleTaskAttachToEvent, capacityRuleTaskCatchUpEnabled, capacityRuleTaskEnabled, capacityRuleTaskObjectDependencies, capacityRuleTaskServers,
+                        capacityRuleTaskFriendlyName, capacityRuleTaskStartTime);
                 }
                 return "success";
 

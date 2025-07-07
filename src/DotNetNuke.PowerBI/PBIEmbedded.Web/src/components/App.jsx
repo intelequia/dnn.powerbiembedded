@@ -5,6 +5,7 @@ import {PersonaBarPage, PersonaBarPageHeader, PersonaBarPageBody, DnnTabs as Tab
 import SettingsActions from "../actions/settings";
 import GeneralSettings from "./general";
 import Permissions from "./permissions";
+import CapacityManagement from "./capacityManagement";
 import resx from "../resources";
 
 import "./style.less";
@@ -33,9 +34,10 @@ class App extends Component {
                         <Tabs
                             onSelect={this.onSelectTab.bind(this)}
                             selectedIndex={this.props.selectedTab}
-                            tabHeaders={[resx.get("GeneralSettings"),resx.get("Permissions")]}>
+                            tabHeaders={[resx.get("GeneralSettings"),resx.get("Permissions"),resx.get("CapacityManagement")]}>
                             <GeneralSettings />
                             <Permissions />
+                            <CapacityManagement />
                         </Tabs>  
                     </PersonaBarPageBody>
                 </PersonaBarPage>
