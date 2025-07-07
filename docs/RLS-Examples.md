@@ -2,6 +2,18 @@
 
 This document provides examples of how to implement custom RLS (Role Level Security) extensions for the DNN Power BI Embedded module.
 
+## ⚠️ Important: DNN User Roles Are Always Passed Automatically
+
+**Before implementing custom extensions**: The DNN Power BI Embedded module automatically passes all DNN user roles to Power BI with every request. You do **not** need to implement custom extensions just to pass user roles to Power BI.
+
+Custom extensions are intended for:
+- Passing user identifiers from external systems
+- Creating composite identifiers combining multiple data sources
+- Implementing complex business logic for user identification
+- Integrating with external databases or APIs
+
+**For simple role-based filtering, configure your Power BI dataset directly using the DNN roles that are automatically passed.**
+
 ## Interface Definition
 
 All custom RLS extensions must implement the `IRlsCustomExtension` interface:
@@ -95,50 +107,55 @@ namespace MyCompany.PowerBI.Extensions
 }
 ```
 
-### 3. Role-Based Extension
+### 3. External System Integration Extension
+
+> **Note**: This example shows integration with external systems. DNN user roles are always passed to Power BI automatically, so you don't need to implement custom extensions just to pass roles.
 
 ```csharp
 using System;
 using System.Linq;
 using System.Web;
 using DotNetNuke.Entities.Users;
-using DotNetNuke.Security.Roles;
 using DotNetNuke.PowerBI.Extensibility;
 
 namespace MyCompany.PowerBI.Extensions
 {
-    public class RoleBasedRlsExtension : IRlsCustomExtension
+    public class ExternalSystemRlsExtension : IRlsCustomExtension
     {
         public string GetRlsValue(HttpContext httpContext)
         {
             try
             {
                 var userInfo = UserController.Instance.GetCurrentUserInfo();
-                var roleController = new RoleController();
                 
-                // Get user's roles
-                var userRoles = roleController.GetUserRoles(userInfo, true);
+                // Get user's employee ID from external HR system
+                var employeeId = GetEmployeeIdFromHR(userInfo.Email);
                 
-                // Define priority order for roles (highest priority first)
-                var priorityRoles = new[] { "Administrators", "Managers", "Supervisors", "Employees" };
+                // Get user's cost center from external ERP system
+                var costCenter = GetCostCenterFromERP(employeeId);
                 
-                // Return the highest priority role
-                foreach (var priorityRole in priorityRoles)
-                {
-                    if (userRoles.Any(r => r.RoleName.Equals(priorityRole, StringComparison.OrdinalIgnoreCase)))
-                    {
-                        return priorityRole;
-                    }
-                }
-                
-                // Default role if no priority roles found
-                return "Employees";
+                // Return a composite identifier for complex filtering
+                return $"{employeeId}|{costCenter}";
             }
             catch (Exception ex)
             {
                 DotNetNuke.Services.Exceptions.Exceptions.LogException(ex);
-                return "Employees";
+                return "UNKNOWN|GENERAL";
             }
+        }
+        
+        private string GetEmployeeIdFromHR(string email)
+        {
+            // Implementation to query HR system
+            // This is a simplified example
+            return "EMP123";
+        }
+        
+        private string GetCostCenterFromERP(string employeeId)
+        {
+            // Implementation to query ERP system
+            // This is a simplified example
+            return "CC001";
         }
     }
 }
