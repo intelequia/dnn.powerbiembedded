@@ -38,6 +38,21 @@
                     </select>
                 </div>
             }
+            
+            @if (Model.FavoriteReports.Count > 0)
+            {
+                <div class="favoritesSection @(Model.Workspaces.Count > 1 ? "workspace": "")">
+                    <h4>@Dnn.LocalizeString("MyFavorites")</h4>
+                    <ul class="scrollableList">
+                        @foreach (var r in Model.FavoriteReports)
+                        {
+                            var sid = !string.IsNullOrEmpty(ViewBag.SettingsGroupId) ? "&sid=" + ViewBag.SettingsGroupId : "";
+                            <li class='favorite@(r.Id.ToString() == Request["reportId"] ? " active" : "")'><a href='@ViewBag.ReportsPage?reportId=@r.Id@sid'>@r.Name</a><span class="favorite-star" data-report-id="@r.Id" onclick="toggleFavorite('@r.Id', false)" title="@Dnn.LocalizeString("RemoveFromFavorites")">★</span></li>
+                        }
+                    </ul>
+                </div>
+            }
+
             <div class="dashboardsSection @(Model.Workspaces.Count > 1 ? "workspace": "")">
                 <h4>@Dnn.LocalizeString("Dashboards")</h4>
                 <ul>
@@ -68,7 +83,8 @@
                         foreach (var r in Model.Reports)
                         {
                             var sid = !string.IsNullOrEmpty(ViewBag.SettingsGroupId) ? "&sid=" + ViewBag.SettingsGroupId : "";
-                            <li class='normal@(r.Id.ToString() == Request["reportId"] ? " active" : "")'><a href='@ViewBag.ReportsPage?reportId=@r.Id@sid'>@r.Name</a></li>
+                            var isFavorite = Model.FavoriteReports.Any(fr => fr.Id == r.Id);
+                            <li class='normal@(r.Id.ToString() == Request["reportId"] ? " active" : "")'><a href='@ViewBag.ReportsPage?reportId=@r.Id@sid'>@r.Name</a><span class="favorite-star @(isFavorite ? "favorited" : "")" data-report-id="@r.Id" onclick="toggleFavorite('@r.Id', @(!isFavorite).ToString().ToLower())" title="@Dnn.LocalizeString(isFavorite ? "RemoveFromFavorites" : "AddToFavorites")">@(isFavorite ? "★" : "☆")</span></li>
                         }
                     }
                 </ul>
@@ -85,6 +101,34 @@
                     document.getElementsByClassName('scrollableList')[0].scrollTop = menus[i].offsetTop;
                 }
             }
+        }
+
+        function toggleFavorite(reportId, addToFavorites) {
+            var serviceUrl = '@ViewBag.ReportsPage'.replace(/Views.*$/, '') + 'API/FavoriteReports/';
+            var method = addToFavorites ? 'AddFavoriteReport' : 'RemoveFavoriteReport';
+            
+            var data = {
+                reportId: reportId
+            };
+
+            var xhr = new XMLHttpRequest();
+            xhr.open('POST', serviceUrl + method, true);
+            xhr.setRequestHeader('Content-Type', 'application/json');
+            xhr.setRequestHeader('RequestVerificationToken', document.querySelector('input[name="__RequestVerificationToken"]')?.value || '');
+            
+            xhr.onreadystatechange = function() {
+                if (xhr.readyState === 4) {
+                    if (xhr.status === 200) {
+                        // Refresh the page to update the favorites display
+                        window.location.reload();
+                    } else {
+                        console.error('Error toggling favorite:', xhr.responseText);
+                        alert('Error updating favorite. Please try again.');
+                    }
+                }
+            };
+            
+            xhr.send(JSON.stringify(data));
         }
 
     </script>
