@@ -196,6 +196,9 @@
     <Compile Include="Data\Bookmarks\BookmarksRepository.cs" />
     <Compile Include="Data\Bookmarks\IBookmarksRepository.cs" />
     <Compile Include="Data\Bookmarks\Models\Bookmark.cs" />
+    <Compile Include="Data\FavoriteReports\FavoriteReportsRepository.cs" />
+    <Compile Include="Data\FavoriteReports\IFavoriteReportsRepository.cs" />
+    <Compile Include="Data\FavoriteReports\Models\FavoriteReport.cs" />
     <Compile Include="Data\IObjectPermissionsRepository.cs" />
     <Compile Include="Data\Models\ObjectPermission.cs" />
     <Compile Include="Data\SharedSettings\ISharedSettingsRepository.cs" />
@@ -220,6 +223,7 @@
     <Compile Include="Services\ModuleSettingsController.cs" />
     <Compile Include="Services\BookmarksController.cs" />
     <Compile Include="Services\EmbedService.cs" />
+    <Compile Include="Services\FavoriteReportsController.cs" />
     <Compile Include="Services\IEmbedService.cs" />
     <Compile Include="Services\Models\GetPowerBiObjectListResponse.cs" />
     <Compile Include="Services\Models\PBIPermissions.cs" />
