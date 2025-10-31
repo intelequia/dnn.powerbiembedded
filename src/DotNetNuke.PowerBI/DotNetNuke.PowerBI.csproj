@@ -196,6 +196,9 @@
     <Compile Include="Data\Bookmarks\BookmarksRepository.cs" />
     <Compile Include="Data\Bookmarks\IBookmarksRepository.cs" />
     <Compile Include="Data\Bookmarks\Models\Bookmark.cs" />
+    <Compile Include="Data\FavoriteReports\FavoriteReportsRepository.cs" />
+    <Compile Include="Data\FavoriteReports\IFavoriteReportsRepository.cs" />
+    <Compile Include="Data\FavoriteReports\Models\FavoriteReport.cs" />
     <Compile Include="Data\IObjectPermissionsRepository.cs" />
     <Compile Include="Data\Models\ObjectPermission.cs" />
     <Compile Include="Data\SharedSettings\ISharedSettingsRepository.cs" />
@@ -220,6 +223,7 @@
     <Compile Include="Services\ModuleSettingsController.cs" />
     <Compile Include="Services\BookmarksController.cs" />
     <Compile Include="Services\EmbedService.cs" />
+    <Compile Include="Services\FavoriteReportsController.cs" />
     <Compile Include="Services\IEmbedService.cs" />
     <Compile Include="Services\Models\GetPowerBiObjectListResponse.cs" />
     <Compile Include="Services\Models\PBIPermissions.cs" />
@@ -307,6 +311,7 @@
     <Content Include="Providers\DataProviders\SqlDataProvider\01.00.21.SqlDataProvider" />
     <Content Include="package.json" />
     <Content Include="Providers\DataProviders\SqlDataProvider\01.02.00.SqlDataProvider" />
+    <Content Include="Providers\DataProviders\SqlDataProvider\01.03.02.SqlDataProvider" />
     <None Include="web.Debug.config">
       <DependentUpon>web.config</DependentUpon>
     </None>

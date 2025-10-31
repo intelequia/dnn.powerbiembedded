@@ -132,4 +132,16 @@
   <data name="ReportsEmpty.Text" xml:space="preserve">
     <value>You have no reports</value>
   </data>
+  <data name="MyFavorites.Text" xml:space="preserve">
+    <value>My Favorites</value>
+  </data>
+  <data name="FavoritesEmpty.Text" xml:space="preserve">
+    <value>You have no favorite reports</value>
+  </data>
+  <data name="AddToFavorites.Text" xml:space="preserve">
+    <value>Add to favorites</value>
+  </data>
+  <data name="RemoveFromFavorites.Text" xml:space="preserve">
+    <value>Remove from favorites</value>
+  </data>
 </root>

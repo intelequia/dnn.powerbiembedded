@@ -1,6 +1,7 @@
 ﻿using DotNetNuke.Common;
 using DotNetNuke.Instrumentation;
 using DotNetNuke.PowerBI.Data.SharedSettings;
+using DotNetNuke.PowerBI.Data.FavoriteReports;
 using DotNetNuke.PowerBI.Models;
 using DotNetNuke.PowerBI.Services;
 using DotNetNuke.Web.Mvc.Framework.ActionFilters;
@@ -52,6 +53,23 @@ namespace DotNetNuke.PowerBI.Controllers
 
                     // Remove the objects without permissions
                     model = model.RemoveUnauthorizedItems(User);
+
+                    // Get user's favorite reports and populate FavoriteReports
+                    var favoriteReportsRepository = FavoriteReportsRepository.Instance;
+                    var favorites = favoriteReportsRepository.GetFavoriteReports(ModuleContext.PortalSettings.UserId, ModuleContext.PortalId);
+                    model.FavoriteReports.Clear();
+                    if (favorites != null && favorites.Any())
+                    {
+                        // Find the actual Report objects for the favorites
+                        foreach (var favorite in favorites)
+                        {
+                            var report = model.Reports.FirstOrDefault(r => r.Id.ToString() == favorite.ReportId);
+                            if (report != null)
+                            {
+                                model.FavoriteReports.Add(report);
+                            }
+                        }
+                    }
 
                     // Sets the reports page on the viewbag
                     var reportsPage = embedService.Settings.ContentPageUrl;

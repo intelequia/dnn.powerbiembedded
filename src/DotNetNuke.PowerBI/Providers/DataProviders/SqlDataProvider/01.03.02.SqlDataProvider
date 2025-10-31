@@ -1,0 +1,12 @@
+IF (NOT EXISTS(SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'PBI_FavoriteReports'))
+BEGIN
+    CREATE TABLE {databaseOwner}[{objectQualifier}PBI_FavoriteReports](
+        [Id] [int] IDENTITY(1,1) NOT NULL PRIMARY KEY,
+        [PortalId] [int] NOT NULL,
+        [UserId] [int] NOT NULL,
+        [ReportId] [varchar](38) NOT NULL,
+        [CreatedOn] [datetime] NOT NULL,
+        INDEX IX_PBI_FavoriteReports_PortalId_UserId NONCLUSTERED ([PortalId], [UserId]),
+        INDEX IX_PBI_FavoriteReports_ReportId NONCLUSTERED ([ReportId])
+    )
+END

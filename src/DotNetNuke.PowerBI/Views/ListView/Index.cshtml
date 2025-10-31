@@ -20,63 +20,79 @@
     }
 </script>
 
-    <div class="powerbiListView">
-        @if (Model == null)
+<div class="powerbiListView">
+    @if (Model == null)
+    {
+        <p>@Dnn.LocalizeString("Error")</p>
+    }
+    else
+    {
+        if (Model.Workspaces.Count > 1)
         {
-            <p>@Dnn.LocalizeString("Error")</p>
-        }
-        else
-        {
-            if (Model.Workspaces.Count > 1)
-            {
-                <div class="workspacesSection">
-                    <select class="workspace" onchange="return changeWorkspace();">
-                        @foreach (var w in Model.Workspaces)
-                        {
+            <div class="workspacesSection">
+                <select class="workspace" onchange="return changeWorkspace();">
+                    @foreach (var w in Model.Workspaces)
+                    {
                             <option value="@w.Id" @(Request.QueryString["sid"] == w.Id ? "selected": "")>@w.Name</option>
-                        }
-                    </select>
-                </div>
-            }
-            <div class="dashboardsSection @(Model.Workspaces.Count > 1 ? "workspace": "")">
-                <h4>@Dnn.LocalizeString("Dashboards")</h4>
-                <ul>
-                    @if (Model.Dashboards.Count == 0)
-                    {
-                        <li class='empty'>@Dnn.LocalizeString("DashboardsEmpty")</li>
                     }
-                    else
-                    {
-                        foreach (var d in Model.Dashboards)
-                        {
-                            var sid = !string.IsNullOrEmpty(ViewBag.SettingsGroupId) ? "&sid=" + ViewBag.SettingsGroupId : "";
-                            <li class='normal@(d.Id.ToString() == Request["dashboardId"] ? " active" : "")'><a href='@ViewBag.ReportsPage?dashboardId=@d.Id@sid'>@d.DisplayName</a></li>
-                        }
-                    }
-                </ul>
+                </select>
             </div>
+        }
 
-            <div class="reportsSection @(Model.Workspaces.Count > 1 ? "workspace": "")">
-                <h4>@Dnn.LocalizeString("Reports")</h4>
+        if (Model.FavoriteReports.Count > 0)
+        {
+            <div class="favoritesSection @(Model.Workspaces.Count > 1 ? "workspace": "")">
+                <h4>@Dnn.LocalizeString("MyFavorites")</h4>
                 <ul class="scrollableList">
-                    @if (Model.Reports.Count == 0)
+                    @foreach (var r in Model.FavoriteReports)
                     {
-                        <li class='empty'>@Dnn.LocalizeString("ReportsEmpty")</li>
-                    }
-                    else
-                    {
-                        foreach (var r in Model.Reports)
-                        {
-                            var sid = !string.IsNullOrEmpty(ViewBag.SettingsGroupId) ? "&sid=" + ViewBag.SettingsGroupId : "";
-                            <li class='normal@(r.Id.ToString() == Request["reportId"] ? " active" : "")'><a href='@ViewBag.ReportsPage?reportId=@r.Id@sid'>@r.Name</a></li>
-                        }
+                        var sid = !string.IsNullOrEmpty(ViewBag.SettingsGroupId) ? "&sid=" + ViewBag.SettingsGroupId : "";
+                        <li class='favorite@(r.Id.ToString() == Request["reportId"] ? " active" : "")'><a href='@ViewBag.ReportsPage?reportId=@r.Id@sid'>@r.Name</a><span class="favorite-star" data-report-id="@r.Id" onclick="toggleFavorite('@r.Id', false)" title="@Dnn.LocalizeString("RemoveFromFavorites")">★</span></li>
                     }
                 </ul>
             </div>
         }
 
-    </div>
-    <script>
+        <div class="dashboardsSection @(Model.Workspaces.Count > 1 ? "workspace": "")">
+            <h4>@Dnn.LocalizeString("Dashboards")</h4>
+            <ul>
+                @if (Model.Dashboards.Count == 0)
+                {
+                    <li class='empty'>@Dnn.LocalizeString("DashboardsEmpty")</li>
+                }
+                else
+                {
+                    foreach (var d in Model.Dashboards)
+                    {
+                        var sid = !string.IsNullOrEmpty(ViewBag.SettingsGroupId) ? "&sid=" + ViewBag.SettingsGroupId : "";
+                        <li class='normal@(d.Id.ToString() == Request["dashboardId"] ? " active" : "")'><a href='@ViewBag.ReportsPage?dashboardId=@d.Id@sid'>@d.DisplayName</a></li>
+                    }
+                }
+            </ul>
+        </div>
+
+        <div class="reportsSection @(Model.Workspaces.Count > 1 ? "workspace": "")">
+            <h4>@Dnn.LocalizeString("Reports")</h4>
+            <ul class="scrollableList">
+                @if (Model.Reports.Count == 0)
+                {
+                    <li class='empty'>@Dnn.LocalizeString("ReportsEmpty")</li>
+                }
+                else
+                {
+                    foreach (var r in Model.Reports)
+                    {
+                        var sid = !string.IsNullOrEmpty(ViewBag.SettingsGroupId) ? "&sid=" + ViewBag.SettingsGroupId : "";
+                        var isFavorite = Model.FavoriteReports.Any(fr => fr.Id == r.Id);
+                        <li class='normal@(r.Id.ToString() == Request["reportId"] ? " active" : "")'><a href='@ViewBag.ReportsPage?reportId=@r.Id@sid'>@r.Name</a><span class="favorite-star @(isFavorite ? "favorited" : "")" data-report-id="@r.Id" onclick="toggleFavorite('@r.Id', @(!isFavorite))" title="@Dnn.LocalizeString(isFavorite ? "RemoveFromFavorites" : "AddToFavorites")">@(isFavorite ? "★" : "☆")</span></li>
+                    }
+                }
+            </ul>
+        </div>
+    }
+
+</div>
+<script>
         window.onload = function () {
             document.getElementsByClassName('scrollableList')[0].scrollTop = 0;
             var menus = document.getElementsByClassName('normal');
@@ -87,4 +103,27 @@
             }
         }
 
-    </script>
+        function toggleFavorite(reportId, addToFavorites) {
+            var sf = $.ServicesFramework(@Dnn.ModuleContext.ModuleId);
+            var serviceUrl = sf.getServiceRoot('PowerBI/Services') + 'FavoriteReports/';
+            var method = addToFavorites ? 'AddFavoriteReport' : 'RemoveFavoriteReport';
+
+            $.ajax({
+                type: 'POST',
+                url: serviceUrl + method,
+                data: JSON.stringify({ reportId: reportId }),
+                contentType: 'application/json',
+                beforeSend: sf.setModuleHeaders
+            }).done(function(data) {
+                if (data.Success) {
+                    window.location.reload();
+                } else {
+                    console.error('Error toggling favorite:', data.Error);
+                    alert('Error updating favorite. Please try again.');
+                }
+            }).fail(function(xhr, status, error) {
+                console.error('Error toggling favorite:', error);
+                alert('Error updating favorite. Please try again.');
+            });
+        }
+</script>
