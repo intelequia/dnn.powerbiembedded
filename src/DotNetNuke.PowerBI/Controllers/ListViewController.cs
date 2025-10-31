@@ -57,6 +57,7 @@ namespace DotNetNuke.PowerBI.Controllers
                     // Get user's favorite reports and populate FavoriteReports
                     var favoriteReportsRepository = FavoriteReportsRepository.Instance;
                     var favorites = favoriteReportsRepository.GetFavoriteReports(ModuleContext.PortalSettings.UserId, ModuleContext.PortalId);
+                    model.FavoriteReports.Clear();
                     if (favorites != null && favorites.Any())
                     {
                         // Find the actual Report objects for the favorites

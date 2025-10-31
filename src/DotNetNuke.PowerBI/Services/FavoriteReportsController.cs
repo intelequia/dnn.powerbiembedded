@@ -11,7 +11,7 @@ using System.Web.Http;
 
 namespace DotNetNuke.PowerBI.Services
 {
-    [SupportedModules("DotNetNuke.PowerBI.ContentView")]
+    [SupportedModules("DotNetNuke.PowerBI.ListView")]
     [DnnModuleAuthorize(AccessLevel = SecurityAccessLevel.View)]
     public class FavoriteReportsController : DnnApiController
     {

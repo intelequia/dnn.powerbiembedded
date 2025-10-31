@@ -311,6 +311,7 @@
     <Content Include="Providers\DataProviders\SqlDataProvider\01.00.21.SqlDataProvider" />
     <Content Include="package.json" />
     <Content Include="Providers\DataProviders\SqlDataProvider\01.02.00.SqlDataProvider" />
+    <Content Include="Providers\DataProviders\SqlDataProvider\01.03.02.SqlDataProvider" />
     <None Include="web.Debug.config">
       <DependentUpon>web.config</DependentUpon>
     </None>
