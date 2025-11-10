@@ -45,20 +45,9 @@ BEGIN
     ADD [AzureManagementCapacityName] [nvarchar](100) NULL
 END
 
-IF NOT EXISTS(SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'PBI_Settings' AND COLUMN_NAME = 'AzureManagementClientId')
+IF NOT EXISTS(SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'PBI_Settings' AND COLUMN_NAME = 'AzureManagementPollingInterval')
 BEGIN
     ALTER TABLE {databaseOwner}[{objectQualifier}PBI_Settings]
-    ADD [AzureManagementClientId] [nvarchar](100) NULL
+    ADD [AzureManagementPollingInterval] [int] NOT NULL DEFAULT 5
 END
-
-IF NOT EXISTS(SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'PBI_Settings' AND COLUMN_NAME = 'AzureManagementClientSecret')
-BEGIN
-    ALTER TABLE {databaseOwner}[{objectQualifier}PBI_Settings]
-    ADD [AzureManagementClientSecret] [nvarchar](500) NULL
-END
-
-IF NOT EXISTS(SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'PBI_Settings' AND COLUMN_NAME = 'AzureManagementTenantId')
-BEGIN
-    ALTER TABLE {databaseOwner}[{objectQualifier}PBI_Settings]
-    ADD [AzureManagementTenantId] [nvarchar](100) NULL
-END
+GO

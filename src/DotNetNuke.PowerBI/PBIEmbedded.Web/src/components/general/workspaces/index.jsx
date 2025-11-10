@@ -38,9 +38,8 @@ class Workspaces extends Component {
         if (event.target.value === "")
             return false;
         if (workspaceSettingsDetail.SettingsGroupName !== event.target.value) {
-            // The PropertyName of this row has changed. Let's see if that property has already been mapped
             if (this.props.workspaces.find(p => p.SettingsId !== workspaceSettingsDetail.SettingsId && p.SettingsGroupName === event.target.value) !== undefined) {
-                return false; // Not valid; it's already in the list
+                return false;
             }
             else {
                 return true;
@@ -172,6 +171,10 @@ class Workspaces extends Component {
                                 workspaceId={item.WorkspaceId}
                                 contentPageUrl={item.ContentPageUrl}
                                 disabledCapacityMessage={item.DisabledCapacityMessage}
+                                azureManagementSubscriptionId={item.AzureManagementSubscriptionId}
+                                azureManagementResourceGroup={item.AzureManagementResourceGroup}
+                                azureManagementCapacityName={item.AzureManagementCapacityName}
+                                azureManagementPollingInterval={item.AzureManagementPollingInterval}
                                 inheritPermissions={item.InheritPermissions}
                                 Collapse={this.collapse.bind(this)}
                                 onUpdate={this.onUpdateWorkspaceSetting.bind(this)}
@@ -201,7 +204,11 @@ class Workspaces extends Component {
             ServicePrincipalTenant: "",
             ContentPageUrl: "",
             DisabledCapacityMessage: "",
-            InheritPermissions: false
+            AzureManagementSubscriptionId: "",
+            AzureManagementResourceGroup: "",
+            AzureManagementCapacityName: "",
+            AzureManagementPollingInterval: 3,
+            InheritPermissions: false,
         };
         return (
             <div className="dnn-pbiEmbedded-workspaces">

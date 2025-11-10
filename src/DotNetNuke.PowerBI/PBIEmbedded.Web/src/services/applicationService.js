@@ -2,8 +2,14 @@ import util from "../utils";
 class ApplicationService {
     getServiceFramework(controller) {
         let sf = util.utilities.sf;
-        sf.controller = controller;
-        return sf;
+        return Object.create(sf, {
+            controller: {
+                value: controller,
+                writable: true,
+                enumerable: true,
+                configurable: true
+            }
+        });
     }
 
     getWorkspaces(callback) {
@@ -31,41 +37,73 @@ class ApplicationService {
         sf.post("SavePowerBiObjectsPermissions", payload, callback, failureCallback);
     }
 
-    // Capacity Management API methods
-    getCapacityStatus(settingsId, callback, failureCallback) {
+    getCapacityStatus(payload, callback, failureCallback) {
         const sf = this.getServiceFramework("CapacityManagement");
-        sf.get("GetCapacityStatus", { settingsId: settingsId }, callback, failureCallback);
+        const settingsId = payload.SettingsId || payload;
+        sf.get("GetCapacityStatus", { SettingsId: settingsId }, callback, failureCallback);
     }
 
-    startCapacity(settingsId, callback, failureCallback) {
+    startCapacity(payload, callback, failureCallback) {
         const sf = this.getServiceFramework("CapacityManagement");
-        sf.post("StartCapacity", { settingsId: settingsId }, callback, failureCallback);
+        const settingsId = payload.SettingsId || payload;
+        const url = `StartCapacity?settingsId=${settingsId}`;
+        
+        sf.post(url, {}, 
+            (data) => {
+                callback(data);
+            }, 
+            (error) => {
+                failureCallback(error);
+            }
+        );
     }
 
-    pauseCapacity(settingsId, callback, failureCallback) {
+    pauseCapacity(payload, callback, failureCallback) {
         const sf = this.getServiceFramework("CapacityManagement");
-        sf.post("PauseCapacity", { settingsId: settingsId }, callback, failureCallback);
+        const settingsId = payload.SettingsId || payload;
+        const url = `PauseCapacity?settingsId=${settingsId}`;
+        
+        sf.post(url, {}, 
+            (data) => {
+                callback(data);
+            }, 
+            (error) => {
+                failureCallback(error);
+            }
+        );
     }
 
-    getCapacityRules(settingsId, callback, failureCallback) {
+    getCapacityRules(payload, callback, failureCallback) {
         const sf = this.getServiceFramework("CapacityManagement");
-        sf.get("GetCapacityRules", { settingsId: settingsId }, callback, failureCallback);
+        const settingsId = payload.SettingsId || payload;
+        sf.get("GetCapacityRules", { SettingsId: settingsId }, 
+            (data) => {
+                callback(data);
+            }, 
+            (error) => {
+                failureCallback(error);
+            }
+        );
     }
 
     createCapacityRule(rule, callback, failureCallback) {
         const sf = this.getServiceFramework("CapacityManagement");
-        sf.post("CreateCapacityRule", rule, callback, failureCallback);
+        const url = `CreateCapacityRule?settingsId=${rule.settingsId}`;
+        sf.post(url, rule, callback, failureCallback);
     }
 
     updateCapacityRule(rule, callback, failureCallback) {
         const sf = this.getServiceFramework("CapacityManagement");
-        sf.put("UpdateCapacityRule", rule, callback, failureCallback);
+        const url = "UpdateCapacityRule";
+        sf.post(url, rule, callback, failureCallback);
     }
 
-    deleteCapacityRule(ruleId, callback, failureCallback) {
+    deleteCapacityRule(payload, callback, failureCallback) {
         const sf = this.getServiceFramework("CapacityManagement");
-        sf.delete("DeleteCapacityRule", { ruleId: ruleId }, callback, failureCallback);
-    }    
+        const ruleId = payload.RuleId || payload;
+        const url = `DeleteCapacityRule?ruleId=${ruleId}`;
+        sf.post(url, {}, callback, failureCallback);
+    }
 }
 const applicationService = new ApplicationService();
 export default applicationService;

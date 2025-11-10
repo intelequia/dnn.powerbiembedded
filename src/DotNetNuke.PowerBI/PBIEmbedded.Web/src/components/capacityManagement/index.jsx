@@ -1,1 +1,3 @@
-export { default } from "./capacityManagement";
+import CapacityManagement from "./capacityManagement";
+
+export default CapacityManagement;

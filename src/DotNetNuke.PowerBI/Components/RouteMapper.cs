@@ -9,6 +9,5 @@ namespace DotNetNuke.PowerBI.Components
             routeManager.MapHttpRoute("PowerBI/UI", "default", "{controller}/{action}", new[] { "DotNetNuke.PowerBI.Controllers.Api.Admin" });
             routeManager.MapHttpRoute("PowerBI/Services", "default", "{controller}/{action}", new[] { "DotNetNuke.PowerBI.Services" });
         }
-
     }
 }

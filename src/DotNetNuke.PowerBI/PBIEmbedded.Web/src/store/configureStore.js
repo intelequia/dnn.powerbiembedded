@@ -10,8 +10,7 @@ export default function configureStore(initialState) {
         initialState,
         compose(
             applyMiddleware(thunkMiddleware,
-                reduxImmutableStateInvariant()),    
-            // TODO: apply only for development          
+                reduxImmutableStateInvariant()),
             DevTools.instrument()
         )
     );

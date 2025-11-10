@@ -193,7 +193,7 @@
     <value>Reports</value>
   </data>
   <data name="lblSelectedWorkspace.Help" xml:space="preserve">
-    <value>Select a workspace to setup the permissions for the associated dashboards and reports</value>
+    <value>Select the workspace to manage capacity</value>
   </data>
   <data name="lblSelectedWorkspace.Text" xml:space="preserve">
     <value>Select a workspace</value>
@@ -335,9 +335,6 @@ To integrate a PowerBI workspace into DNN, you need to setup a set of properties
   <data name="lblDisabledCapacityMessage.Text" xml:space="preserve">
     <value>Paused Capacity Message</value>
   </data>
-  <data name="CapacityManagement.Text" xml:space="preserve">
-    <value>Capacity Management</value>
-  </data>
   <data name="lblCapacityStatus.Text" xml:space="preserve">
     <value>Capacity Status</value>
   </data>
@@ -355,15 +352,6 @@ To integrate a PowerBI workspace into DNN, you need to setup a set of properties
   </data>
   <data name="RefreshStatus.Text" xml:space="preserve">
     <value>Refresh Status</value>
-  </data>
-  <data name="CapacityRunning.Text" xml:space="preserve">
-    <value>Running</value>
-  </data>
-  <data name="CapacityPaused.Text" xml:space="preserve">
-    <value>Paused</value>
-  </data>
-  <data name="CapacityUnknown.Text" xml:space="preserve">
-    <value>Unknown</value>
   </data>
   <data name="AddRule.Text" xml:space="preserve">
     <value>Add Rule</value>
@@ -388,18 +376,6 @@ To integrate a PowerBI workspace into DNN, you need to setup a set of properties
   </data>
   <data name="RuleEnabled.Text" xml:space="preserve">
     <value>Enabled</value>
-  </data>
-  <data name="CapacityNotConfigured.Text" xml:space="preserve">
-    <value>Azure Management API credentials are not configured for this workspace</value>
-  </data>
-  <data name="CapacityStartSuccess.Text" xml:space="preserve">
-    <value>Capacity started successfully</value>
-  </data>
-  <data name="CapacityPauseSuccess.Text" xml:space="preserve">
-    <value>Capacity paused successfully</value>
-  </data>
-  <data name="CapacityActionError.Text" xml:space="preserve">
-    <value>Error performing capacity action</value>
   </data>
   <data name="lblAzureManagementCredentials.Text" xml:space="preserve">
     <value>Azure Management API Credentials</value>
@@ -439,5 +415,221 @@ To integrate a PowerBI workspace into DNN, you need to setup a set of properties
   </data>
   <data name="lblAzureManagementTenantId.Help" xml:space="preserve">
     <value>The Azure AD Tenant ID</value>
+  </data>
+  <data name="Capacity_Management_Title.Text" xml:space="preserve">
+    <value>Capacity Management</value>
+  </data>
+  <data name="Capacity_Management_Description.Text" xml:space="preserve">
+    <value>Manage your Power BI Embedded capacity resources. Start, pause, and schedule automatic capacity management rules.</value>
+  </data>
+  <data name="lblSelectedWorkspace" xml:space="preserve">
+    <value>Selected Workspace</value>
+  </data>
+  <data name="ErrorWorskpaceNotValid" xml:space="preserve">
+    <value>The selected workspace is not properly configured</value>
+  </data>
+  <data name="Workspace_Error_WorkspaceNotValid_Title.Text" xml:space="preserve">
+    <value>Workspace Not Configured</value>
+  </data>
+  <data name="Workspace_Error_WorkspaceNotValid_Message.Text" xml:space="preserve">
+    <value>The selected workspace is not properly configured. Please configure all required credentials in the workspace settings.</value>
+  </data>
+  <data name="Capacity_Status_Message_Loading.Text" xml:space="preserve">
+    <value>Loading capacity status...</value>
+  </data>
+  <data name="Capacity_Status_Error_Message.Text" xml:space="preserve">
+    <value>There was an error retrieving the capacity information. Please try again.</value>
+  </data>
+  <data name="Capacity_Status_Error_Details.Text" xml:space="preserve">
+    <value>Details</value>
+  </data>
+  <data name="Capacity_Status_Label_SKU.Text" xml:space="preserve">
+    <value>SKU</value>
+  </data>
+  <data name="Capacity_Action_Button_Refresh.Text" xml:space="preserve">
+    <value>Refresh</value>
+  </data>
+  <data name="Capacity_Action_Button_Start.Text" xml:space="preserve">
+    <value>Start</value>
+  </data>
+  <data name="Capacity_Action_Button_Pause.Text" xml:space="preserve">
+    <value>Pause</value>
+  </data>
+  <data name="Capacity_Operation_Error_Title.Text" xml:space="preserve">
+    <value>Operation Error</value>
+  </data>
+  <data name="Capacity_Operation_Error_Message.Text" xml:space="preserve">
+    <value>There was an error with the last operation. Please try again.</value>
+  </data>
+  <data name="Capacity_Operation_Error_Details.Text" xml:space="preserve">
+    <value>Details</value>
+  </data>
+  <data name="Capacity_Status_Text_Running.Text" xml:space="preserve">
+    <value>Running</value>
+  </data>
+  <data name="Capacity_Status_Text_Resuming.Text" xml:space="preserve">
+    <value>Resuming...</value>
+  </data>
+  <data name="Capacity_Status_Text_Paused.Text" xml:space="preserve">
+    <value>Paused</value>
+  </data>
+  <data name="Capacity_Status_Text_Unknown.Text" xml:space="preserve">
+    <value>Unknown</value>
+  </data>
+  <data name="Capacity_Status_Text_Pausing.Text" xml:space="preserve">
+    <value>Pausing...</value>
+  </data>
+  <data name="Capacity_Status_Label_DisplayName.Text" xml:space="preserve">
+    <value>Name</value>
+  </data>
+  <data name="Capacity_Status_Label_Region.Text" xml:space="preserve">
+    <value>Region</value>
+  </data>
+  <data name="Capacity_Status_Error_Title.Text" xml:space="preserve">
+    <value>Error Loading Capacity Status</value>
+  </data>
+  <data name="Capacity_Rules_Title.Text" xml:space="preserve">
+    <value>Rules</value>
+  </data>
+  <data name="Capacity_Rule_Text_At.Text" xml:space="preserve">
+    <value>at</value>
+  </data>
+  <data name="Capacity_Rule_Day_Monday.Text" xml:space="preserve">
+    <value>Monday</value>
+  </data>
+  <data name="Capacity_Rule_Day_Tuesday.Text" xml:space="preserve">
+    <value>Tuesday</value>
+  </data>
+  <data name="Capacity_Rule_Day_Wednesday.Text" xml:space="preserve">
+    <value>Wednesday</value>
+  </data>
+  <data name="Capacity_Rule_Day_Thursday.Text" xml:space="preserve">
+    <value>Thursday</value>
+  </data>
+  <data name="Capacity_Rule_Day_Friday.Text" xml:space="preserve">
+    <value>Friday</value>
+  </data>
+  <data name="Capacity_Rule_Day_Saturday.Text" xml:space="preserve">
+    <value>Saturday</value>
+  </data>
+  <data name="Capacity_Rule_Day_Sunday.Text" xml:space="preserve">
+    <value>Sunday</value>
+  </data>
+  <data name="Capacity_Rule_Button_Edit.Text" xml:space="preserve">
+    <value>Edit</value>
+  </data>
+  <data name="Capacity_Rule_Button_Delete" xml:space="preserve">
+    <value>Delete</value>
+  </data>
+  <data name="Capacity_Rule_Name.Text" xml:space="preserve">
+    <value>Name</value>
+  </data>
+  <data name="Capacity_Rule_Name.Help" xml:space="preserve">
+    <value>Enter a unique and descriptive name for this capacity rule.</value>
+  </data>
+  <data name="Capacity_Rule_Description.Text" xml:space="preserve">
+    <value>Description</value>
+  </data>
+  <data name="Capacity_Rule_Description.Help" xml:space="preserve">
+    <value>Enter an optional description to help identify the purpose of this rule.</value>
+  </data>
+  <data name="Capacity_Rule_ExecutionTime.Text" xml:space="preserve">
+    <value>Execution time</value>
+  </data>
+  <data name="Capacity_Rule_ExecutionTime.Help" xml:space="preserve">
+    <value>Specify the time when the rule should execute (HH:MM format, 24-hour).</value>
+  </data>
+  <data name="Capacity_Rule_TimeZone.Text" xml:space="preserve">
+    <value>Time zone</value>
+  </data>
+  <data name="Capacity_Rule_TimeZone.Help" xml:space="preserve">
+    <value>Select the time zone for the execution time. The rule will execute at the specified time in this time zone.</value>
+  </data>
+  <data name="Capacity_Rule_DaysOfWeek.Text" xml:space="preserve">
+    <value>Days of week</value>
+  </data>
+  <data name="Capacity_Rule_DaysOfWeek.Help" xml:space="preserve">
+    <value>Select the days of the week when this rule should be executed.</value>
+  </data>
+  <data name="Capacity_Rule_Enabled.Text" xml:space="preserve">
+    <value>Enabled</value>
+  </data>
+  <data name="Capacity_Rule_Enabled.Help" xml:space="preserve">
+    <value>Enable or disable this rule. Disabled rules will not be executed.</value>
+  </data>
+  <data name="Capacity_Rule_Form_Button_Cancel.Text" xml:space="preserve">
+    <value>Cancel</value>
+  </data>
+  <data name="Capacity_Rule_Form_Button_Update.Text" xml:space="preserve">
+    <value>Update</value>
+  </data>
+  <data name="Capacity_Rules_Button_Add.Text" xml:space="preserve">
+    <value>Add new</value>
+  </data>
+  <data name="Capacity_Rule_Action.Text" xml:space="preserve">
+    <value>Action type</value>
+  </data>
+  <data name="Capacity_Rule_Action.Help" xml:space="preserve">
+    <value>Select the action type this rule will execute.</value>
+  </data>
+  <data name="Capacity_Rule_Action_Start.Text" xml:space="preserve">
+    <value>Start</value>
+  </data>
+  <data name="Capacity_Rule_Action_Pause" xml:space="preserve">
+    <value>Pause</value>
+  </data>
+  <data name="Capacity_Rule_Text_Disabled.Text" xml:space="preserve">
+    <value>Disabled</value>
+  </data>
+  <data name="Capacity_Rule_Error_Name" xml:space="preserve">
+    <value>Rule name is required</value>
+  </data>
+  <data name="Capacity_Rule_Error_DaysOfWeek" xml:space="preserve">
+    <value>At least one day must be selected</value>
+  </data>
+  <data name="Capacity_Rule_Button_Cancel" xml:space="preserve">
+    <value>Cancel</value>
+  </data>
+  <data name="Capacity_Rule_Button_Update" xml:space="preserve">
+    <value>Update</value>
+  </data>
+  <data name="Capacity_Status_Text_Suspended.Text" xml:space="preserve">
+    <value>Suspended</value>
+  </data>
+  <data name="Capacity_Status_Text_Invalid.Text" xml:space="preserve">
+    <value>Invalid</value>
+  </data>
+  <data name="Capacity_Status_Text_PreSuspended" xml:space="preserve">
+    <value>Pre Suspended</value>
+  </data>
+  <data name="Capacity_Status_Text_Deleting.Text" xml:space="preserve">
+    <value>Deleting</value>
+  </data>
+  <data name="Capacity_Status_Text_Deleted.Text" xml:space="preserve">
+    <value>Deleted</value>
+  </data>
+  <data name="Capacity_Status_Text_Provisioning.Text" xml:space="preserve">
+    <value>Provisioning</value>
+  </data>
+  <data name="Capacity_Status_Text_Updating.Text" xml:space="preserve">
+    <value>Updating</value>
+  </data>
+  <data name="Capacity_Status_Text_NotActivated.Text" xml:space="preserve">
+    <value>Not Activated</value>
+  </data>
+  <data name="Capacity_Status_Text_ProvisionFailed.Text" xml:space="preserve">
+    <value>Provision Failed</value>
+  </data>
+  <data name="Capacity_Rule_Error_ExecutionTime.Text" xml:space="preserve">
+    <value>Please enter a valid time in HH:MM format (00:00 - 23:59)</value>
+  </data>
+  <data name="lblAzureManagementPollingInterval.Help" xml:space="preserve">
+    <value>Time interval in seconds to refresh capacity status when starting or pausing. Default is 5 seconds.</value>
+  </data>
+  <data name="lblAzureManagementPollingInterval.Text" xml:space="preserve">
+    <value>Polling Interval (seconds)</value>
+  </data>
+  <data name="lblAzureManagementPollingInterval_Error.Text" xml:space="preserve">
+    <value>The polling interval must be a positive number greater than 5.</value>
   </data>
 </root>

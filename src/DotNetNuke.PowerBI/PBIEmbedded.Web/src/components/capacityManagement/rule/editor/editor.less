@@ -1,0 +1,187 @@
+.capacity-rule-editor {
+    display: flex;
+    flex-direction: column;
+    padding: 24px;
+    width: -webkit-fill-available;
+    background: #ffffff;
+    border: 1px solid #d0d5dd;
+    border-radius: 8px;
+    margin: 20px 0;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+
+    .dnn-single-line-input-with-error, .dnn-dropdown-with-error, .dnn-single-line-input-with-error {
+        margin: 0 2px;
+        padding: 0 2px;
+        width: 100%;
+    }
+
+    .dnn-ui-common-input-group input {
+        font-size: 13px;
+    }
+
+    .error-message {
+        display: block;
+        color: #dc2626;
+        font-size: 12px;
+        margin-top: 6px;
+        padding-left: 2px;
+    }
+
+    .days-of-week-section {
+        display: flex;
+        flex-direction: column;
+        margin-bottom: 20px;
+
+        .dnn-label {
+            margin-bottom: 12px;
+            color: #374151;
+            
+            .tooltip-icon {
+                margin-left: 6px;
+                cursor: help;
+                color: #6b7280;
+                font-size: 14px;
+                font-weight: normal;
+                display: inline-block;
+                vertical-align: middle;
+                
+                &:hover {
+                    color: #007acc;
+                }
+            }
+        }
+
+        .days-selector {
+            display: flex;
+            position: relative;
+            flex-wrap: wrap;
+
+            .day-checkbox {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                cursor: pointer;
+                padding: 10px 12px;
+                background: #f9fafb;
+                border-radius: 6px;
+                border: 1px solid #e5e7eb;
+                transition: all 0.2s ease;
+                
+                &:hover {
+                    background: #f3f4f6;
+                    border-color: #d1d5db;
+                }
+                
+                input[type='checkbox'] {
+                    cursor: pointer;
+                    width: 18px;
+                    height: 18px;
+                    accent-color: #007acc;
+                    flex-shrink: 0;
+                    
+                    &:checked + span {
+                        font-weight: 600;
+                        color: #007acc;
+                    }
+                }
+                
+                span {
+                    user-select: none;
+                    font-size: 13px;
+                    color: #4b5563;
+                }
+            }
+        }
+    }
+
+    .switch-button .on-off-text {
+        display: none;
+    }
+
+    .dnn-ui-common-single-line-input {
+        padding-right: 6px;
+    }
+
+    .timezone-select-wrapper {
+        margin: 0 2px;
+        padding: 0 2px;
+        width: 100%;
+
+        .dnn-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            font-size: 13px;
+            color: #374151;
+            
+            .tooltip-icon {
+                margin-left: 6px;
+                cursor: help;
+                color: #6b7280;
+                font-size: 14px;
+                font-weight: normal;
+                display: inline-block;
+                vertical-align: middle;
+                
+                &:hover {
+                    color: #007acc;
+                }
+            }
+        }
+    }
+
+    .editor-buttons-box {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+        margin: 24px -24px -24px -24px;
+        padding: 16px 24px;
+        background: #f9fafb;
+        border-top: 1px solid #e5e7eb;
+        border-bottom-left-radius: 8px;
+        border-bottom-right-radius: 8px;
+        
+        .enabled-checkbox-inline {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            user-select: none;
+            
+            input[type='checkbox'] {
+                cursor: pointer;
+                width: 20px;
+                height: 20px;
+                accent-color: #007acc;
+            }
+            
+            span {
+                font-weight: 500;
+                font-size: 14px;
+                color: #374151;
+            }
+        }
+        
+        .buttons-group {
+            display: flex;
+            gap: 12px;
+        }
+        
+        button {
+            min-width: 100px;
+            font-weight: 500;
+        }
+    }
+
+    .css-13cymwt-control {
+        background-color: #FFFFFF;
+        border: 1px solid #959695;
+        border-radius: 0;
+        margin-bottom: 32px;
+    }
+
+    .css-t3ipsp-control:hover {
+
+    }
+}

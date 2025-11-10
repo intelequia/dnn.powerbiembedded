@@ -30,9 +30,7 @@ class WorkspaceEditor extends Component {
                 AzureManagementSubscriptionId: "",
                 AzureManagementResourceGroup: "",
                 AzureManagementCapacityName: "",
-                AzureManagementClientId: "",
-                AzureManagementClientSecret: "",
-                AzureManagementTenantId: ""
+                AzureManagementPollingInterval: 3,
             },
             error: {
                 SettingsGroupName: false,
@@ -49,12 +47,15 @@ class WorkspaceEditor extends Component {
                 AzureManagementSubscriptionId: false,
                 AzureManagementResourceGroup: false,
                 AzureManagementCapacityName: false,
-                AzureManagementClientId: false,
-                AzureManagementClientSecret: false,
-                AzureManagementTenantId: false
+                AzureManagementPollingInterval: false,
             },
             triedToSubmit: false
         };
+    }
+    
+    isValidPollingInterval(value) {
+        const numValue = parseInt(value, 10);
+        return !isNaN(numValue) && numValue >= 3 && Number.isInteger(parseFloat(value));
     }
     
     componentWillMount() {
@@ -77,9 +78,7 @@ class WorkspaceEditor extends Component {
         state.workspaceDetail["AzureManagementSubscriptionId"] = props.azureManagementSubscriptionId || "";
         state.workspaceDetail["AzureManagementResourceGroup"] = props.azureManagementResourceGroup || "";
         state.workspaceDetail["AzureManagementCapacityName"] = props.azureManagementCapacityName || "";
-        state.workspaceDetail["AzureManagementClientId"] = props.azureManagementClientId || "";
-        state.workspaceDetail["AzureManagementClientSecret"] = props.azureManagementClientSecret || "";
-        state.workspaceDetail["AzureManagementTenantId"] = props.azureManagementTenantId || "";
+        state.workspaceDetail["AzureManagementPollingInterval"] = props.azureManagementPollingInterval || 3;
 
         state.error["SettingsGroupName"] = (props.settingsGroupName === null);
         state.error["AuthenticationType"] = (props.authenticationType === null);
@@ -95,9 +94,7 @@ class WorkspaceEditor extends Component {
         state.error["AzureManagementSubscriptionId"] = false; // Optional fields
         state.error["AzureManagementResourceGroup"] = false;
         state.error["AzureManagementCapacityName"] = false;
-        state.error["AzureManagementClientId"] = false;
-        state.error["AzureManagementClientSecret"] = false;
-        state.error["AzureManagementTenantId"] = false;
+        state.error["AzureManagementPollingInterval"] = false;
 
     }
 
@@ -116,6 +113,9 @@ class WorkspaceEditor extends Component {
             state.error["ServicePrincipalTenant"] = props.workspaceDetail["AuthenticationType"] === "ServicePrincipal" && (!props.workspaceDetail["ServicePrincipalTenant"] || props.workspaceDetail["ServicePrincipalTenant"] === "");
             state.error["ContentPageUrl"] = !props.workspaceDetail["ContentPageUrl"] || props.workspaceDetail["ContentPageUrl"] === "";
             state.error["DisabledCapacityMessage"] = false; //!props.workspaceDetail["DisabledCapacityMessage"] || props.workspaceDetail["DisabledCapacityMessage"] === "";
+            state.error["AzureManagementSubscriptionId"] = !props.workspaceDetail["AzureManagementSubscriptionId"] || props.workspaceDetail["AzureManagementSubscriptionId"] === "";
+            state.error["AzureManagementResourceGroup"] = !props.workspaceDetail["AzureManagementResourceGroup"] || props.workspaceDetail["AzureManagementResourceGroup"] === "";
+            state.error["AzureManagementCapacityName"] = !props.workspaceDetail["AzureManagementCapacityName"] || props.workspaceDetail["AzureManagementCapacityName"] === "";
             this.setState({
                 workspaceDetail: Object.assign({}, props.workspaceDetail),
                 triedToSubmit: false,
@@ -144,9 +144,15 @@ class WorkspaceEditor extends Component {
             case "DisabledCapacityMessage":
             case "AuthenticationType":
                 break;
+            case "AzureManagementPollingInterval":
+                state.error[key] = event.target.value === "" || !this.isValidPollingInterval(event.target.value);
+                break;
             case "AppicationId":
             case "WorkspaceId":
-            case "ContentPageUrl":                        
+            case "ContentPageUrl":
+            case "AzureManagementSubscriptionId":
+            case "AzureManagementResourceGroup":
+            case "AzureManagementCapacityName":
             default: 
                 state.error[key] = event.target.value === "";
                 break;        
@@ -163,7 +169,11 @@ class WorkspaceEditor extends Component {
             case "ServicePrincipalApplicationSecret":
             case "ServicePrincipalTenant":
             case "ContentPageUrl":      
-            case "DisabledCapacityMessage":          
+            case "DisabledCapacityMessage":   
+            case "AzureManagementSubscriptionId":
+            case "AzureManagementResourceGroup":
+            case "AzureManagementCapacityName":
+            case "AzureManagementPollingInterval":       
                 workspaceDetail[key] = event.target.value;
                 break;
             case "AuthenticationType":
@@ -213,7 +223,11 @@ class WorkspaceEditor extends Component {
                     || state.error.ServicePrincipalApplicationSecret
                     || state.error.ServicePrincipalTenant))
             || state.error.ContentPageUrl
-            || state.error.DisabledCapacityMessage) {
+            || state.error.DisabledCapacityMessage
+            || state.error.AzureManagementSubscriptionId
+            || state.error.AzureManagementResourceGroup
+            || state.error.AzureManagementCapacityName
+            || state.error.AzureManagementPollingInterval) {
             return;
         }
 
@@ -416,38 +430,17 @@ class WorkspaceEditor extends Component {
                     
                     <SingleLineInputWithError
                         withLabel={true}
-                        label={resx.get("lblAzureManagementClientId")}
-                        tooltipMessage={resx.get("lblAzureManagementClientId.Help")}
+                        label={resx.get("lblAzureManagementPollingInterval")}
+                        tooltipMessage={resx.get("lblAzureManagementPollingInterval.Help")}
+                        type="number"
                         inputStyle={{ margin: "0" }}
-                        error={this.state.error.AzureManagementClientId}
-                        errorMessage={resx.get("lblAzureManagementClientId.Error")}
-                        value={this.state.workspaceDetail.AzureManagementClientId}
-                        onChange={this.onSettingChange.bind(this, "AzureManagementClientId")}
+                        error={this.state.error.AzureManagementPollingInterval && this.state.triedToSubmit}
+                        errorMessage={resx.get("lblAzureManagementPollingInterval_Error")}
+                        value={this.state.workspaceDetail.AzureManagementPollingInterval}
+                        onChange={this.onSettingChange.bind(this, "AzureManagementPollingInterval")}
+                        min={3}
+                        step={1}
                     />
-                    
-                    <SingleLineInputWithError
-                        withLabel={true}
-                        label={resx.get("lblAzureManagementClientSecret")}
-                        tooltipMessage={resx.get("lblAzureManagementClientSecret.Help")}
-                        inputStyle={{ margin: "0" }}
-                        error={this.state.error.AzureManagementClientSecret}
-                        errorMessage={resx.get("lblAzureManagementClientSecret.Error")}
-                        value={this.state.workspaceDetail.AzureManagementClientSecret}
-                        onChange={this.onSettingChange.bind(this, "AzureManagementClientSecret")}
-                        type="password"
-                    />
-                    
-                    <SingleLineInputWithError
-                        withLabel={true}
-                        label={resx.get("lblAzureManagementTenantId")}
-                        tooltipMessage={resx.get("lblAzureManagementTenantId.Help")}
-                        inputStyle={{ margin: "0" }}
-                        error={this.state.error.AzureManagementTenantId}
-                        errorMessage={resx.get("lblAzureManagementTenantId.Error")}
-                        value={this.state.workspaceDetail.AzureManagementTenantId}
-                        onChange={this.onSettingChange.bind(this, "AzureManagementTenantId")}
-                    />                                    
-
                 </InputGroup>
             </div>;
 
@@ -487,6 +480,10 @@ WorkspaceEditor.propTypes = {
     servicePrincipalTenant: PropTypes.string,
     contentPageUrl: PropTypes.string,
     disabledCapacityMessage: PropTypes.string,
+    azureManagementSubscriptionId: PropTypes.string,
+    azureManagementResourceGroup: PropTypes.string,
+    azureManagementCapacityName: PropTypes.string,
+    azureManagementPollingInterval: PropTypes.number,
     inheritPermissions: PropTypes.bool,
     Collapse: PropTypes.func,
     onUpdate: PropTypes.func,

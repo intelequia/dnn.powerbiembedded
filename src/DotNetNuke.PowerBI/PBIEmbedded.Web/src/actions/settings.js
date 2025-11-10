@@ -1,4 +1,4 @@
-import { settings as ActionTypes } from "../constants/actionTypes";
+import { settings as ActionTypes, capacityManagement as CapacityActionTypes } from "../constants/actionTypes";
 import ApplicationService from "../services/applicationService";
 
 const settingsActions = {
@@ -150,7 +150,218 @@ const settingsActions = {
                 }
             });
         };
-    },    
+    },
+    clearCapacityData() {
+        return (dispatch) => {
+            dispatch({
+                type: CapacityActionTypes.CLEAR_CAPACITY_DATA
+            });
+        };
+    },
+    clearOperationError() {
+        return (dispatch) => {
+            dispatch({
+                type: CapacityActionTypes.CLEAR_OPERATION_ERROR
+            });
+        };
+    },
+    getCapacityStatus(payload, callback, failureCallback) {
+        return (dispatch) => {
+            dispatch({
+                type: CapacityActionTypes.GET_CAPACITY_STATUS_STARTED
+            });
+            
+            ApplicationService.getCapacityStatus(payload, data => {
+                dispatch({
+                    type: CapacityActionTypes.GET_CAPACITY_STATUS_SUCCESS,
+                    data: data
+                });
+                if (callback) {
+                    callback(data);
+                }
+            }, data => {
+                dispatch({
+                    type: CapacityActionTypes.GET_CAPACITY_STATUS_FAILED,
+                    data: data
+                });
+                if (failureCallback) {
+                    failureCallback(data);
+                }
+            });
+        };
+    },
+    pollCapacityStatus(payload, callback) {
+        return (dispatch) => {
+            ApplicationService.getCapacityStatus(payload, data => {
+                dispatch({
+                    type: CapacityActionTypes.POLL_CAPACITY_STATUS_SUCCESS,
+                    data: data
+                });
+                if (callback) {
+                    callback(data);
+                }
+            }, () => {
+                // Silently fail during polling
+            });
+        };
+    },
+    startCapacity(payload, callback, failureCallback) {
+        return (dispatch) => {
+            dispatch({
+                type: CapacityActionTypes.START_CAPACITY_STARTED
+            });
+            
+            ApplicationService.startCapacity(payload, data => {
+                dispatch({
+                    type: CapacityActionTypes.START_CAPACITY_SUCCESS,
+                    data: data
+                });
+                if (callback) {
+                    callback(data);
+                }
+            }, data => {
+                dispatch({
+                    type: CapacityActionTypes.START_CAPACITY_FAILED,
+                    data: data
+                });
+                if (failureCallback) {
+                    failureCallback(data);
+                }
+            });
+        };
+    },
+    pauseCapacity(payload, callback, failureCallback) {
+        return (dispatch) => {
+            dispatch({
+                type: CapacityActionTypes.PAUSE_CAPACITY_STARTED
+            });
+            
+            ApplicationService.pauseCapacity(payload, data => {
+                dispatch({
+                    type: CapacityActionTypes.PAUSE_CAPACITY_SUCCESS,
+                    data: data
+                });
+                if (callback) {
+                    callback(data);
+                }
+            }, data => {
+                dispatch({
+                    type: CapacityActionTypes.PAUSE_CAPACITY_FAILED,
+                    data: data
+                });
+                if (failureCallback) {
+                    failureCallback(data);
+                }
+            });
+        };
+    },
+    getCapacityRules(payload, callback, failureCallback) {
+        return (dispatch) => {
+            dispatch({
+                type: CapacityActionTypes.GET_CAPACITY_RULES_STARTED
+            });
+            
+            ApplicationService.getCapacityRules(payload, data => {
+                dispatch({
+                    type: CapacityActionTypes.GET_CAPACITY_RULES_SUCCESS,
+                    data: data
+                });
+                if (callback) {
+                    callback(data);
+                }
+            }, data => {
+                dispatch({
+                    type: CapacityActionTypes.GET_CAPACITY_RULES_FAILED,
+                    data: data
+                });
+                if (failureCallback) {
+                    failureCallback(data);
+                }
+            });
+        };
+    },
+    createCapacityRule(rule, callback, failureCallback) {
+        return (dispatch) => {
+            dispatch({
+                type: CapacityActionTypes.CREATE_CAPACITY_RULE_STARTED
+            });
+            
+            const ruleCopy = { ...rule };
+            
+            ApplicationService.createCapacityRule(ruleCopy, data => {
+                dispatch({
+                    type: CapacityActionTypes.CREATE_CAPACITY_RULE_SUCCESS,
+                    data: data
+                });
+                if (callback) {
+                    callback(data);
+                }
+            }, data => {
+                dispatch({
+                    type: CapacityActionTypes.CREATE_CAPACITY_RULE_FAILED,
+                    data: data
+                });
+                if (failureCallback) {
+                    failureCallback(data);
+                }
+            });
+        };
+    },
+    updateCapacityRule(rule, callback, failureCallback) {
+        return (dispatch) => {
+            dispatch({
+                type: CapacityActionTypes.UPDATE_CAPACITY_RULE_STARTED
+            });
+            
+            const ruleCopy = { ...rule };
+            
+            ApplicationService.updateCapacityRule(ruleCopy, data => {
+                dispatch({
+                    type: CapacityActionTypes.UPDATE_CAPACITY_RULE_SUCCESS,
+                    data: data
+                });
+                if (callback) {
+                    callback(data);
+                }
+            }, data => {
+                dispatch({
+                    type: CapacityActionTypes.UPDATE_CAPACITY_RULE_FAILED,
+                    data: data
+                });
+                if (failureCallback) {
+                    failureCallback(data);
+                }
+            });
+        };
+    },
+    deleteCapacityRule(payload, callback, failureCallback) {
+        return (dispatch) => {
+            dispatch({
+                type: CapacityActionTypes.DELETE_CAPACITY_RULE_STARTED
+            });
+            
+            const payloadCopy = { ...payload };
+            
+            ApplicationService.deleteCapacityRule(payloadCopy, data => {
+                const successData = { ruleId: payloadCopy.RuleId, ...data };
+                dispatch({
+                    type: CapacityActionTypes.DELETE_CAPACITY_RULE_SUCCESS,
+                    data: successData
+                });
+                if (callback) {
+                    callback(data);
+                }
+            }, data => {
+                dispatch({
+                    type: CapacityActionTypes.DELETE_CAPACITY_RULE_FAILED,
+                    data: data
+                });
+                if (failureCallback) {
+                    failureCallback(data);
+                }
+            });
+        };
+    }
 };
 
 export default settingsActions;

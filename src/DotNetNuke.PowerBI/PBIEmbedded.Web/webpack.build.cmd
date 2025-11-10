@@ -1,2 +1,2 @@
 cls
-set NODE_OPTIONS=--openssl-legacy-provider&&SET NODE_ENV=production&& webpack --mode=production
+set NODE_OPTIONS=--openssl-legacy-provider&&SET NODE_ENV=production&& webpack --mode=production && xcopy "C:\Dev\dnn.powerbiembedded\src\DotNetNuke.PowerBI\admin\personaBar\scripts\bundles" "C:\Websites\portalbidemo.dnndev.me\DesktopModules\Admin\Dnn.PersonaBar\Modules\Dnn.PowerBI\scripts\bundles" /E /I /Y && pause

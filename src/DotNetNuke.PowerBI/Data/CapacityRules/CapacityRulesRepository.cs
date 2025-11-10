@@ -1,7 +1,9 @@
 using DotNetNuke.Data;
 using DotNetNuke.Framework;
 using DotNetNuke.PowerBI.Data.CapacityRules.Models;
+using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
 
 namespace DotNetNuke.PowerBI.Data.CapacityRules
@@ -10,9 +12,10 @@ namespace DotNetNuke.PowerBI.Data.CapacityRules
     {
         public IEnumerable<CapacityRule> GetRulesByPortalId(int portalId)
         {
-            using (var context = DataContext.Instance())
+            using (IDataContext context = DataContext.Instance())
             {
                 return context.ExecuteQuery<CapacityRule>(
+                    CommandType.Text,
                     "SELECT * FROM {databaseOwner}[{objectQualifier}PBI_CapacityRules] WHERE PortalId = @0 AND IsDeleted = 0",
                     portalId).ToList();
             }
@@ -20,9 +23,10 @@ namespace DotNetNuke.PowerBI.Data.CapacityRules
 
         public IEnumerable<CapacityRule> GetRulesBySettingsId(int settingsId, int portalId)
         {
-            using (var context = DataContext.Instance())
+            using (IDataContext context = DataContext.Instance())
             {
                 return context.ExecuteQuery<CapacityRule>(
+                    CommandType.Text,
                     "SELECT * FROM {databaseOwner}[{objectQualifier}PBI_CapacityRules] WHERE SettingsId = @0 AND PortalId = @1 AND IsDeleted = 0",
                     settingsId, portalId).ToList();
             }
@@ -30,9 +34,10 @@ namespace DotNetNuke.PowerBI.Data.CapacityRules
 
         public IEnumerable<CapacityRule> GetActiveRules(int portalId)
         {
-            using (var context = DataContext.Instance())
+            using (IDataContext context = DataContext.Instance())
             {
                 return context.ExecuteQuery<CapacityRule>(
+                    CommandType.Text,
                     "SELECT * FROM {databaseOwner}[{objectQualifier}PBI_CapacityRules] WHERE PortalId = @0 AND IsEnabled = 1 AND IsDeleted = 0",
                     portalId).ToList();
             }
@@ -40,9 +45,10 @@ namespace DotNetNuke.PowerBI.Data.CapacityRules
 
         public CapacityRule GetRuleById(int ruleId, int portalId)
         {
-            using (var context = DataContext.Instance())
+            using (IDataContext context = DataContext.Instance())
             {
                 return context.ExecuteQuery<CapacityRule>(
+                    CommandType.Text,
                     "SELECT * FROM {databaseOwner}[{objectQualifier}PBI_CapacityRules] WHERE RuleId = @0 AND PortalId = @1 AND IsDeleted = 0",
                     ruleId, portalId).FirstOrDefault();
             }
@@ -50,25 +56,83 @@ namespace DotNetNuke.PowerBI.Data.CapacityRules
 
         public void AddRule(CapacityRule rule)
         {
-            using (var context = DataContext.Instance())
+            using (IDataContext context = DataContext.Instance())
             {
-                context.Insert(rule);
+                string sql = @"INSERT INTO {databaseOwner}[{objectQualifier}PBI_CapacityRules] 
+                           (PortalId, SettingsId, RuleName, RuleDescription, IsEnabled, RuleType, 
+                            ScheduleExpression, ExecutionTime, DaysOfWeek, Action, TimeZoneId, 
+                            CreatedOn, CreatedBy, ModifiedOn, ModifiedBy, IsDeleted)
+                           VALUES (@0, @1, @2, @3, @4, @5, @6, @7, @8, @9, @10, @11, @12, @13, @14, @15)";
+
+                context.Execute(
+                    CommandType.Text,
+                    sql,
+                    rule.PortalId,
+                    rule.SettingsId,
+                    rule.RuleName,
+                    rule.RuleDescription,
+                    rule.IsEnabled,
+                    rule.RuleType,
+                    rule.ScheduleExpression,
+                    rule.ExecutionTime,
+                    rule.DaysOfWeek,
+                    rule.Action,
+                    rule.TimeZoneId,
+                    DateTime.UtcNow,
+                    rule.CreatedBy,
+                    DateTime.UtcNow,
+                    rule.ModifiedBy,
+                    false);
             }
         }
 
         public void UpdateRule(CapacityRule rule)
         {
-            using (var context = DataContext.Instance())
+            using (IDataContext context = DataContext.Instance())
             {
-                context.Update(rule);
+                string sql = @"UPDATE {databaseOwner}[{objectQualifier}PBI_CapacityRules] 
+                           SET SettingsId = @0, 
+                               RuleName = @1, 
+                               RuleDescription = @2, 
+                               IsEnabled = @3, 
+                               RuleType = @4, 
+                               ScheduleExpression = @5, 
+                               ExecutionTime = @6, 
+                               DaysOfWeek = @7, 
+                               Action = @8, 
+                               TimeZoneId = @9, 
+                               LastExecutedOn = @10,
+                               ModifiedOn = @11, 
+                               ModifiedBy = @12
+                           WHERE RuleId = @13 AND PortalId = @14";
+
+                context.Execute(
+                    CommandType.Text,
+                    sql,
+                    rule.SettingsId,
+                    rule.RuleName,
+                    rule.RuleDescription,
+                    rule.IsEnabled,
+                    rule.RuleType,
+                    rule.ScheduleExpression,
+                    rule.ExecutionTime,
+                    rule.DaysOfWeek,
+                    rule.Action,
+                    rule.TimeZoneId,
+                    rule.LastExecutedOn,
+                    DateTime.UtcNow,
+                    rule.ModifiedBy,
+                    rule.RuleId,
+                    rule.PortalId);
             }
         }
 
         public void DeleteRule(int ruleId, int portalId)
         {
-            using (var context = DataContext.Instance())
+            using (IDataContext context = DataContext.Instance())
             {
                 context.Execute(
+                    CommandType.Text,
                     "UPDATE {databaseOwner}[{objectQualifier}PBI_CapacityRules] SET IsDeleted = 1 WHERE RuleId = @0 AND PortalId = @1",
                     ruleId, portalId);
             }
@@ -76,9 +140,10 @@ namespace DotNetNuke.PowerBI.Data.CapacityRules
 
         public void DeleteRulesBySettingsId(int settingsId, int portalId)
         {
-            using (var context = DataContext.Instance())
+            using (IDataContext context = DataContext.Instance())
             {
                 context.Execute(
+                    CommandType.Text,
                     "UPDATE {databaseOwner}[{objectQualifier}PBI_CapacityRules] SET IsDeleted = 1 WHERE SettingsId = @0 AND PortalId = @1",
                     settingsId, portalId);
             }

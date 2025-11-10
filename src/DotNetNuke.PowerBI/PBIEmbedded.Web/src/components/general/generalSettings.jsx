@@ -54,10 +54,10 @@ GeneralSettings.propTypes = {
 
 
 function mapStateToProps(
-    
+
 ) {
     return {
-      
+
     };
 }
 

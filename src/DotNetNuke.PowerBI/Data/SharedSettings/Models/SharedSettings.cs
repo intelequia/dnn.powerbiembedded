@@ -19,6 +19,7 @@ namespace DotNetNuke.PowerBI.Data.Models
         public const string DefaultApiUrl = "https://api.powerbi.com";
         public const string DefaultEmbedUrl = "https://app.powerbi.com";
         public const string DefaultAuthenticationType = "MasterUser";
+        public const int DefaultAzureManagementPollingInterval = 5;
 
         public int SettingsId { get; set; }
         public string SettingsGroupId { get; set; } //WorkspaceId 
@@ -49,9 +50,7 @@ namespace DotNetNuke.PowerBI.Data.Models
         public string AzureManagementSubscriptionId { get; set; }
         public string AzureManagementResourceGroup { get; set; }
         public string AzureManagementCapacityName { get; set; }
-        public string AzureManagementClientId { get; set; }
-        public string AzureManagementClientSecret { get; set; }
-        public string AzureManagementTenantId { get; set; }
+        public int AzureManagementPollingInterval { get; set; }
 
         public PowerBISettings()
         {
@@ -61,6 +60,7 @@ namespace DotNetNuke.PowerBI.Data.Models
             ResourceUrl = DefaultResourceUrl;
             EmbedUrl = DefaultEmbedUrl;
             AuthenticationType = DefaultAuthenticationType;
+            AzureManagementPollingInterval = DefaultAzureManagementPollingInterval;
         }
 
         private PowerBISettings(int portalId)
@@ -71,6 +71,7 @@ namespace DotNetNuke.PowerBI.Data.Models
             ResourceUrl = DefaultResourceUrl;
             EmbedUrl = DefaultEmbedUrl;
             AuthenticationType = DefaultAuthenticationType;
+            AzureManagementPollingInterval = DefaultAzureManagementPollingInterval;
         }
 
         public static PowerBISettings GetPortalPowerBISettings(int portalId, int tabModuleId)
@@ -97,9 +98,7 @@ namespace DotNetNuke.PowerBI.Data.Models
                 settings.AzureManagementSubscriptionId = sharedSettings.AzureManagementSubscriptionId;
                 settings.AzureManagementResourceGroup = sharedSettings.AzureManagementResourceGroup;
                 settings.AzureManagementCapacityName = sharedSettings.AzureManagementCapacityName;
-                settings.AzureManagementClientId = sharedSettings.AzureManagementClientId;
-                settings.AzureManagementClientSecret = sharedSettings.AzureManagementClientSecret;
-                settings.AzureManagementTenantId = sharedSettings.AzureManagementTenantId;
+                settings.AzureManagementPollingInterval = sharedSettings.AzureManagementPollingInterval;
             }
             return settings;
         }

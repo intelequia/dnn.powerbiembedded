@@ -1,21 +1,21 @@
+using Dnn.PersonaBar.Library;
+using Dnn.PersonaBar.Library.Attributes;
 using DotNetNuke.PowerBI.Data.CapacityRules;
 using DotNetNuke.PowerBI.Data.CapacityRules.Models;
+using DotNetNuke.PowerBI.Data.Models;
 using DotNetNuke.PowerBI.Data.SharedSettings;
-using DotNetNuke.PowerBI.Services;
-using DotNetNuke.Security;
+using DotNetNuke.PowerBI.Services.Models;
 using DotNetNuke.Web.Api;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
 using System.Web.Http;
 
-namespace DotNetNuke.PowerBI.Controllers
+namespace DotNetNuke.PowerBI.Services
 {
-    [SupportedModules("DotNetNuke.PowerBI")]
-    [DnnModuleAuthorize(AccessLevel = SecurityAccessLevel.Edit)]
+    [MenuPermission(Scope = ServiceScope.Admin, MenuName = "Dnn.PowerBI")]
     public class CapacityManagementController : DnnApiController
     {
         private readonly ICapacityManagementService _capacityManagementService;
@@ -30,30 +30,13 @@ namespace DotNetNuke.PowerBI.Controllers
         {
             try
             {
-                var settings = SharedSettingsRepository.Instance.GetSettingsById(settingsId, PortalSettings.PortalId);
+                PowerBISettings settings = SharedSettingsRepository.Instance.GetSettingsById(settingsId, PortalSettings.PortalId);
                 if (settings == null)
                 {
                     return Request.CreateErrorResponse(HttpStatusCode.NotFound, "Settings not found");
                 }
 
-                if (string.IsNullOrEmpty(settings.AzureManagementSubscriptionId) ||
-                    string.IsNullOrEmpty(settings.AzureManagementResourceGroup) ||
-                    string.IsNullOrEmpty(settings.AzureManagementCapacityName) ||
-                    string.IsNullOrEmpty(settings.AzureManagementClientId) ||
-                    string.IsNullOrEmpty(settings.AzureManagementClientSecret) ||
-                    string.IsNullOrEmpty(settings.AzureManagementTenantId))
-                {
-                    return Request.CreateErrorResponse(HttpStatusCode.BadRequest, "Azure Management API credentials are not configured");
-                }
-
-                var capacity = await _capacityManagementService.GetCapacityStatusAsync(
-                    settings.AzureManagementSubscriptionId,
-                    settings.AzureManagementResourceGroup,
-                    settings.AzureManagementCapacityName,
-                    settings.AzureManagementClientId,
-                    settings.AzureManagementClientSecret,
-                    settings.AzureManagementTenantId);
-
+                AzureCapacity capacity = await _capacityManagementService.GetCapacityStatusAsync(settings);
                 if (capacity == null)
                 {
                     return Request.CreateErrorResponse(HttpStatusCode.NotFound, "Capacity not found or error retrieving capacity status");
@@ -61,13 +44,15 @@ namespace DotNetNuke.PowerBI.Controllers
 
                 return Request.CreateResponse(HttpStatusCode.OK, new
                 {
-                    capacity.Id,
                     capacity.DisplayName,
                     capacity.State,
                     capacity.Region,
-                    capacity.Sku,
-                    IsRunning = capacity.State == Microsoft.PowerBI.Api.Models.CapacityState.Active
+                    capacity.Sku
                 });
+            }
+            catch (ArgumentException argEx)
+            {
+                return Request.CreateErrorResponse(HttpStatusCode.BadRequest, argEx.Message);
             }
             catch (Exception ex)
             {
@@ -80,29 +65,13 @@ namespace DotNetNuke.PowerBI.Controllers
         {
             try
             {
-                var settings = SharedSettingsRepository.Instance.GetSettingsById(settingsId, PortalSettings.PortalId);
+                PowerBISettings settings = SharedSettingsRepository.Instance.GetSettingsById(settingsId, PortalSettings.PortalId);
                 if (settings == null)
                 {
                     return Request.CreateErrorResponse(HttpStatusCode.NotFound, "Settings not found");
                 }
 
-                if (string.IsNullOrEmpty(settings.AzureManagementSubscriptionId) ||
-                    string.IsNullOrEmpty(settings.AzureManagementResourceGroup) ||
-                    string.IsNullOrEmpty(settings.AzureManagementCapacityName) ||
-                    string.IsNullOrEmpty(settings.AzureManagementClientId) ||
-                    string.IsNullOrEmpty(settings.AzureManagementClientSecret) ||
-                    string.IsNullOrEmpty(settings.AzureManagementTenantId))
-                {
-                    return Request.CreateErrorResponse(HttpStatusCode.BadRequest, "Azure Management API credentials are not configured");
-                }
-
-                var success = await _capacityManagementService.StartCapacityAsync(
-                    settings.AzureManagementSubscriptionId,
-                    settings.AzureManagementResourceGroup,
-                    settings.AzureManagementCapacityName,
-                    settings.AzureManagementClientId,
-                    settings.AzureManagementClientSecret,
-                    settings.AzureManagementTenantId);
+                bool success = await _capacityManagementService.StartCapacityAsync(settings);
 
                 if (success)
                 {
@@ -112,6 +81,10 @@ namespace DotNetNuke.PowerBI.Controllers
                 {
                     return Request.CreateErrorResponse(HttpStatusCode.InternalServerError, "Failed to start capacity");
                 }
+            }
+            catch (ArgumentException argEx)
+            {
+                return Request.CreateErrorResponse(HttpStatusCode.BadRequest, argEx.Message);
             }
             catch (Exception ex)
             {
@@ -124,30 +97,13 @@ namespace DotNetNuke.PowerBI.Controllers
         {
             try
             {
-                var settings = SharedSettingsRepository.Instance.GetSettingsById(settingsId, PortalSettings.PortalId);
+                PowerBISettings settings = SharedSettingsRepository.Instance.GetSettingsById(settingsId, PortalSettings.PortalId);
                 if (settings == null)
                 {
                     return Request.CreateErrorResponse(HttpStatusCode.NotFound, "Settings not found");
                 }
 
-                if (string.IsNullOrEmpty(settings.AzureManagementSubscriptionId) ||
-                    string.IsNullOrEmpty(settings.AzureManagementResourceGroup) ||
-                    string.IsNullOrEmpty(settings.AzureManagementCapacityName) ||
-                    string.IsNullOrEmpty(settings.AzureManagementClientId) ||
-                    string.IsNullOrEmpty(settings.AzureManagementClientSecret) ||
-                    string.IsNullOrEmpty(settings.AzureManagementTenantId))
-                {
-                    return Request.CreateErrorResponse(HttpStatusCode.BadRequest, "Azure Management API credentials are not configured");
-                }
-
-                var success = await _capacityManagementService.PauseCapacityAsync(
-                    settings.AzureManagementSubscriptionId,
-                    settings.AzureManagementResourceGroup,
-                    settings.AzureManagementCapacityName,
-                    settings.AzureManagementClientId,
-                    settings.AzureManagementClientSecret,
-                    settings.AzureManagementTenantId);
-
+                bool success = await _capacityManagementService.PauseCapacityAsync(settings);
                 if (success)
                 {
                     return Request.CreateResponse(HttpStatusCode.OK, new { message = "Capacity paused successfully" });
@@ -156,6 +112,10 @@ namespace DotNetNuke.PowerBI.Controllers
                 {
                     return Request.CreateErrorResponse(HttpStatusCode.InternalServerError, "Failed to pause capacity");
                 }
+            }
+            catch (ArgumentException argEx)
+            {
+                return Request.CreateErrorResponse(HttpStatusCode.BadRequest, argEx.Message);
             }
             catch (Exception ex)
             {
@@ -168,7 +128,7 @@ namespace DotNetNuke.PowerBI.Controllers
         {
             try
             {
-                var rules = CapacityRulesRepository.Instance.GetRulesBySettingsId(settingsId, PortalSettings.PortalId);
+                IEnumerable<CapacityRule> rules = CapacityRulesRepository.Instance.GetRulesBySettingsId(settingsId, PortalSettings.PortalId);
                 return Request.CreateResponse(HttpStatusCode.OK, rules);
             }
             catch (Exception ex)
@@ -198,12 +158,12 @@ namespace DotNetNuke.PowerBI.Controllers
             }
         }
 
-        [HttpPut]
+        [HttpPost]
         public HttpResponseMessage UpdateCapacityRule(CapacityRule rule)
         {
             try
             {
-                var existingRule = CapacityRulesRepository.Instance.GetRuleById(rule.RuleId, PortalSettings.PortalId);
+                CapacityRule existingRule = CapacityRulesRepository.Instance.GetRuleById(rule.RuleId, PortalSettings.PortalId);
                 if (existingRule == null)
                 {
                     return Request.CreateErrorResponse(HttpStatusCode.NotFound, "Rule not found");
@@ -222,12 +182,12 @@ namespace DotNetNuke.PowerBI.Controllers
             }
         }
 
-        [HttpDelete]
+        [HttpPost]
         public HttpResponseMessage DeleteCapacityRule(int ruleId)
         {
             try
             {
-                var existingRule = CapacityRulesRepository.Instance.GetRuleById(ruleId, PortalSettings.PortalId);
+                CapacityRule existingRule = CapacityRulesRepository.Instance.GetRuleById(ruleId, PortalSettings.PortalId);
                 if (existingRule == null)
                 {
                     return Request.CreateErrorResponse(HttpStatusCode.NotFound, "Rule not found");

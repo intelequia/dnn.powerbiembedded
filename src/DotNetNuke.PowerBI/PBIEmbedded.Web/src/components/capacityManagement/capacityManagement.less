@@ -1,127 +1,98 @@
-.capacity-status-section {
+.dnn-pbiembedded-capacitymanagement {
+    box-sizing: border-box;
+    padding: 35px 25px;
+}
+
+.dnn-pbiembedded-capacitymanagement p {
     margin-bottom: 20px;
 }
 
-.capacity-status-info {
-    display: flex;
-    align-items: center;
-    margin-bottom: 15px;
-}
-
-.capacity-status-indicator {
-    padding: 8px 16px;
-    border-radius: 4px;
-    font-weight: bold;
-    margin-right: 20px;
-    min-width: 80px;
-    text-align: center;
-}
-
-.capacity-status-running {
-    background-color: #d4edda;
-    color: #155724;
-    border: 1px solid #c3e6cb;
-}
-
-.capacity-status-paused {
-    background-color: #fff3cd;
-    color: #856404;
-    border: 1px solid #ffeaa7;
-}
-
-.capacity-status-unknown {
-    background-color: #f8d7da;
-    color: #721c24;
-    border: 1px solid #f5c6cb;
-}
-
-.capacity-details {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-}
-
-.capacity-details div {
-    font-size: 14px;
-}
-
-.capacity-actions {
-    display: flex;
-    gap: 10px;
-}
-
-.capacity-not-configured {
-    background-color: #f8f9fa;
-    border: 1px solid #dee2e6;
-    border-radius: 4px;
-    padding: 15px;
-    color: #6c757d;
-    font-style: italic;
-}
-
-.capacity-rules-section {
-    margin-top: 20px;
-}
-
-.rules-header {
-    margin-bottom: 15px;
-}
-
-.rules-list {
+.workspace-configuration-error {
+    margin-top: 15px;
     margin-bottom: 20px;
+    
+    .error-message {
+        background-color: #f8d7da;
+        color: #721c24;
+        border: 1px solid #f5c6cb;
+        border-radius: 4px;
+        padding: 15px;
+        
+        strong {
+            font-weight: bold;
+            display: block;
+            margin-bottom: 8px;
+        }
+        
+        p {
+            margin: 8px 0;
+        }
+        
+        ul {
+            margin: 8px 0 0 20px;
+            
+            li {
+                margin: 4px 0;
+            }
+        }
+    }
 }
 
-.rule-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 15px;
-    border: 1px solid #dee2e6;
-    border-radius: 4px;
-    margin-bottom: 10px;
-    background-color: #f8f9fa;
-}
-
-.rule-info {
-    flex: 1;
-}
-
-.rule-name {
-    font-weight: bold;
-    margin-bottom: 5px;
-}
-
-.rule-details {
-    color: #6c757d;
-    font-size: 14px;
-}
-
-.rule-actions {
-    display: flex;
-    gap: 10px;
-}
-
-.rule-form {
-    background-color: #f8f9fa;
-    border: 1px solid #dee2e6;
-    border-radius: 4px;
-    padding: 20px;
+.capacity-operation-error {
     margin-top: 15px;
-}
-
-.rule-form-actions {
-    display: flex;
-    gap: 10px;
-    margin-top: 15px;
-}
-
-.days-selector {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 15px;
-    margin-top: 5px;
-}
-
-.days-selector .dnn-checkbox {
-    margin-right: 0;
+    
+    .error-message {
+        position: relative;
+        background-color: #fff3cd;
+        color: #856404;
+        border: 1px solid #ffeaa7;
+        border-radius: 4px;
+        padding: 15px 35px 15px 15px; /* Extra padding on right for close button */
+        
+        strong {
+            font-weight: bold;
+            display: block;
+            margin-bottom: 8px;
+        }
+        
+        p {
+            margin: 8px 0;
+        }
+        
+        small {
+            display: block;
+            margin-top: 8px;
+            color: #6c757d;
+            font-size: 12px;
+        }
+    }
+    
+    .error-close-btn {
+        position: absolute;
+        top: 10px;
+        right: 15px;
+        background: none;
+        border: none;
+        font-size: 20px;
+        font-weight: bold;
+        color: #856404;
+        cursor: pointer;
+        padding: 0;
+        width: 20px;
+        height: 20px;
+        line-height: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        
+        &:hover {
+            color: #533f03;
+            opacity: 0.7;
+        }
+        
+        &:focus {
+            outline: 2px solid #856404;
+            outline-offset: 2px;
+        }
+    }
 }
