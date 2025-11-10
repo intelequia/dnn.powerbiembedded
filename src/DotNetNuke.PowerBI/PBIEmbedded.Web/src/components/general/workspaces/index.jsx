@@ -207,7 +207,7 @@ class Workspaces extends Component {
             AzureManagementSubscriptionId: "",
             AzureManagementResourceGroup: "",
             AzureManagementCapacityName: "",
-            AzureManagementPollingInterval: 3,
+            AzureManagementPollingInterval: 5,
             InheritPermissions: false,
         };
         return (
