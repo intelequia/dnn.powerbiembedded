@@ -28,12 +28,12 @@ namespace DotNetNuke.PowerBI.Services.Models
         public string Id;
         public string Name;
         public ObjectType PowerBiType;
-        public Dnn.PersonaBar.Library.DTO.Permissions Permissions;
+        public Dnn.PersonaBar.Library.Dto.Permissions Permissions;
 
-        public static Dnn.PersonaBar.Library.DTO.Permissions DataToPermissions(IQueryable<Data.Models.ObjectPermission> objPermissions)
+        public static Dnn.PersonaBar.Library.Dto.Permissions DataToPermissions(IQueryable<Data.Models.ObjectPermission> objPermissions)
         {
             var result = new PBIPermissions(true);
-            var permissions = new List<Dnn.PersonaBar.Library.DTO.Permission>();
+            var permissions = new List<Dnn.PersonaBar.Library.Dto.Permission>();
 
             foreach (var permission in objPermissions)
             {
@@ -58,11 +58,11 @@ namespace DotNetNuke.PowerBI.Services.Models
                     var rolePermission = result.RolePermissions.FirstOrDefault(x => x.RoleId == permission.RoleID.Value);
                     if (rolePermission.Permissions == null)
                     {
-                        rolePermission.Permissions = new List<Dnn.PersonaBar.Library.DTO.Permission>();
+                        rolePermission.Permissions = new List<Dnn.PersonaBar.Library.Dto.Permission>();
                     }
                     if (permission.PermissionID == 1)
                     {
-                        rolePermission.Permissions.Add(new Dnn.PersonaBar.Library.DTO.Permission()
+                        rolePermission.Permissions.Add(new Dnn.PersonaBar.Library.Dto.Permission()
                         {
                             AllowAccess = permission.AllowAccess,
                             FullControl = false,
@@ -73,7 +73,7 @@ namespace DotNetNuke.PowerBI.Services.Models
                     }
                     if (permission.PermissionID == 2)
                     {
-                        rolePermission.Permissions.Add(new Dnn.PersonaBar.Library.DTO.Permission()
+                        rolePermission.Permissions.Add(new Dnn.PersonaBar.Library.Dto.Permission()
                         {
                             AllowAccess = permission.AllowAccess,
                             FullControl = false,
@@ -84,7 +84,7 @@ namespace DotNetNuke.PowerBI.Services.Models
                     }
                     if (permission.PermissionID == 3)
                     {
-                        rolePermission.Permissions.Add(new Dnn.PersonaBar.Library.DTO.Permission()
+                        rolePermission.Permissions.Add(new Dnn.PersonaBar.Library.Dto.Permission()
                         {
                             AllowAccess = permission.AllowAccess,
                             FullControl = false,

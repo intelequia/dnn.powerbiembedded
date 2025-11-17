@@ -1,4 +1,4 @@
-﻿using Dnn.PersonaBar.Library.DTO;
+﻿using Dnn.PersonaBar.Library.Dto;
 using Newtonsoft.Json;
 
 namespace DotNetNuke.PowerBI.Services.Models

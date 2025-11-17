@@ -1,5 +1,4 @@
-﻿using Dnn.PersonaBar.Library.DTO;
-using DotNetNuke.Instrumentation;
+﻿using DotNetNuke.Instrumentation;
 using DotNetNuke.PowerBI.Data.Models;
 using DotNetNuke.PowerBI.Data.SharedSettings;
 using DotNetNuke.PowerBI.Models;
