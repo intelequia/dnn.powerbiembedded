@@ -153,4 +153,8 @@
 
 	<b>Version 1.3.1</b>
 	<p>fix: allow to download pbix for LiveConnect reports</p>
+
+	<b>Version 1.4.0</b>
+	<p>fix: compatibility issue with DNN 10.x</p>
+	<p>Requires .NET Framework 4.8</p>
 </div>
