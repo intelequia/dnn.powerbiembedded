@@ -2,7 +2,7 @@
 	<h3>License</h3>
 	<p class="Owner">
 		Intelequia  <a href=https://intelequia.com>https://intelequia.com</a></br>
-		Copyright (c) 2023</br>	
+		Copyright (c) 2025</br>	
 		by Intelequia</br>
 	</p>
     <p>
