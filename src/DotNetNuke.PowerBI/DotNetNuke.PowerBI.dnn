@@ -1,6 +1,6 @@
 <dotnetnuke type="Package" version="5.0">
   <packages>
-    <package name="PowerBIEmbeddedList" type="Module" version="01.03.01">
+    <package name="PowerBIEmbeddedList" type="Module" version="01.04.00">
       <friendlyName>PowerBI Embedded Content List</friendlyName>
       <description>A set of modules to embed PowerBI Embedded dashboards and reports into a DNN Platform installation.</description>
       <iconFile>~/DesktopModules/MVC/PowerBIEmbedded/images/powerbi.png</iconFile>
@@ -14,7 +14,7 @@
       <releaseNotes src="ReleaseNotes.txt"></releaseNotes>
       <azureCompatible>true</azureCompatible>
       <dependencies>
-        <dependency type="CoreVersion">09.03.02</dependency>
+        <dependency type="CoreVersion">10.01.02</dependency>
         <dependency type="ManagedPackage" version="01.00.00">Dnn.PersonaBar.UI</dependency>
       </dependencies>
                  
@@ -176,7 +176,7 @@
         </component>
       </components>
     </package>
-    <package name="PowerBIEmbeddedContent" type="Module" version="01.03.01">
+    <package name="PowerBIEmbeddedContent" type="Module" version="01.04.00">
       <friendlyName>PowerBI Embedded Content View</friendlyName>
       <description>A set of modules to embed PowerBI Embedded dashboards and reports into a DNN Platform installation.</description>
       <iconFile>~/DesktopModules/MVC/PowerBIEmbedded/images/powerbi.png</iconFile>
@@ -190,7 +190,7 @@
       <releaseNotes src="ReleaseNotes.txt"></releaseNotes>
       <azureCompatible>true</azureCompatible>
       <dependencies>
-        <dependency type="CoreVersion">09.03.02</dependency>
+        <dependency type="CoreVersion">10.01.02</dependency>
       </dependencies>
 
       <components>
@@ -231,7 +231,7 @@
         </component>
       </components>
     </package>
-    <package name="PowerBIEmbeddedCalendar" type="Module" version="01.03.01">
+    <package name="PowerBIEmbeddedCalendar" type="Module" version="01.04.00">
       <friendlyName>PowerBI Embedded Calendar View</friendlyName>
       <description>A set of modules to embed PowerBI Embedded dashboards and reports into a DNN Platform installation.</description>
       <iconFile>~/DesktopModules/MVC/PowerBIEmbedded/images/powerbi.png</iconFile>
@@ -245,7 +245,7 @@
       <releaseNotes src="ReleaseNotes.txt"></releaseNotes>
       <azureCompatible>true</azureCompatible>
       <dependencies>
-        <dependency type="CoreVersion">09.03.02</dependency>
+        <dependency type="CoreVersion">10.01.02</dependency>
       </dependencies>
 
       <components>
