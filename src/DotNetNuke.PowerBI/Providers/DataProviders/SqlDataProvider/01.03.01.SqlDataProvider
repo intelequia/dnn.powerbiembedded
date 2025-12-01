@@ -1,10 +1,37 @@
+-- Create PBI_CapacitySettings table for decoupled capacity management
+IF (NOT EXISTS(SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'PBI_CapacitySettings'))
+BEGIN
+    CREATE TABLE {databaseOwner}[{objectQualifier}PBI_CapacitySettings](
+        [CapacityId] [int] IDENTITY(1,1) NOT NULL PRIMARY KEY,
+        [PortalId] [int] NOT NULL,
+        [CapacityName] [nvarchar](100) NOT NULL,
+        [CapacityDisplayName] [nvarchar](200) NOT NULL,
+        [Description] [nvarchar](500) NULL,
+        [ServicePrincipalApplicationId] [nvarchar](250) NOT NULL,
+        [ServicePrincipalApplicationSecret] [nvarchar](250) NOT NULL,
+        [ServicePrincipalTenant] [nvarchar](250) NOT NULL,
+        [AzureManagementSubscriptionId] [nvarchar](100) NOT NULL,
+        [AzureManagementResourceGroup] [nvarchar](100) NOT NULL,
+        [AzureManagementCapacityName] [nvarchar](100) NOT NULL,
+        [AzureManagementPollingInterval] [int] NOT NULL DEFAULT 60,
+        [DisabledCapacityMessage] [nvarchar](500) NULL,
+        [IsEnabled] [bit] NOT NULL DEFAULT 1,
+        [CreatedOn] [datetime] NOT NULL DEFAULT GETDATE(),
+        [CreatedBy] [int] NOT NULL,
+        [ModifiedOn] [datetime] NOT NULL DEFAULT GETDATE(),
+        [ModifiedBy] [int] NOT NULL,
+        [IsDeleted] [bit] NOT NULL DEFAULT 0
+    )
+END
+GO
+
 -- Create PBI_CapacityRules table for storing capacity management rules
 IF (NOT EXISTS(SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'PBI_CapacityRules'))
 BEGIN
     CREATE TABLE {databaseOwner}[{objectQualifier}PBI_CapacityRules](
         [RuleId] [int] IDENTITY(1,1) NOT NULL PRIMARY KEY,
         [PortalId] [int] NOT NULL,
-        [SettingsId] [int] NOT NULL,
+        [CapacityId] [int] NOT NULL,
         [RuleName] [nvarchar](100) NOT NULL,
         [RuleDescription] [nvarchar](500) NULL,
         [IsEnabled] [bit] NOT NULL DEFAULT 1,
@@ -20,34 +47,9 @@ BEGIN
         [ModifiedOn] [datetime] NOT NULL DEFAULT GETDATE(),
         [ModifiedBy] [int] NOT NULL,
         [IsDeleted] [bit] NOT NULL DEFAULT 0,
-        CONSTRAINT FK_PBI_CapacityRules_SettingsId FOREIGN KEY (SettingsId)
-            REFERENCES {objectQualifier}PBI_Settings(SettingsId)
+        CONSTRAINT FK_PBI_CapacityRules_CapacityId FOREIGN KEY (CapacityId)
+            REFERENCES {objectQualifier}PBI_CapacitySettings(CapacityId)
             ON DELETE CASCADE
     )
-END
-
--- Add Azure Management API credentials columns to PBI_Settings table
-IF NOT EXISTS(SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'PBI_Settings' AND COLUMN_NAME = 'AzureManagementSubscriptionId')
-BEGIN
-    ALTER TABLE {databaseOwner}[{objectQualifier}PBI_Settings]
-    ADD [AzureManagementSubscriptionId] [nvarchar](100) NULL
-END
-
-IF NOT EXISTS(SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'PBI_Settings' AND COLUMN_NAME = 'AzureManagementResourceGroup')
-BEGIN
-    ALTER TABLE {databaseOwner}[{objectQualifier}PBI_Settings]
-    ADD [AzureManagementResourceGroup] [nvarchar](100) NULL
-END
-
-IF NOT EXISTS(SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'PBI_Settings' AND COLUMN_NAME = 'AzureManagementCapacityName')
-BEGIN
-    ALTER TABLE {databaseOwner}[{objectQualifier}PBI_Settings]
-    ADD [AzureManagementCapacityName] [nvarchar](100) NULL
-END
-
-IF NOT EXISTS(SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'PBI_Settings' AND COLUMN_NAME = 'AzureManagementPollingInterval')
-BEGIN
-    ALTER TABLE {databaseOwner}[{objectQualifier}PBI_Settings]
-    ADD [AzureManagementPollingInterval] [int] NOT NULL DEFAULT 5
 END
 GO

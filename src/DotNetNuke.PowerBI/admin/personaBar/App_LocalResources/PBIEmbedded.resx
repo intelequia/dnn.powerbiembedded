@@ -632,4 +632,23 @@ To integrate a PowerBI workspace into DNN, you need to setup a set of properties
   <data name="lblAzureManagementPollingInterval_Error.Text" xml:space="preserve">
     <value>The polling interval must be a positive number greater than 5.</value>
   </data>
+	<data name="CapacitySettings" xml:space="preserve">
+        <value>Capacity Settings</value>
+    </data>
+	    <data name="CapacityManagement_Title" xml:space="preserve">
+        <value>Manage Capacity Rules</value>
+    </data>
+	    <data name="CapacityManagement_Description" xml:space="preserve">
+        <value>Configure automated start/stop rules for your Power BI capacities</value>
+    </data>
+	    <data name="SelectCapacity" xml:space="preserve">
+        <value>Select Capacity</value>
+    </data>
+	    <data name="SelectCapacity_Help" xml:space="preserve">
+        <value>Choose the capacity you want to manage</value>
+    </data>
+	    <data name="SelectCapacity_Error" xml:space="preserve">
+        <value>Please select a capacity</value>
+    </data>
+
 </root>

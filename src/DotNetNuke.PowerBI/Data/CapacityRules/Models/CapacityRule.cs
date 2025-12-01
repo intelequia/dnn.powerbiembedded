@@ -12,7 +12,7 @@ namespace DotNetNuke.PowerBI.Data.CapacityRules.Models
     {
         public int RuleId { get; set; }
         public int PortalId { get; set; }
-        public int SettingsId { get; set; }
+        public int CapacityId { get; set; }
         public string RuleName { get; set; }
         public string RuleDescription { get; set; }
         public bool IsEnabled { get; set; }

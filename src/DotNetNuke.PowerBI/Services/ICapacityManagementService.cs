@@ -1,4 +1,4 @@
-using DotNetNuke.PowerBI.Data.Models;
+using DotNetNuke.PowerBI.Data.CapacitySettings.Models;
 using DotNetNuke.PowerBI.Services.Models;
 using System.Threading.Tasks;
 
@@ -6,9 +6,9 @@ namespace DotNetNuke.PowerBI.Services
 {
     public interface ICapacityManagementService
     {
-        Task<AzureCapacity> GetCapacityStatusAsync(PowerBISettings settings);
-        Task<bool> StartCapacityAsync(PowerBISettings settings);
-        Task<bool> PauseCapacityAsync(PowerBISettings settings);
-        Task<bool> IsCapacityRunningAsync(PowerBISettings settings);
+        Task<AzureCapacity> GetCapacityStatusAsync(CapacitySettings settings);
+        Task<bool> StartCapacityAsync(CapacitySettings settings);
+        Task<bool> PauseCapacityAsync(CapacitySettings settings);
+        Task<bool> IsCapacityRunningAsync(CapacitySettings settings);
     }
 }

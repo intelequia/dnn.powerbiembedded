@@ -1,4 +1,4 @@
-import { settings as ActionTypes, capacityManagement as CapacityActionTypes } from "../constants/actionTypes";
+import { settings as ActionTypes, capacityManagement as CapacityActionTypes, capacitySettings as CapacitySettingsActionTypes } from "../constants/actionTypes";
 import ApplicationService from "../services/applicationService";
 
 const settingsActions = {
@@ -361,7 +361,65 @@ const settingsActions = {
                 }
             });
         };
+    },
+    // Capacity Settings Actions
+    getCapacities(callback) {
+        return (dispatch) => {
+            dispatch({ type: CapacitySettingsActionTypes.GET_CAPACITIES_STARTED });
+            ApplicationService.getCapacities(data => {
+                dispatch({
+                    type: CapacitySettingsActionTypes.GET_CAPACITIES_SUCCESS,
+                    data: Array.isArray(data) ? data : (data.capacities || data.Capacities || [])
+                });
+                if (callback) callback(data);
+            }, error => {
+                dispatch({
+                    type: CapacitySettingsActionTypes.GET_CAPACITIES_FAILED,
+                    data: error
+                });
+            });
+        };
+    },
+
+    createCapacity(capacity, callback, failureCallback) {
+        return (dispatch) => {
+            dispatch({ type: CapacitySettingsActionTypes.CREATE_CAPACITY_STARTED });
+            ApplicationService.createCapacity(capacity, data => {
+                dispatch({ type: CapacitySettingsActionTypes.CREATE_CAPACITY_SUCCESS });
+                if (callback) callback(data);
+            }, error => {
+                dispatch({ type: CapacitySettingsActionTypes.CREATE_CAPACITY_FAILED, data: error });
+                if (failureCallback) failureCallback(error);
+            });
+        };
+    },
+
+    updateCapacity(capacity, callback, failureCallback) {
+        return (dispatch) => {
+            dispatch({ type: CapacitySettingsActionTypes.UPDATE_CAPACITY_STARTED });
+            ApplicationService.updateCapacity(capacity, data => {
+                dispatch({ type: CapacitySettingsActionTypes.UPDATE_CAPACITY_SUCCESS });
+                if (callback) callback(data);
+            }, error => {
+                dispatch({ type: CapacitySettingsActionTypes.UPDATE_CAPACITY_FAILED, data: error });
+                if (failureCallback) failureCallback(error);
+            });
+        };
+    },
+
+    deleteCapacity(payload, callback, failureCallback) {
+        return (dispatch) => {
+            dispatch({ type: CapacitySettingsActionTypes.DELETE_CAPACITY_STARTED });
+            ApplicationService.deleteCapacity(payload, data => {
+                dispatch({ type: CapacitySettingsActionTypes.DELETE_CAPACITY_SUCCESS });
+                if (callback) callback(data);
+            }, error => {
+                dispatch({ type: CapacitySettingsActionTypes.DELETE_CAPACITY_FAILED, data: error });
+                if (failureCallback) failureCallback(error);
+            });
+        };
     }
+
 };
 
 export default settingsActions;

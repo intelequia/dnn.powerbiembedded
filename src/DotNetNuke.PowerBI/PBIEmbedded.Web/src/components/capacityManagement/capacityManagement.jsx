@@ -12,63 +12,54 @@ class CapacityManagement extends Component {
     constructor() {
         super();
         this.state = {
-            selectedWorkspace: "",
+            selectedCapacity: "",
             error: {
-                selectedWorkspace: false,
-                selectedWorkspaceInvalidCredentials: false,
+                selectedCapacity: false
             }
         };
     }
 
     componentDidMount() {
-        this.props.dispatch(SettingsActions.getWorkspaces());
-
-        if (this.props.selectedWorkspace) {
-            this.setState({ selectedWorkspace: this.props.selectedWorkspace.settingsId });
-            this.props.dispatch(SettingsActions.getCapacityRules(this.props.selectedWorkspace.settingsId));
-        }
-    }
-
-    componentWillUnmount() {
+        // Load capacities instead of workspaces
+        this.props.dispatch(SettingsActions.getCapacities());
     }
 
     componentDidUpdate(prevProps) {
-        if (!prevProps.workspaces && this.props.workspaces && this.props.workspaces.length > 0 && !this.state.selectedWorkspace) {
-            const firstWorkspace = this.props.workspaces[0];
-            this.setState({ selectedWorkspace: firstWorkspace.SettingsId });
-
-            this.onWorkspaceChange(firstWorkspace.SettingsId);
+        // Auto-select first capacity when loaded
+        if (!prevProps.capacities && this.props.capacities && this.props.capacities.length > 0 && !this.state.selectedCapacity) {
+            const firstCapacity = this.props.capacities[0];
+            this.setState({ selectedCapacity: firstCapacity.CapacityId });
+            this.onCapacityChange(firstCapacity.CapacityId);
         }
     }
 
-    onWorkspaceChange(workspaceId) {
+    onCapacityChange(capacityId) {
         this.props.dispatch(SettingsActions.clearCapacityData());
 
-        const workspace = this.props.workspaces.find(w => w.SettingsId === workspaceId);
-
-        const isConfigured = this.isWorkspaceConfigured(workspace);
-
         this.setState({
-            selectedWorkspace: workspaceId,
+            selectedCapacity: capacityId,
             error: {
-                ...this.state.error,
-                selectedWorkspaceInvalidCredentials: !isConfigured,
+                selectedCapacity: !capacityId
             }
         });
 
-        if (isConfigured) {
+        if (capacityId) {
+            // Load capacity rules
             this.props.dispatch(SettingsActions.getCapacityRules({
-                SettingsId: parseInt(workspaceId)
+                CapacityId: parseInt(capacityId)
             }));
         }
     }
 
-    getWorkspaceOptions() {
+    getCapacityOptions() {
         let options = [];
 
-        if (this.props.workspaces && Array.isArray(this.props.workspaces)) {
-            options = this.props.workspaces.map((item) => {
-                return { label: item.SettingsGroupName, value: item.SettingsId };
+        if (this.props.capacities && Array.isArray(this.props.capacities)) {
+            options = this.props.capacities.map((item) => {
+                return { 
+                    label: item.CapacityDisplayName, 
+                    value: item.CapacityId 
+                };
             });
         }
         return options;
@@ -80,7 +71,7 @@ class CapacityManagement extends Component {
         };
         this.props.dispatch(SettingsActions.deleteCapacityRule(payload, () => {
             this.props.dispatch(SettingsActions.getCapacityRules({
-                SettingsId: parseInt(this.state.selectedWorkspace)
+                CapacityId: parseInt(this.state.selectedCapacity)
             }));
         }));
     }
@@ -94,82 +85,55 @@ class CapacityManagement extends Component {
             ExecutionTime: rule.executionTime,
             DaysOfWeek: rule.daysOfWeek,
             TimeZoneId: rule.timeZoneId,
-            SettingsId: this.state.selectedWorkspace
+            CapacityId: this.state.selectedCapacity  // Changed from SettingsId
         };
         
         if (editingRule) {
-            ruleData.RuleId = editingRule.RuleId || editingRule.ruleId || rule.ruleId;
-            this.props.dispatch(SettingsActions.updateCapacityRule(ruleData));
+            ruleData.RuleId = editingRule.RuleId;
+            this.props.dispatch(SettingsActions.updateCapacityRule(ruleData, () => {
+                this.props.dispatch(SettingsActions.getCapacityRules({
+                    CapacityId: parseInt(this.state.selectedCapacity)
+                }));
+            }));
         } else {
-            this.props.dispatch(SettingsActions.createCapacityRule(ruleData));
+            this.props.dispatch(SettingsActions.createCapacityRule(ruleData, () => {
+                this.props.dispatch(SettingsActions.getCapacityRules({
+                    CapacityId: parseInt(this.state.selectedCapacity)
+                }));
+            }));
         }
-    }
-
-    isWorkspaceConfigured(workspace) {
-        if (!workspace) {
-            return false;
-        }
-
-        const isValidValue = (value) => {
-            return value !== null && value !== undefined && value !== "" && value.toString().trim() !== "";
-        };
-
-        const result = isValidValue(workspace.AzureManagementSubscriptionId) &&
-            isValidValue(workspace.AzureManagementResourceGroup) &&
-            isValidValue(workspace.AzureManagementCapacityName) &&
-            isValidValue(workspace.ServicePrincipalApplicationId) &&
-            isValidValue(workspace.ServicePrincipalApplicationSecret) &&
-            isValidValue(workspace.ServicePrincipalTenant);
-
-        return result;
     }
 
     render() {
         const { capacityRules, operationError } = this.props;
+        const capacityOptions = this.getCapacityOptions();
 
         return (
-            <div className="dnn-pbiembedded-capacitymanagement">
-                <h1>{resx.get("Capacity_Management_Title")}</h1>
-                <p>{resx.get("Capacity_Management_Description")}</p>
+            <div className="capacity-management-wrapper">
+                <h2 className="capacity-management-title">{resx.get("CapacityManagement_Title")}</h2>
+                <p className="capacity-management-description">{resx.get("CapacityManagement_Description")}</p>
 
-                <InputGroup>
-                    <GridSystem numberOfColumns={2}>
-                        <GridCell columnSize={90}>
+                <div className="capacity-management-container">
+                    <GridCell columnSize={100}>
+                        <InputGroup>
                             <DropdownWithError
                                 withLabel={true}
-                                label={resx.get("lblSelectedWorkspace")}
-                                tooltipMessage={resx.get("lblSelectedWorkspace.Help")}
-                                error={this.state.error.selectedWorkspace}
-                                errorMessage={resx.get("ErrorWorskpaceNotValid")}
-                                options={this.getWorkspaceOptions()}
-                                value={this.state.selectedWorkspace}
-                                onSelect={(option) => this.onWorkspaceChange(option.value)}
-                            />                  
-                        </GridCell>
-                        <GridCell columnSize={100}>
-                        </GridCell>
-                    </GridSystem>
-                </InputGroup>
-
-                <div className="capacity-status-section">
-                    <GridCell columnSize={100}>
-                        {this.state.error.selectedWorkspaceInvalidCredentials && (
-                            <div className="workspace-configuration-error">
-                                <div className="error-message">
-                                    <strong>{resx.get("Workspace_Error_WorkspaceNotValid_Title")}</strong>
-                                    <p>{resx.get("Workspace_Error_WorkspaceNotValid_Message")}</p>
-                                </div>
-                            </div>
-                        )}
+                                label={resx.get("SelectCapacity")}
+                                tooltipMessage={resx.get("SelectCapacity_Help")}
+                                error={this.state.error.selectedCapacity}
+                                errorMessage={resx.get("SelectCapacity_Error")}
+                                options={capacityOptions}
+                                value={this.state.selectedCapacity}
+                                onSelect={(option) => this.onCapacityChange(option.value)}
+                                enabled={capacityOptions.length > 0}
+                            />
+                        </InputGroup>
                     </GridCell>
 
-                    {this.state.selectedWorkspace && !this.state.error.selectedWorkspaceInvalidCredentials && (
+                    {this.state.selectedCapacity && (
                         <>
                             <CapacityStatus 
-                                selectedWorkspace={this.state.selectedWorkspace}
-                                isWorkspaceConfigured={this.isWorkspaceConfigured(
-                                    this.props.workspaces && this.props.workspaces.find(w => w.SettingsId === this.state.selectedWorkspace)
-                                )}
+                                selectedCapacity={this.state.selectedCapacity}
                             />
 
                             <GridCell columnSize={100}>
@@ -209,8 +173,7 @@ class CapacityManagement extends Component {
 
 CapacityManagement.propTypes = {
     dispatch: PropTypes.func.isRequired,
-    selectedWorkspace: PropTypes.object,
-    workspaces: PropTypes.array,
+    capacities: PropTypes.array,
     capacityStatus: PropTypes.object,
     capacityRules: PropTypes.array,
     capacityLoading: PropTypes.bool,
@@ -221,8 +184,7 @@ CapacityManagement.propTypes = {
 
 function mapStateToProps(state) {
     return {
-        selectedWorkspace: state.settings.selectedWorkspace,
-        workspaces: state.settings.workspaces || [],
+        capacities: state.capacitySettings.capacities || [],  // Changed from workspaces
         capacityStatus: state.capacityManagement.capacityStatus,
         capacityRules: state.capacityManagement.capacityRules || [],
         capacityLoading: state.capacityManagement.loading,

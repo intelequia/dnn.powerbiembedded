@@ -102,10 +102,6 @@ namespace DotNetNuke.PowerBI.Data.SharedSettings
                 current.ServicePrincipalApplicationId = settings.ServicePrincipalApplicationId;
                 current.ServicePrincipalApplicationSecret = settings.ServicePrincipalApplicationSecret;
                 current.ServicePrincipalTenant = settings.ServicePrincipalTenant;
-                current.AzureManagementCapacityName = settings.AzureManagementCapacityName;
-                current.AzureManagementResourceGroup = settings.AzureManagementResourceGroup;
-                current.AzureManagementSubscriptionId = settings.AzureManagementSubscriptionId;
-                current.AzureManagementPollingInterval = settings.AzureManagementPollingInterval;
                 current.ApplicationId = settings.ApplicationId;
                 current.WorkspaceId = settings.WorkspaceId;
                 current.ContentPageUrl = settings.ContentPageUrl;

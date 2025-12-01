@@ -1,13 +1,12 @@
 using DotNetNuke.Instrumentation;
 using DotNetNuke.PowerBI.Data.CapacityRules;
 using DotNetNuke.PowerBI.Data.CapacityRules.Models;
-using DotNetNuke.PowerBI.Data.SharedSettings;
+using DotNetNuke.PowerBI.Data.CapacitySettings;
 using DotNetNuke.PowerBI.Services;
 using DotNetNuke.PowerBI.Services.Models;
 using DotNetNuke.Services.Scheduling;
 using Microsoft.PowerBI.Api.Models;
 using System;
-using System.Data;
 using System.Linq;
 using System.Threading.Tasks;
 using TimeZoneConverter;
@@ -39,28 +38,19 @@ namespace DotNetNuke.PowerBI.Tasks
         private async Task DoWorkAsync()
         {
             var capacityManagementService = new CapacityManagementService();
-            var settings = SharedSettingsRepository.Instance.GetAllSettings();
+            var capacities = CapacitySettingsRepository.Instance.GetAllCapacities();
 
-            foreach (var setting in settings.AsParallel())
+            foreach (var capacity in capacities.AsParallel())
             {
                 try
                 {
-                    // Skip if Azure Management API basic configuration is not present
-                    if (string.IsNullOrEmpty(setting.AzureManagementSubscriptionId) ||
-                        string.IsNullOrEmpty(setting.AzureManagementResourceGroup) ||
-                        string.IsNullOrEmpty(setting.AzureManagementCapacityName))
+                    // Skip if capacity is disabled or deleted
+                    if (!capacity.IsEnabled || capacity.IsDeleted)
                     {
                         continue;
                     }
 
-                    // Validate authentication configuration based on AuthenticationType
-                    if (!ValidateAuthenticationConfiguration(setting))
-                    {
-                        this.ScheduleHistoryItem.AddLogNote($"Skipping settings {setting.SettingsId}: Invalid authentication configuration for {setting.AuthenticationType}");
-                        continue;
-                    }
-
-                    var rules = CapacityRulesRepository.Instance.GetRulesBySettingsId(setting.SettingsId, setting.PortalId);
+                    var rules = CapacityRulesRepository.Instance.GetRulesByCapacityId(capacity.CapacityId, capacity.PortalId);
                     var activeRules = rules.Where(r => r.IsEnabled && !r.IsDeleted).ToList();
 
                     if (activeRules.Count == 0)
@@ -68,7 +58,7 @@ namespace DotNetNuke.PowerBI.Tasks
                         continue; // No active rules, skip logging
                     }
 
-                    this.ScheduleHistoryItem.AddLogNote($"Processing {activeRules.Count} active rules for settings {setting.SettingsId} ({setting.SettingsGroupName}) using {setting.AuthenticationType}");
+                    this.ScheduleHistoryItem.AddLogNote($"Processing {activeRules.Count} active rules for capacity {capacity.CapacityId} ({capacity.CapacityDisplayName})");
 
                     foreach (var rule in activeRules)
                     {
@@ -76,31 +66,30 @@ namespace DotNetNuke.PowerBI.Tasks
                         {
                             if (IsRuleDue(rule) == false)
                             {
-                                this.ScheduleHistoryItem.AddLogNote($"Skipping rule: {rule.RuleName}, not due for execution");
-                                continue;
+                                continue; // Not due for execution
                             }
 
                             this.ScheduleHistoryItem.AddLogNote($"Executing rule: {rule.RuleName} (Action: {rule.Action})");
 
-                            AzureCapacity capacity = await capacityManagementService.GetCapacityStatusAsync(setting);
-                            if (capacity == null)
+                            var azureCapacity = await capacityManagementService.GetCapacityStatusAsync(capacity);
+                            if (azureCapacity == null)
                                 continue;
 
                             var success = false;
                             if (rule.Action.Equals("Start", StringComparison.OrdinalIgnoreCase))
                             {
-                                if (IsServiceActive(capacity.State))
+                                if (IsServiceActive(azureCapacity.State))
                                     this.ScheduleHistoryItem.AddLogNote($"Service is already running, for rule: {rule.RuleName}");
                                 else
-                                    success = await capacityManagementService.StartCapacityAsync(setting);
+                                    success = await capacityManagementService.StartCapacityAsync(capacity);
                             }
                             else if (rule.Action.Equals("Stop", StringComparison.OrdinalIgnoreCase)
                                 || rule.Action.Equals("Pause", StringComparison.OrdinalIgnoreCase))
                             {
-                                if (IsServiceStopped(capacity.State))
+                                if (IsServiceStopped(azureCapacity.State))
                                     this.ScheduleHistoryItem.AddLogNote($"Service is already stopped, for rule: {rule.RuleName}");
                                 else
-                                    success = await capacityManagementService.PauseCapacityAsync(setting);
+                                    success = await capacityManagementService.PauseCapacityAsync(capacity);
                             }
                             else
                             {
@@ -125,46 +114,14 @@ namespace DotNetNuke.PowerBI.Tasks
                         }
                     }
                 }
-                catch (Exception settingEx)
+                catch (Exception capacityEx)
                 {
-                    HandleException(settingEx, $"Error processing settings {setting.SettingsId} ({setting.SettingsGroupName})");
+                    HandleException(capacityEx, $"Error processing capacity {capacity.CapacityId} ({capacity.CapacityDisplayName})");
                 }
             }
 
             this.ScheduleHistoryItem.AddLogNote("Completed capacity rule evaluation");
             this.ScheduleHistoryItem.Succeeded = true;
-        }
-
-        /// <summary>
-        /// Validates authentication configuration based on the AuthenticationType
-        /// </summary>
-        private bool ValidateAuthenticationConfiguration(Data.Models.PowerBISettings setting)
-        {
-            if (setting.AuthenticationType.Equals("MasterUser", StringComparison.OrdinalIgnoreCase))
-            {
-                // For MasterUser, we need Username and Password
-                if (string.IsNullOrEmpty(setting.Username) || string.IsNullOrEmpty(setting.Password))
-                {
-                    return false;
-                }
-                // ClientId can come from ApplicationId or AzureManagementClientId
-                if (string.IsNullOrEmpty(setting.ApplicationId) && string.IsNullOrEmpty(setting.ServicePrincipalApplicationId))
-                {
-                    return false;
-                }
-            }
-            else // ServicePrincipal
-            {
-                // For ServicePrincipal, we need ClientId, ClientSecret and TenantId
-                if (string.IsNullOrEmpty(setting.ServicePrincipalApplicationId) ||
-                    string.IsNullOrEmpty(setting.ServicePrincipalApplicationSecret) ||
-                    string.IsNullOrEmpty(setting.ServicePrincipalTenant))
-                {
-                    return false;
-                }
-            }
-
-            return true;
         }
 
         /// <summary>
@@ -221,14 +178,15 @@ namespace DotNetNuke.PowerBI.Tasks
             return TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, tz);
         }
 
-        private bool IsServiceActive(CapacityState currentCapacityState)
+        private bool IsServiceActive(string state)
         {
-            return currentCapacityState == CapacityState.Active;
+            return state.Equals("active", StringComparison.OrdinalIgnoreCase);
         }
 
-        private bool IsServiceStopped(CapacityState currentCapacityState)
+        private bool IsServiceStopped(string state)
         {
-            return currentCapacityState == CapacityState.NotActivated || currentCapacityState == CapacityState.Suspended;
+            return state.Equals("paused", StringComparison.OrdinalIgnoreCase) || 
+                   state.Equals("suspended", StringComparison.OrdinalIgnoreCase);
         }
 
         private void HandleRuleException(Exception ex, CapacityRule rule)

@@ -39,14 +39,14 @@ class ApplicationService {
 
     getCapacityStatus(payload, callback, failureCallback) {
         const sf = this.getServiceFramework("CapacityManagement");
-        const settingsId = payload.SettingsId || payload;
-        sf.get("GetCapacityStatus", { SettingsId: settingsId }, callback, failureCallback);
+        const capacityId = payload.CapacityId || payload;
+        sf.get("GetCapacityStatus", { CapacityId: capacityId }, callback, failureCallback);
     }
 
     startCapacity(payload, callback, failureCallback) {
         const sf = this.getServiceFramework("CapacityManagement");
-        const settingsId = payload.SettingsId || payload;
-        const url = `StartCapacity?settingsId=${settingsId}`;
+        const capacityId = payload.CapacityId || payload;
+        const url = `StartCapacity?capacityId=${capacityId}`;
         
         sf.post(url, {}, 
             (data) => {
@@ -60,8 +60,8 @@ class ApplicationService {
 
     pauseCapacity(payload, callback, failureCallback) {
         const sf = this.getServiceFramework("CapacityManagement");
-        const settingsId = payload.SettingsId || payload;
-        const url = `PauseCapacity?settingsId=${settingsId}`;
+        const capacityId = payload.CapacityId || payload;
+        const url = `PauseCapacity?capacityId=${capacityId}`;
         
         sf.post(url, {}, 
             (data) => {
@@ -75,8 +75,8 @@ class ApplicationService {
 
     getCapacityRules(payload, callback, failureCallback) {
         const sf = this.getServiceFramework("CapacityManagement");
-        const settingsId = payload.SettingsId || payload;
-        sf.get("GetCapacityRules", { SettingsId: settingsId }, 
+        const capacityId = payload.CapacityId || payload;
+        sf.get("GetCapacityRules", { CapacityId: capacityId }, 
             (data) => {
                 callback(data);
             }, 
@@ -88,7 +88,7 @@ class ApplicationService {
 
     createCapacityRule(rule, callback, failureCallback) {
         const sf = this.getServiceFramework("CapacityManagement");
-        const url = `CreateCapacityRule?settingsId=${rule.settingsId}`;
+        const url = `CreateCapacityRule?capacityId=${rule.capacityId}`;
         sf.post(url, rule, callback, failureCallback);
     }
 
@@ -104,6 +104,28 @@ class ApplicationService {
         const url = `DeleteCapacityRule?ruleId=${ruleId}`;
         sf.post(url, {}, callback, failureCallback);
     }
+
+    getCapacities(callback, failureCallback) {
+        const sf = this.getServiceFramework("CapacitySettings");
+        sf.get("GetCapacities", {}, callback, failureCallback);
+    }
+
+    createCapacity(payload, callback, failureCallback) {
+        const sf = this.getServiceFramework("CapacitySettings");
+        sf.post("CreateCapacity", payload, callback, failureCallback);
+    }
+
+    updateCapacity(payload, callback, failureCallback) {
+        const sf = this.getServiceFramework("CapacitySettings");
+        sf.post("UpdateCapacity", payload, callback, failureCallback);
+    }
+
+    deleteCapacity(payload, callback, failureCallback) {
+        const sf = this.getServiceFramework("CapacitySettings");
+        const capacityId = payload.CapacityId || payload;
+        sf.post(`DeleteCapacity?capacityId=${capacityId}`, {}, callback, failureCallback);
+    }
+
 }
 const applicationService = new ApplicationService();
 export default applicationService;

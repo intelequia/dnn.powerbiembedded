@@ -199,7 +199,12 @@
     <Compile Include="Components\MenuController.cs" />
     <Compile Include="Components\RouteMapper.cs" />
     <Compile Include="Controllers\CalendarViewController.cs" />
+    <Compile Include="Data\CapacitySettings\CapacitySettingsRepository.cs" />
+    <Compile Include="Data\CapacitySettings\ICapacitySettingsRepository.cs" />
+    <Compile Include="Data\CapacitySettings\Models\CapacitySettings.cs" />
     <Compile Include="Services\CapacityManagementController.cs" />
+    <Compile Include="Services\CapacityManagementService.cs" />
+    <Compile Include="Services\CapacitySettingsController.cs" />
     <Compile Include="Services\ExportsController.cs" />
     <Compile Include="Controllers\ContentViewController.cs" />
     <Compile Include="Controllers\ListViewController.cs" />
@@ -234,7 +239,6 @@
     <Compile Include="Services\Models\AzureCapacityStatus.cs" />
     <Compile Include="Services\ModuleSettingsController.cs" />
     <Compile Include="Services\BookmarksController.cs" />
-    <Compile Include="Services\CapacityManagementService.cs" />
     <Compile Include="Services\EmbedService.cs" />
     <Compile Include="Services\ICapacityManagementService.cs" />
     <Compile Include="Services\IEmbedService.cs" />
@@ -446,7 +450,7 @@
   <Target Name="AfterBuild" DependsOnTargets="PackageModule">
   </Target>
   <PropertyGroup>
-    <PostBuildEvent>IF $(ConfigurationName)==Debug copy $(TargetDir)$(TargetName).* C:\Websites\portalbidemo.dnndev.me\bin /Y</PostBuildEvent>
+    <PostBuildEvent>IF $(ConfigurationName)==DebugPersonaBar copy $(TargetDir)$(TargetName).* C:\Websites\dnn9137.dnndev.me\bin /Y</PostBuildEvent>
   </PropertyGroup>
   <Import Project="..\packages\System.ValueTuple.4.6.1\build\net471\System.ValueTuple.targets" Condition="Exists('..\packages\System.ValueTuple.4.6.1\build\net471\System.ValueTuple.targets')" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">

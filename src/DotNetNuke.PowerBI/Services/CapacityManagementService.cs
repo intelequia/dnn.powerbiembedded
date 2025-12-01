@@ -1,5 +1,5 @@
 using DotNetNuke.Instrumentation;
-using DotNetNuke.PowerBI.Data.Models;
+using DotNetNuke.PowerBI.Data.CapacitySettings.Models;
 using DotNetNuke.PowerBI.Services.Models;
 using Microsoft.IdentityModel.Clients.ActiveDirectory;
 using Microsoft.PowerBI.Api.Models;
@@ -18,65 +18,40 @@ namespace DotNetNuke.PowerBI.Services
         private const string AzureManagementResource = "https://management.core.windows.net/";
 
         /// <summary>
-        /// Gets the access token for Azure Management API using the authentication method specified in settings
+        /// Gets the access token for Azure Management API using Service Principal authentication
         /// </summary>
-        private async Task<string> GetAccessTokenAsync(PowerBISettings settings)
+        private async Task<string> GetAccessTokenAsync(CapacitySettings settings)
         {
             try
             {
-                AuthenticationResult authenticationResult;
-
-                if (settings.AuthenticationType.Equals("MasterUser", StringComparison.OrdinalIgnoreCase))
+                // Validate Service Principal configuration
+                if (string.IsNullOrEmpty(settings.ServicePrincipalApplicationId) ||
+                    string.IsNullOrEmpty(settings.ServicePrincipalApplicationSecret) ||
+                    string.IsNullOrEmpty(settings.ServicePrincipalTenant))
                 {
-                    // Master User Authentication
-                    if (string.IsNullOrEmpty(settings.Username) || string.IsNullOrEmpty(settings.Password))
-                    {
-                        throw new ArgumentException("Username and Password are required for MasterUser authentication");
-                    }
-
-                    var authorityUrl = string.IsNullOrEmpty(settings.ServicePrincipalTenant)
-                        ? "https://login.microsoftonline.com/common"
-                        : $"https://login.microsoftonline.com/{settings.ServicePrincipalTenant}";
-
-                    var authenticationContext = new AuthenticationContext(authorityUrl);
-                    var credential = new UserPasswordCredential(settings.Username, settings.Password);
-
-                    authenticationResult = await authenticationContext.AcquireTokenAsync(
-                        AzureManagementResource,
-                        settings.ServicePrincipalApplicationId ?? settings.ApplicationId,
-                        credential);
+                    throw new ArgumentException("Service Principal ApplicationId, ApplicationSecret and Tenant are required");
                 }
-                else
-                {
-                    // Service Principal Authentication
-                    if (string.IsNullOrEmpty(settings.ServicePrincipalApplicationId) ||
-                        string.IsNullOrEmpty(settings.ServicePrincipalApplicationSecret) ||
-                        string.IsNullOrEmpty(settings.ServicePrincipalTenant))
-                    {
-                        throw new ArgumentException("Azure Management ClientId, ClientSecret and TenantId are required for ServicePrincipal authentication");
-                    }
 
-                    var authorityUrl = $"https://login.microsoftonline.com/{settings.ServicePrincipalTenant}";
-                    var authenticationContext = new AuthenticationContext(authorityUrl);
-                    var credential = new ClientCredential(
-                        settings.ServicePrincipalApplicationId,
-                        settings.ServicePrincipalApplicationSecret);
+                var authorityUrl = $"https://login.microsoftonline.com/{settings.ServicePrincipalTenant}";
+                var authenticationContext = new AuthenticationContext(authorityUrl);
+                var credential = new ClientCredential(
+                    settings.ServicePrincipalApplicationId,
+                    settings.ServicePrincipalApplicationSecret);
 
-                    authenticationResult = await authenticationContext.AcquireTokenAsync(
-                        AzureManagementResource,
-                        credential);
-                }
+                var authenticationResult = await authenticationContext.AcquireTokenAsync(
+                    AzureManagementResource,
+                    credential);
 
                 return authenticationResult.AccessToken;
             }
             catch (Exception ex)
             {
-                Logger.Error($"Error getting access token for Azure Management API using {settings.AuthenticationType} authentication", ex);
+                Logger.Error("Error getting access token for Azure Management API using Service Principal authentication", ex);
                 throw;
             }
         }
 
-        public async Task<AzureCapacity> GetCapacityStatusAsync(PowerBISettings settings)
+        public async Task<AzureCapacity> GetCapacityStatusAsync(CapacitySettings settings)
         {
             try
             {
@@ -129,10 +104,7 @@ namespace DotNetNuke.PowerBI.Services
             }
         }
 
-        /// <summary>
-        /// Gets all Power BI Embedded capacities in the specified subscription and resource group
-        /// </summary>
-        public async Task<bool> StartCapacityAsync(PowerBISettings settings)
+        public async Task<bool> StartCapacityAsync(CapacitySettings settings)
         {
             try
             {
@@ -159,7 +131,7 @@ namespace DotNetNuke.PowerBI.Services
 
                     if (response.IsSuccessStatusCode || response.StatusCode == System.Net.HttpStatusCode.Accepted)
                     {
-                        Logger.Info($"Successfully started capacity {settings.AzureManagementCapacityName} using {settings.AuthenticationType}");
+                        Logger.Info($"Successfully started capacity {settings.AzureManagementCapacityName}");
                         return true;
                     }
                     else
@@ -177,7 +149,7 @@ namespace DotNetNuke.PowerBI.Services
             }
         }
 
-        public async Task<bool> PauseCapacityAsync(PowerBISettings settings)
+        public async Task<bool> PauseCapacityAsync(CapacitySettings settings)
         {
             try
             {
@@ -204,7 +176,7 @@ namespace DotNetNuke.PowerBI.Services
 
                     if (response.IsSuccessStatusCode || response.StatusCode == System.Net.HttpStatusCode.Accepted)
                     {
-                        Logger.Info($"Successfully paused capacity {settings.AzureManagementCapacityName} using {settings.AuthenticationType}");
+                        Logger.Info($"Successfully paused capacity {settings.AzureManagementCapacityName}");
                         return true;
                     }
                     else
@@ -222,7 +194,7 @@ namespace DotNetNuke.PowerBI.Services
             }
         }
 
-        public async Task<bool> IsCapacityRunningAsync(PowerBISettings settings)
+        public async Task<bool> IsCapacityRunningAsync(CapacitySettings settings)
         {
             var capacity = await GetCapacityStatusAsync(settings);
             return capacity != null && capacity.State == CapacityState.Active;

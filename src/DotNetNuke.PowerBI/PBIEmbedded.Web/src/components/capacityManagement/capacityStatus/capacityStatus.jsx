@@ -20,15 +20,18 @@ class CapacityStatus extends Component {
     }
 
     componentDidMount() {
-        if (this.props.selectedWorkspace && this.props.isWorkspaceConfigured) {
+        this.props.dispatch(SettingsActions.getCapacityStatus({ 
+            CapacityId: this.props.selectedCapacity  // Changed from SettingsId
+        }));
+        /*        if (this.props.selectedWorkspace && this.props.isWorkspaceConfigured) {
             this.loadCapacityStatus();
             this.startPolling();
-        }
+        }*/
     }
 
     componentDidUpdate(prevProps) {
-        if (prevProps.selectedWorkspace !== this.props.selectedWorkspace) {
-            if (this.props.selectedWorkspace && this.props.isWorkspaceConfigured) {
+        if (prevProps.selectedCapacity !== this.props.selectedCapacity) {
+            if (this.props.selectedCapacity && this.props.isCapacityConfigured) {
                 this.loadCapacityStatus();
                 this.startPolling();
             } else {
@@ -55,7 +58,7 @@ class CapacityStatus extends Component {
         }
         
         this.props.dispatch(SettingsActions.pollCapacityStatus({
-            SettingsId: parseInt(this.props.selectedWorkspace)
+            CapacityId: parseInt(this.props.selectedCapacity) 
         }, () => {
             this.setState({ localLoading: false });
             this.lastLoadTimestamp = Date.now();
@@ -87,7 +90,7 @@ class CapacityStatus extends Component {
                 }
             }
             
-            if (this.props.selectedWorkspace && this.props.isWorkspaceConfigured) {
+            if (this.props.selectedCapacity && this.props.isCapacityConfigured) {
                 this.loadCapacityStatus(false);
             }
         }, 5000);
@@ -116,11 +119,11 @@ class CapacityStatus extends Component {
 
     onStartCapacity() {
         this.stopPolling();
-        
-        this.props.dispatch(SettingsActions.startCapacity({
-            SettingsId: parseInt(this.props.selectedWorkspace)
+
+        this.props.dispatch(SettingsActions.startCapacity({ 
+            CapacityId: parseInt(this.props.selectedCapacity) 
         }));
-        
+                
         setTimeout(() => {
             this.loadCapacityStatus(true);
             this.startPolling();
@@ -131,7 +134,7 @@ class CapacityStatus extends Component {
         this.stopPolling();
         
         this.props.dispatch(SettingsActions.pauseCapacity({
-            SettingsId: parseInt(this.props.selectedWorkspace)
+            CapacityId: parseInt(this.props.selectedCapacity)
         }));
         
         setTimeout(() => {
@@ -314,8 +317,8 @@ class CapacityStatus extends Component {
 
 CapacityStatus.propTypes = {
     dispatch: PropTypes.func.isRequired,
-    selectedWorkspace: PropTypes.number,
-    isWorkspaceConfigured: PropTypes.bool,
+    selectedCapacity: PropTypes.number,
+    isCapacityConfigured: PropTypes.bool,
     capacityStatus: PropTypes.object,
     statusError: PropTypes.object
 };
