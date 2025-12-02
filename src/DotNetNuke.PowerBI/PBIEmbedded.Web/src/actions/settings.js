@@ -174,7 +174,8 @@ const settingsActions = {
             ApplicationService.getCapacityStatus(payload, data => {
                 dispatch({
                     type: CapacityActionTypes.GET_CAPACITY_STATUS_SUCCESS,
-                    data: data
+                    data: data,
+                    payload: payload
                 });
                 if (callback) {
                     callback(data);
@@ -195,7 +196,8 @@ const settingsActions = {
             ApplicationService.getCapacityStatus(payload, data => {
                 dispatch({
                     type: CapacityActionTypes.POLL_CAPACITY_STATUS_SUCCESS,
-                    data: data
+                    data: data,
+                    payload: payload
                 });
                 if (callback) {
                     callback(data);

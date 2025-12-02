@@ -2,6 +2,7 @@ import { capacityManagement as ActionTypes } from "../constants/actionTypes";
 
 export default function capacityManagementReducer(state = {
     capacityStatus: null,
+    capacityStatuses: {},
     capacityRules: [],
     loading: false,
     error: null,
@@ -59,6 +60,10 @@ export default function capacityManagementReducer(state = {
             return {
                 ...state,
                 capacityStatus: action.data,
+                capacityStatuses: {
+                    ...state.capacityStatuses,
+                    [action.payload && action.payload.CapacityId]: action.data
+                },
                 loading: false,
                 error: null,
                 statusError: null
@@ -67,7 +72,11 @@ export default function capacityManagementReducer(state = {
         case ActionTypes.POLL_CAPACITY_STATUS_SUCCESS:
             return {
                 ...state,
-                capacityStatus: action.data
+                capacityStatus: action.data,
+                capacityStatuses: {
+                    ...state.capacityStatuses,
+                    [action.payload && action.payload.CapacityId]: action.data
+                }
             };
 
         case ActionTypes.START_CAPACITY_SUCCESS:

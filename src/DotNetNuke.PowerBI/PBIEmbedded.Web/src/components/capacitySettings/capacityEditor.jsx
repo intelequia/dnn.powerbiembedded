@@ -1,7 +1,8 @@
 import React, { Component } from "react";
 import PropTypes from "prop-types";
-import { GridCell, GridSystem, SingleLineInputWithError, Button, InputGroup, Switch } from "@dnnsoftware/dnn-react-common";
+import { GridCell, GridSystem, SingleLineInputWithError, Button, InputGroup, Switch, DnnTabs as Tabs } from "@dnnsoftware/dnn-react-common";
 import resx from "../../resources";
+import CapacityRules from "../capacityManagement/rule";
 import "./capacitySettings.less";
 
 class CapacityEditor extends Component {
@@ -10,7 +11,8 @@ class CapacityEditor extends Component {
         this.state = {
             capacity: props.capacity || {},
             errors: {},
-            triedToSubmit: false
+            triedToSubmit: false,
+            selectedTab: 0
         };
     }
 
@@ -19,9 +21,16 @@ class CapacityEditor extends Component {
             this.setState({
                 capacity: this.props.capacity,
                 errors: {},
-                triedToSubmit: false
+                triedToSubmit: false,
+                selectedTab: 0
             });
         }
+    }
+
+    onSelectTab(index) {
+        this.setState({
+            selectedTab: index
+        });
     }
 
     onSettingChange(key, event) {
@@ -133,7 +142,7 @@ class CapacityEditor extends Component {
     }
 
     render() {
-        const { capacity, errors, triedToSubmit } = this.state;
+        const { capacity, errors, triedToSubmit, selectedTab } = this.state;
         const isNew = capacity.CapacityId === 0;
 
         const columnOne = (
@@ -285,11 +294,35 @@ class CapacityEditor extends Component {
             </div>
         );
 
+        const generalSettingsTab = (
+            <div className="capacity-editor-body">
+                <GridSystem numberOfColumns={2}>{[columnOne, columnTwo]}</GridSystem>
+            </div>
+        );
+
+        const rulesTab = !isNew ? (
+            <div className="capacity-rules-tab">
+                <CapacityRules
+                    capacityRules={this.props.capacityRules || []}
+                    onDeleteRule={this.props.onDeleteRule}
+                    onSaveRule={this.props.onSaveRule}
+                />
+            </div>
+        ) : null;
+
         const editorContent = (
             <>
-                <div className="capacity-editor-body">
-                    <GridSystem numberOfColumns={2}>{[columnOne, columnTwo]}</GridSystem>
-                </div>
+                {isNew ? (
+                    generalSettingsTab
+                ) : (
+                    <Tabs
+                        onSelect={this.onSelectTab.bind(this)}
+                        selectedIndex={selectedTab}
+                        tabHeaders={[resx.get("GeneralSettings"), resx.get("Capacity_Rules_Title")]}>
+                        {generalSettingsTab}
+                        {rulesTab}
+                    </Tabs>
+                )}
                 <div className="capacity-editor-footer">
                     <Button
                         type="secondary"
@@ -334,7 +367,10 @@ CapacityEditor.propTypes = {
     capacity: PropTypes.object.isRequired,
     onSave: PropTypes.func.isRequired,
     onCancel: PropTypes.func.isRequired,
-    inline: PropTypes.bool
+    inline: PropTypes.bool,
+    capacityRules: PropTypes.array,
+    onDeleteRule: PropTypes.func,
+    onSaveRule: PropTypes.func
 };
 
 export default CapacityEditor;

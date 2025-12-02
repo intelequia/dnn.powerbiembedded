@@ -21,6 +21,17 @@ class CapacitySettings extends Component {
         this.props.dispatch(SettingsActions.getCapacities());
     }
 
+    componentDidUpdate(prevProps) {
+        // Load capacity status when capacities are loaded
+        if (prevProps.capacities !== this.props.capacities && this.props.capacities) {
+            this.props.capacities.forEach(capacity => {
+                this.props.dispatch(SettingsActions.getCapacityStatus({
+                    CapacityId: capacity.CapacityId
+                }));
+            });
+        }
+    }
+
     uncollapse(id) {
         this.setState({
             openId: id
@@ -37,6 +48,75 @@ class CapacitySettings extends Component {
     toggle(id) {
         if (this.state.openId !== id) {
             this.uncollapse(id);
+            // Load capacity rules when opening a capacity for editing
+            if (id !== "add") {
+                this.props.dispatch(SettingsActions.getCapacityRules({
+                    CapacityId: parseInt(id)
+                }));
+            }
+        }
+    }
+
+    onStartCapacity(capacityId) {
+        this.props.dispatch(SettingsActions.startCapacity({
+            CapacityId: parseInt(capacityId)
+        }));
+        
+        setTimeout(() => {
+            this.props.dispatch(SettingsActions.pollCapacityStatus({
+                CapacityId: parseInt(capacityId)
+            }));
+        }, 5000);
+    }
+
+    onPauseCapacity(capacityId) {
+        this.props.dispatch(SettingsActions.pauseCapacity({
+            CapacityId: parseInt(capacityId)
+        }));
+        
+        setTimeout(() => {
+            this.props.dispatch(SettingsActions.pollCapacityStatus({
+                CapacityId: parseInt(capacityId)
+            }));
+        }, 5000);
+    }
+
+    onDeleteRule(capacityId, ruleId) {
+        const payload = {
+            RuleId: ruleId
+        };
+        this.props.dispatch(SettingsActions.deleteCapacityRule(payload, () => {
+            this.props.dispatch(SettingsActions.getCapacityRules({
+                CapacityId: parseInt(capacityId)
+            }));
+        }));
+    }
+
+    onSaveRule(capacityId, rule, editingRule) {
+        const ruleData = {
+            RuleName: rule.ruleName,
+            RuleDescription: rule.ruleDescription,
+            IsEnabled: rule.isEnabled,
+            Action: rule.action,
+            ExecutionTime: rule.executionTime,
+            DaysOfWeek: rule.daysOfWeek,
+            TimeZoneId: rule.timeZoneId,
+            CapacityId: capacityId
+        };
+        
+        if (editingRule) {
+            ruleData.RuleId = editingRule.RuleId;
+            this.props.dispatch(SettingsActions.updateCapacityRule(ruleData, () => {
+                this.props.dispatch(SettingsActions.getCapacityRules({
+                    CapacityId: parseInt(capacityId)
+                }));
+            }));
+        } else {
+            this.props.dispatch(SettingsActions.createCapacityRule(ruleData, () => {
+                this.props.dispatch(SettingsActions.getCapacityRules({
+                    CapacityId: parseInt(capacityId)
+                }));
+            }));
         }
     }
 
@@ -96,7 +176,7 @@ class CapacitySettings extends Component {
     }
 
     renderCapacityList() {
-        const {capacities} = this.props;
+        const {capacities, capacityStatuses, capacityRules} = this.props;
         
         if (!capacities || capacities.length === 0) {
             return (
@@ -107,6 +187,9 @@ class CapacitySettings extends Component {
         }
 
         return capacities.map((capacity) => {
+            const capacityStatus = capacityStatuses && capacityStatuses[capacity.CapacityId];
+            const currentCapacityRules = this.state.openId === capacity.CapacityId ? capacityRules : [];
+            
             return (
                 <CapacityRow
                     key={capacity.CapacityId}
@@ -116,6 +199,12 @@ class CapacitySettings extends Component {
                     onUpdate={(updatedCapacity) => this.onSaveCapacity(updatedCapacity)}
                     onCancel={this.collapse.bind(this)}
                     id={capacity.CapacityId}
+                    capacityStatus={capacityStatus}
+                    onStartCapacity={this.onStartCapacity.bind(this)}
+                    onPauseCapacity={this.onPauseCapacity.bind(this)}
+                    capacityRules={currentCapacityRules}
+                    onDeleteRule={(ruleId) => this.onDeleteRule(capacity.CapacityId, ruleId)}
+                    onSaveRule={(rule, editingRule) => this.onSaveRule(capacity.CapacityId, rule, editingRule)}
                 />
             );
         });
@@ -161,14 +250,18 @@ CapacitySettings.propTypes = {
     dispatch: PropTypes.func.isRequired,
     capacities: PropTypes.array,
     loading: PropTypes.bool,
-    error: PropTypes.object
+    error: PropTypes.object,
+    capacityStatuses: PropTypes.object,
+    capacityRules: PropTypes.array
 };
 
 function mapStateToProps(state) {
     return {
         capacities: state.capacitySettings.capacities || [],
         loading: state.capacitySettings.loading,
-        error: state.capacitySettings.error
+        error: state.capacitySettings.error,
+        capacityStatuses: state.capacityManagement.capacityStatuses || {},
+        capacityRules: state.capacityManagement.capacityRules || []
     };
 }
 
