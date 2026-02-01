@@ -264,6 +264,7 @@
     <Content Include="images\error.svg" />
     <Content Include="images\excel.svg" />
     <Content Include="images\export.svg" />
+    <Content Include="images\msfabric.png" />
     <Content Include="images\pdf.svg" />
     <Content Include="images\powerpoint.svg" />
     <Content Include="images\success.svg" />
@@ -447,6 +448,6 @@
   <Target Name="AfterBuild" DependsOnTargets="PackageModule">
   </Target>
   <PropertyGroup>
-    <PostBuildEvent>IF $(ConfigurationName)==Debug copy $(TargetDir)$(TargetName).* C:\Websites\dnn1012.dnndev.me\bin /Y</PostBuildEvent>
+    <PostBuildEvent>IF $(ConfigurationName)==DebugPersonaBar copy $(TargetDir)$(TargetName).* C:\Websites\tmh2-admin.dnndev.me\bin /Y</PostBuildEvent>
   </PropertyGroup>
 </Project>

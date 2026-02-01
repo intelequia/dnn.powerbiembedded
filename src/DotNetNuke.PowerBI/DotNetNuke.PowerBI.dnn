@@ -3,7 +3,7 @@
     <package name="PowerBIEmbeddedList" type="Module" version="01.04.00">
       <friendlyName>PowerBI Embedded Content List</friendlyName>
       <description>A set of modules to embed PowerBI Embedded dashboards and reports into a DNN Platform installation.</description>
-      <iconFile>~/DesktopModules/MVC/PowerBIEmbedded/images/powerbi.png</iconFile>
+      <iconFile>~/DesktopModules/MVC/PowerBIEmbedded/images/msfabric.png</iconFile>
       <owner>
         <name>Intelequia</name>
         <organization>Intelequia</organization>
@@ -179,7 +179,7 @@
     <package name="PowerBIEmbeddedContent" type="Module" version="01.04.00">
       <friendlyName>PowerBI Embedded Content View</friendlyName>
       <description>A set of modules to embed PowerBI Embedded dashboards and reports into a DNN Platform installation.</description>
-      <iconFile>~/DesktopModules/MVC/PowerBIEmbedded/images/powerbi.png</iconFile>
+      <iconFile>~/DesktopModules/MVC/PowerBIEmbedded/images/msfabric.png</iconFile>
       <owner>
         <name>Intelequia</name>
         <organization>Intelequia</organization>
@@ -234,7 +234,7 @@
     <package name="PowerBIEmbeddedCalendar" type="Module" version="01.04.00">
       <friendlyName>PowerBI Embedded Calendar View</friendlyName>
       <description>A set of modules to embed PowerBI Embedded dashboards and reports into a DNN Platform installation.</description>
-      <iconFile>~/DesktopModules/MVC/PowerBIEmbedded/images/powerbi.png</iconFile>
+      <iconFile>~/DesktopModules/MVC/PowerBIEmbedded/images/msfabric.png</iconFile>
       <owner>
         <name>Intelequia</name>
         <organization>Intelequia</organization>

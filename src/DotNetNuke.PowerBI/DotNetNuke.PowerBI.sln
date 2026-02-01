@@ -1,0 +1,24 @@
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.5.2.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DotNetNuke.PowerBI", "DotNetNuke.PowerBI.csproj", "{A76BBF89-C7C7-DCBF-8862-45E1AD2B8692}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{A76BBF89-C7C7-DCBF-8862-45E1AD2B8692}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A76BBF89-C7C7-DCBF-8862-45E1AD2B8692}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A76BBF89-C7C7-DCBF-8862-45E1AD2B8692}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A76BBF89-C7C7-DCBF-8862-45E1AD2B8692}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {B8D2545F-20C7-415E-9DA5-ED2352CEB879}
+	EndGlobalSection
+EndGlobal
