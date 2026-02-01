@@ -118,7 +118,7 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <data name="nav_PBIEmbedded.Text" xml:space="preserve">
-    <value>PowerBI Embedded</value>
+    <value>Power BI Settings</value>
   </data>
   <data name="No.Text" xml:space="preserve">
     <value>No</value>
@@ -154,13 +154,13 @@
     <value>You must specify the Application Id</value>
   </data>
   <data name="lblApplicationId.Help" xml:space="preserve">
-    <value>The PowerBI Application Id. This is the guid of the PowerBI Application declared on your Azure Active Directory tenant.</value>
+    <value>The Power BI Application Id. This is the guid of the Power BI Application declared on your Entra ID tenant.</value>
   </data>
   <data name="lblApplicationId.Text" xml:space="preserve">
-    <value>PowerBI Application Id</value>
+    <value>Power BI Application Id</value>
   </data>
   <data name="lblAuthenticationType.Help" xml:space="preserve">
-    <value>The authentication type you want to use to connect to PowerBI: Master User = an Azure AD user with permissions to login to powerbi.com with access to the workspace; Service Principal = an Azure AD registered application with access to the PowerBI workspace</value>
+    <value>The authentication type you want to use to connect to Power BI: Master User = an Entra ID user with permissions to login to powerbi.com with access to the workspace; Service Principal = an Entra ID registered application with access to the Power BI workspace</value>
   </data>
   <data name="lblAuthenticationType.Text" xml:space="preserve">
     <value>Authentication Type</value>
@@ -229,15 +229,15 @@
     <value>The workspace name can't be empty or equal to another workspace name</value>
   </data>
   <data name="lblSettingsGroupName.Help" xml:space="preserve">
-    <value>Enter a workspace name to identify these configuration settings when linking a listview or contentview control later. (This is not the PowerBI workspace name, just a name for these settings)</value>
+    <value>Enter a workspace name to identify these configuration settings when linking a listview or contentview control later. (This is not the Power BI workspace name, just a name for these settings)</value>
   </data>
   <data name="lblSettingsGroupName.Text" xml:space="preserve">
     <value>Workspace Name</value>
   </data>
   <data name="lblTabDescription.Text" xml:space="preserve">
-    <value>The DNN PowerBI Embedded module allows to integrate PowerBI reports, dashboards and tiles into public or secured DNN pages by using DNN integrated security. Before integrating the reports, you need to setup PowerBI Embedded capacity in your tenant.
+    <value>This module allows to integrate Power BI reports, dashboards and tiles into public or secured pages by using the platform integrated security. Before integrating the reports, you need to setup a Microsoft Fabric or Power BI Embedded capacity in your tenant.
 
-To integrate a PowerBI workspace into DNN, you need to setup a set of properties first. Then you can drop listview or content controls directly to each page. </value>
+To integrate a workspace into the portal, you need to setup a set of properties first. Then you can drop listview or content controls directly to each page. </value>
   </data>
   <data name="lblUsername.Error" xml:space="preserve">
     <value>You must specify the master user name</value>
@@ -258,10 +258,10 @@ To integrate a PowerBI workspace into DNN, you need to setup a set of properties
     <value>You must specify the Workspace Id</value>
   </data>
   <data name="lblWorkspaceId.Help" xml:space="preserve">
-    <value>The PowerBI workspace Id</value>
+    <value>The Power BI workspace Id</value>
   </data>
   <data name="lblWorkspaceId.Text" xml:space="preserve">
-    <value>PowerBI Workspace Id</value>
+    <value>Power BI Workspace Id</value>
   </data>
   <data name="lblWorkspacePermissions.Text" xml:space="preserve">
     <value>Workspace Permissions</value>
@@ -309,7 +309,7 @@ To integrate a PowerBI workspace into DNN, you need to setup a set of properties
     <value>Id</value>
   </data>
   <data name="WorkspaceSettingDeletedWarning.Text" xml:space="preserve">
-    <value>You are going to delete the PowerBI workspace settings. If there is any module setup with these settings, won't continue working</value>
+    <value>You are going to delete the workspace settings. If there is any module setup with these settings, it won't continue working</value>
   </data>
   <data name="WorkspaceUpdateSuccess.Text" xml:space="preserve">
     <value>Workspace successfully udpated</value>

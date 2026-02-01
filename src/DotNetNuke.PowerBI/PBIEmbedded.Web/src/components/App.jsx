@@ -27,7 +27,7 @@ class App extends Component {
         return (
             <div id="PBIEmbeddedAppContainer">
                 <PersonaBarPage isOpen={true}>
-                    <PersonaBarPageHeader title="PowerBI Embedded" titleCharLimit={30}>
+                    <PersonaBarPageHeader title="Power BI Settings" titleCharLimit={30}>
                     </PersonaBarPageHeader>
                     <PersonaBarPageBody>
                         <Tabs
