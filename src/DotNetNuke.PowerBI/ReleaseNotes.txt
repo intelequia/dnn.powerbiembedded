@@ -157,4 +157,8 @@
 	<b>Version 1.4.0</b>
 	<p>fix: compatibility issue with DNN 10.x</p>
 	<p>Requires .NET Framework 4.8</p>
+
+	<b>Version 1.4.1</b>
+	<p>fix: svg icons in the persona bar</p>
+	<p>feat: update branding from Power BI to Microsoft Fabric</p>
 </div>
