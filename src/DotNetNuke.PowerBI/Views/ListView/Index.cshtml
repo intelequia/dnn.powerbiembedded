@@ -5,16 +5,30 @@
     ClientResourceManager.RegisterStyleSheet(Dnn.DnnPage, "~/DesktopModules/MVC/PowerBIEmbedded/Css/module.css", 10, "DnnPageHeaderProvider");
 }
 <script language="Javascript">
+    function setWorkspaceCookie(workspaceId) {
+        var expires = new Date();
+        expires.setFullYear(expires.getFullYear() + 1);
+        document.cookie = "dnn_powerbi_workspace=" + encodeURIComponent(workspaceId) + "; expires=" + expires.toUTCString() + "; path=/";
+    }
+
+    function getCookieValue(name) {
+        var match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
+        return match ? decodeURIComponent(match[2]) : null;
+    }
+
     function changeWorkspace(e) {
+        var selectedWorkspace = $('.workspace')[0].value;
+        setWorkspaceCookie(selectedWorkspace);
+
         var loc = document.location.href;
         if (loc.includes("sid="))
-            loc = loc.replace(/(sid=)[^\&]+/, '$1' + $('.workspace')[0].value);
+            loc = loc.replace(/(sid=)[^\&]+/, '$1' + selectedWorkspace);
         if (loc.includes("sid/"))
-            loc = loc.replace(/(sid\/)[^\/]+/, '$1' + $('.workspace')[0].value);
+            loc = loc.replace(/(sid\/)[^\/]+/, '$1' + selectedWorkspace);
         if (document.location.href == loc) {
             if (!loc.includes("?"))
                 loc += "?";
-            loc += "sid=" + $('.workspace')[0].value;
+            loc += "sid=" + selectedWorkspace;
         }
         document.location.replace(loc);
     }
@@ -78,6 +92,26 @@
     </div>
     <script>
         window.onload = function () {
+            var workspaceSelect = document.getElementsByClassName('workspace');
+            if (workspaceSelect.length > 0) {
+                var savedWorkspace = getCookieValue('dnn_powerbi_workspace');
+                if (savedWorkspace) {
+                    var workspaceExists = false;
+                    for (var j = 0; j < workspaceSelect[0].options.length; j++) {
+                        if (workspaceSelect[0].options[j].value === savedWorkspace) {
+                            workspaceExists = true;
+                            break;
+                        }
+                    }
+
+                    if (workspaceExists && workspaceSelect[0].value !== savedWorkspace) {
+                        workspaceSelect[0].value = savedWorkspace;
+                        changeWorkspace();
+                        return;
+                    }
+                }
+            }
+
             document.getElementsByClassName('scrollableList')[0].scrollTop = 0;
             var menus = document.getElementsByClassName('normal');
             for (var i = 0; i < menus.length; i++) {
