@@ -1,4 +1,5 @@
 ﻿@inherits DotNetNuke.Web.Mvc.Framework.DnnWebViewPage<DotNetNuke.PowerBI.Models.PowerBIListView>
+@inherits DotNetNuke.Web.Mvc.Framework.DnnWebViewPage<DotNetNuke.PowerBI.Models.PowerBIListView>
 @using DotNetNuke.Web.Mvc.Helpers
 @using DotNetNuke.Web.Client.ClientResourceManagement
 @{
@@ -41,6 +42,10 @@
         }
         else
         {
+            var hasDashboards = Model.Dashboards != null && Model.Dashboards.Count > 0;
+            var hasReports = Model.Reports != null && Model.Reports.Count > 0;
+            var isSingleSection = hasDashboards != hasReports;
+
             if (Model.Workspaces.Count > 1)
             {
                 <div class="workspacesSection">
@@ -52,41 +57,40 @@
                     </select>
                 </div>
             }
-            <div class="dashboardsSection @(Model.Workspaces.Count > 1 ? "workspace": "")">
-                <h4>@Dnn.LocalizeString("Dashboards")</h4>
-                <ul>
-                    @if (Model.Dashboards.Count == 0)
-                    {
-                        <li class='empty'>@Dnn.LocalizeString("DashboardsEmpty")</li>
-                    }
-                    else
-                    {
-                        foreach (var d in Model.Dashboards)
-                        {
-                            var sid = !string.IsNullOrEmpty(ViewBag.SettingsGroupId) ? "&sid=" + ViewBag.SettingsGroupId : "";
-                            <li class='normal@(d.Id.ToString() == Request["dashboardId"] ? " active" : "")'><a href='@ViewBag.ReportsPage?dashboardId=@d.Id@sid'>@d.DisplayName</a></li>
-                        }
-                    }
-                </ul>
-            </div>
 
-            <div class="reportsSection @(Model.Workspaces.Count > 1 ? "workspace": "")">
-                <h4>@Dnn.LocalizeString("Reports")</h4>
-                <ul class="scrollableList">
-                    @if (Model.Reports.Count == 0)
+            if (hasDashboards)
+            {
+            <div class="dashboardsSection @(Model.Workspaces.Count > 1 ? "workspace": "") @(isSingleSection ? "singleSection" : "")">
+                @if (!isSingleSection)
+                {
+                    <h4>@Dnn.LocalizeString("Dashboards")</h4>
+                }
+                <ul>
+                    @foreach (var d in Model.Dashboards)
                     {
-                        <li class='empty'>@Dnn.LocalizeString("ReportsEmpty")</li>
-                    }
-                    else
-                    {
-                        foreach (var r in Model.Reports)
-                        {
-                            var sid = !string.IsNullOrEmpty(ViewBag.SettingsGroupId) ? "&sid=" + ViewBag.SettingsGroupId : "";
-                            <li class='normal@(r.Id.ToString() == Request["reportId"] ? " active" : "")'><a href='@ViewBag.ReportsPage?reportId=@r.Id@sid'>@r.Name</a></li>
-                        }
+                        var sid = !string.IsNullOrEmpty(ViewBag.SettingsGroupId) ? "&sid=" + ViewBag.SettingsGroupId : "";
+                        <li class='normal@(d.Id.ToString() == Request["dashboardId"] ? " active" : "")'><a href='@ViewBag.ReportsPage?dashboardId=@d.Id@sid'>@d.DisplayName</a></li>
                     }
                 </ul>
             </div>
+            }
+
+            if (hasReports)
+            {
+            <div class="reportsSection @(Model.Workspaces.Count > 1 ? "workspace": "") @(isSingleSection ? "singleSection" : "")">
+                @if (!isSingleSection)
+                {
+                    <h4>@Dnn.LocalizeString("Reports")</h4>
+                }
+                <ul class="scrollableList">
+                    @foreach (var r in Model.Reports)
+                    {
+                        var sid = !string.IsNullOrEmpty(ViewBag.SettingsGroupId) ? "&sid=" + ViewBag.SettingsGroupId : "";
+                        <li class='normal@(r.Id.ToString() == Request["reportId"] ? " active" : "")'><a href='@ViewBag.ReportsPage?reportId=@r.Id@sid'>@r.Name</a></li>
+                    }
+                </ul>
+            </div>
+            }
         }
 
     </div>
@@ -112,11 +116,14 @@
                 }
             }
 
-            document.getElementsByClassName('scrollableList')[0].scrollTop = 0;
-            var menus = document.getElementsByClassName('normal');
-            for (var i = 0; i < menus.length; i++) {
-                if (menus[i].classList.contains('active')) {
-                    document.getElementsByClassName('scrollableList')[0].scrollTop = menus[i].offsetTop;
+            var scrollableLists = document.getElementsByClassName('scrollableList');
+            if (scrollableLists.length > 0) {
+                scrollableLists[0].scrollTop = 0;
+                var menus = document.getElementsByClassName('normal');
+                for (var i = 0; i < menus.length; i++) {
+                    if (menus[i].classList.contains('active')) {
+                        scrollableLists[0].scrollTop = menus[i].offsetTop;
+                    }
                 }
             }
         }

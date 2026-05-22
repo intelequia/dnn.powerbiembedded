@@ -66,6 +66,11 @@
     margin-left: 10px;
 }
 
+.powerbiListView .dashboardsSection.singleSection.workspace,
+.powerbiListView .reportsSection.singleSection.workspace {
+    margin-left: 0;
+}
+
 .permission {
     display: inline-block;
     width: 16px;
