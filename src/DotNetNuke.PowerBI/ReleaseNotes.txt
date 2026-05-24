@@ -161,4 +161,8 @@
 	<b>Version 1.4.1</b>
 	<p>fix: svg icons in the persona bar</p>
 	<p>feat: update branding from Power BI to Microsoft Fabric</p>
+
+	<b>Version 1.5.1</b>
+	<p>maintenance: upgrade Microsoft.PowerBI.Api from 4.22.0 to 5.1.0</p>
+	<p>maintenance: migrate to Azure.Core based response model and TokenAccessLevel enum</p>
 </div>

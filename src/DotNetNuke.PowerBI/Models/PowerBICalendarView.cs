@@ -52,10 +52,16 @@ namespace DotNetNuke.PowerBI.Models
         public string end { get; set; }
     }
 
-    public class RefreshedDataset : Refresh
+    public class RefreshedDataset
     {
         public string Dataset { get; set; }
         public string WorkSpaceName { get; set; }
         public string CapacityName { get; set; }
+        public Microsoft.PowerBI.Api.Models.RefreshType? RefreshType { get; set; }
+        public DateTimeOffset? StartTime { get; set; }
+        public DateTimeOffset? EndTime { get; set; }
+        public string RequestId { get; set; }
+        public string ServiceExceptionJson { get; set; }
+        public string Status { get; set; }
     }
 }

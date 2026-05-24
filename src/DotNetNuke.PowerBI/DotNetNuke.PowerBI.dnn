@@ -1,6 +1,6 @@
 <dotnetnuke type="Package" version="5.0">
   <packages>
-    <package name="PowerBIEmbeddedList" type="Module" version="01.04.01">
+    <package name="PowerBIEmbeddedList" type="Module" version="01.05.01">
       <friendlyName>PowerBI Embedded Content List</friendlyName>
       <description>A set of modules to embed PowerBI Embedded dashboards and reports into a DNN Platform installation.</description>
       <iconFile>~/DesktopModules/MVC/PowerBIEmbedded/images/msfabric.png</iconFile>
@@ -171,12 +171,20 @@
               <name>Microsoft.Rest.ClientRuntime.dll</name>
               <path>bin</path>
             </assembly>
-            
+            <assembly>
+              <name>Azure.Core.dll</name>
+              <path>bin</path>
+            </assembly>
+            <assembly>
+              <name>System.Memory.Data.dll</name>
+              <path>bin</path>
+            </assembly>
+
           </assemblies>
         </component>
       </components>
     </package>
-    <package name="PowerBIEmbeddedContent" type="Module" version="01.04.01">
+    <package name="PowerBIEmbeddedContent" type="Module" version="01.05.01">
       <friendlyName>PowerBI Embedded Content View</friendlyName>
       <description>A set of modules to embed PowerBI Embedded dashboards and reports into a DNN Platform installation.</description>
       <iconFile>~/DesktopModules/MVC/PowerBIEmbedded/images/msfabric.png</iconFile>
@@ -231,7 +239,7 @@
         </component>
       </components>
     </package>
-    <package name="PowerBIEmbeddedCalendar" type="Module" version="01.04.01">
+    <package name="PowerBIEmbeddedCalendar" type="Module" version="01.05.01">
       <friendlyName>PowerBI Embedded Calendar View</friendlyName>
       <description>A set of modules to embed PowerBI Embedded dashboards and reports into a DNN Platform installation.</description>
       <iconFile>~/DesktopModules/MVC/PowerBIEmbedded/images/msfabric.png</iconFile>
