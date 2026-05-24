@@ -11,11 +11,6 @@
         document.cookie = "dnn_powerbi_workspace=" + encodeURIComponent(workspaceId) + "; expires=" + expires.toUTCString() + "; path=/";
     }
 
-    function getCookieValue(name) {
-        var match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
-        return match ? decodeURIComponent(match[2]) : null;
-    }
-
     function changeWorkspace(e) {
         var selectedWorkspace = $('.workspace')[0].value;
         setWorkspaceCookie(selectedWorkspace);
