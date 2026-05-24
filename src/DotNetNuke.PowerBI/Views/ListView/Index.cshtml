@@ -1,5 +1,4 @@
 ﻿@inherits DotNetNuke.Web.Mvc.Framework.DnnWebViewPage<DotNetNuke.PowerBI.Models.PowerBIListView>
-@inherits DotNetNuke.Web.Mvc.Framework.DnnWebViewPage<DotNetNuke.PowerBI.Models.PowerBIListView>
 @using DotNetNuke.Web.Mvc.Helpers
 @using DotNetNuke.Web.Client.ClientResourceManagement
 @{
@@ -9,12 +8,11 @@
     function setWorkspaceCookie(workspaceId) {
         var expires = new Date();
         expires.setFullYear(expires.getFullYear() + 1);
-        document.cookie = "dnn_powerbi_workspace=" + encodeURIComponent(workspaceId) + "; expires=" + expires.toUTCString() + "; path=/";
-    }
-
-    function getCookieValue(name) {
-        var match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
-        return match ? decodeURIComponent(match[2]) : null;
+        var cookie = "dnn_powerbi_workspace=" + encodeURIComponent(workspaceId) + "; expires=" + expires.toUTCString() + "; path=/; SameSite=Lax";
+        if (window.location.protocol === "https:") {
+            cookie += "; Secure";
+        }
+        document.cookie = cookie;
     }
 
     function changeWorkspace(e) {
