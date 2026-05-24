@@ -204,7 +204,10 @@ namespace DotNetNuke.PowerBI.Services
                     export.ResourceLocation,
                     export.ResourceFileExtension,
                     export.ExpirationTime,
-                    ReportName = string.IsNullOrEmpty(export.ReportName) ? $"{report.Name}.{format}" : export.ReportName
+                    ReportName = string.IsNullOrEmpty(export.ReportName) ? $"{report.Name}.{format}" : export.ReportName,
+                    export.CreatedDateTime,
+                    export.LastActionDateTime,
+                    export.ReportId
                 };
 
                 return Request.CreateResponse(HttpStatusCode.OK, exportPayload);
