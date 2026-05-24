@@ -273,7 +273,7 @@
 
         // Subscriptions
         this.subscriptionsArray = ko.observableArray([]);
-        this.pagesArray = ko.observableArray(context.ReportPages.value.slice());
+        this.pagesArray = ko.observableArray(context.ReportPages.Value.slice());
         this.selectedSubscription = ko.observable();
 
 

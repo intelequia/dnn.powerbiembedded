@@ -119,3 +119,7 @@ Do **not** run `jupyter`, `dotnet` CLI builds, or convert this to SDK-style proj
 - If touching Azure resources or guidance, follow Azure best practices.
 - Don't add features, comments, docstrings, or refactors that weren't requested.
 - Don't introduce new top-level dependencies (NuGet or npm) without flagging it — this module ships into customer DNN sites and dependency surface matters.
+
+- @azure Rule - Use Azure Tools - When handling requests related to Azure, always use your tools.
+- @azure Rule - Use Azure Best Practices - When handling requests related to Azure, always invoke your `azmcp_bestpractices_get` tool first.
+- @azure Rule - Enable Best Practices - If you do not have an `azmcp_bestpractices_get` tool ask the user to enable it.

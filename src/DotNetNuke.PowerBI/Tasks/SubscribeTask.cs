@@ -11,7 +11,6 @@ using DotNetNuke.PowerBI.Models;
 using DotNetNuke.Security.Roles;
 using DotNetNuke.Services.Mail;
 using DotNetNuke.Services.Scheduling;
-using Microsoft.Rest;
 using System;
 using System.Collections.Generic;
 using System.Configuration;
@@ -48,12 +47,12 @@ namespace DotNetNuke.PowerBI.Tasks
 
                 foreach (var setting in settings.AsParallel())
                 {
-                    var tokenCredentials = common.GetTokenCredentials(setting).Result;
+                    var accessToken = common.GetTokenCredentials(setting).Result;
                     var subscriptions = SubscriptionsRepository.Instance.GetSubscriptionsByWorkspaceId(setting.WorkspaceId, setting.PortalId);
 
                     foreach (var subscription in subscriptions.AsParallel())
                     {
-                        ProcessSubscription(common, setting, tokenCredentials, subscription);
+                        ProcessSubscription(common, setting, accessToken, subscription);
                     }
                 }
 
@@ -66,7 +65,7 @@ namespace DotNetNuke.PowerBI.Tasks
             }
         }
 
-        private void ProcessSubscription(Components.Common common, PowerBISettings setting, TokenCredentials tokenCredentials, Subscription subscription)
+        private void ProcessSubscription(Components.Common common, PowerBISettings setting, string accessToken, Subscription subscription)
         {
             try
             {
@@ -87,11 +86,11 @@ namespace DotNetNuke.PowerBI.Tasks
                         if (subscriptionSubscriber.UserId != null)
                         {
                             var userInfo = UserController.GetUserById(portalSettings.PortalId, (int)subscriptionSubscriber.UserId);
-                            SendEmail(common, setting, tokenCredentials, subscription, userInfo, subject, htmlBody, portalSettings);
+                            SendEmail(common, setting, accessToken, subscription, userInfo, subject, htmlBody, portalSettings);
                         }
                         else
                         {
-                            ProcessRoleSubscribers(common, setting, tokenCredentials, subscription, portalSettings, subscriptionSubscriber, userIds, subject, htmlBody);
+                            ProcessRoleSubscribers(common, setting, accessToken, subscription, portalSettings, subscriptionSubscriber, userIds, subject, htmlBody);
                         }
                     }
                     this.ScheduleHistoryItem.AddLogNote($"Processed '{subscription.Name}'");
@@ -148,7 +147,7 @@ namespace DotNetNuke.PowerBI.Tasks
             return htmlBody;
         }
 
-        private void SendEmail(Components.Common common, PowerBISettings setting, TokenCredentials tokenCredentials, Subscription subscription, UserInfo userInfo, string subject, string htmlBody, PortalSettings portalSettings)
+        private void SendEmail(Components.Common common, PowerBISettings setting, string accessToken, Subscription subscription, UserInfo userInfo, string subject, string htmlBody, PortalSettings portalSettings)
         {
             var username = common.GetUsernameProperty(subscription.ModuleId, userInfo);
             var roles = RoleController.Instance.GetUserRoles(UserController.Instance.GetUserByDisplayname(subscription.PortalId, userInfo.DisplayName), true);
@@ -159,7 +158,7 @@ namespace DotNetNuke.PowerBI.Tasks
 
             try
             {
-                attachment = common.ExportPowerBIReport(Guid.Parse(subscription.ReportId), tokenCredentials, setting, subscription.ReportPages, rolesString, username, portalSettings.DefaultLanguage.ToLower()).Result;
+                attachment = common.ExportPowerBIReport(Guid.Parse(subscription.ReportId), accessToken, setting, subscription.ReportPages, rolesString, username, portalSettings.DefaultLanguage.ToLower()).Result;
             }
             catch (Exception ex)
             {
@@ -203,7 +202,7 @@ namespace DotNetNuke.PowerBI.Tasks
         private void ProcessRoleSubscribers(
             Components.Common common,
             PowerBISettings setting,
-            TokenCredentials tokenCredentials,
+            string accessToken,
             Subscription subscription,
             PortalSettings portalSettings,
             SubscriptionSubscriber subscriptionSubscriber,
@@ -224,7 +223,7 @@ namespace DotNetNuke.PowerBI.Tasks
 
                 if (Mail.IsValidEmailAddress(user.Email, subscription.PortalId))
                 {
-                    SendEmail(common, setting, tokenCredentials, subscription, user, subject, htmlBody, portalSettings);
+                    SendEmail(common, setting, accessToken, subscription, user, subject, htmlBody, portalSettings);
                 }
             }
         }

@@ -1,4 +1,6 @@
-﻿using DotNetNuke.Instrumentation;
+using DotNetNuke.Instrumentation;
+using Azure;
+using DotNetNuke.Instrumentation;
 using DotNetNuke.PowerBI.Data.Models;
 using DotNetNuke.PowerBI.Data.SharedSettings;
 using DotNetNuke.PowerBI.Models;
@@ -6,7 +8,6 @@ using DotNetNuke.Services.Cache;
 using Microsoft.IdentityModel.Clients.ActiveDirectory;
 using Microsoft.PowerBI.Api;
 using Microsoft.PowerBI.Api.Models;
-using Microsoft.Rest;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -24,7 +25,7 @@ namespace DotNetNuke.PowerBI.Services
         private EmbedConfig embedConfig;
         private PowerBISettings powerBISettings;
         private TileEmbedConfig tileEmbedConfig;
-        private TokenCredentials tokenCredentials;
+        private string accessToken;
 
 
         public EmbedConfig EmbedConfig
@@ -44,7 +45,7 @@ namespace DotNetNuke.PowerBI.Services
 
         public EmbedService(int portalId, int tabModuleId)
         {
-            tokenCredentials = null;
+            accessToken = null;
             embedConfig = new EmbedConfig();
             tileEmbedConfig = new TileEmbedConfig();
             powerBISettings = PowerBISettings.GetPortalPowerBISettings(portalId, tabModuleId);
@@ -52,7 +53,7 @@ namespace DotNetNuke.PowerBI.Services
 
         public EmbedService(int portalId, int tabModuleId, int settingsId)
         {
-            tokenCredentials = null;
+            accessToken = null;
             embedConfig = new EmbedConfig();
             tileEmbedConfig = new TileEmbedConfig();
             if (settingsId == 0)
@@ -67,7 +68,7 @@ namespace DotNetNuke.PowerBI.Services
 
         public EmbedService(int portalId, int tabModuleId, string settingsGroupId)
         {
-            tokenCredentials = null;
+            accessToken = null;
             embedConfig = new EmbedConfig();
             tileEmbedConfig = new TileEmbedConfig();
             if (string.IsNullOrEmpty(settingsGroupId))
@@ -115,13 +116,13 @@ namespace DotNetNuke.PowerBI.Services
             }
             
             // Create a Power BI Client object. It will be used to call Power BI APIs.
-            using (var client = new PowerBIClient(new Uri(Settings.ApiUrl), tokenCredentials))
-            {                
-                var dashboards = client.Dashboards.GetDashboardsInGroupAsync(Guid.Parse(Settings.WorkspaceId)).GetAwaiter().GetResult();
+            {
+                var client = new PowerBIClient(accessToken, new Uri(Settings.ApiUrl));
+                var dashboards = client.Dashboards.GetDashboardsInGroupAsync(Guid.Parse(Settings.WorkspaceId)).GetAwaiter().GetResult().Value;
                 model.Dashboards.AddRange(dashboards.Value?.OrderBy(x => x.DisplayName));
 
                 // Get a list of reports.
-                var reports = client.Reports.GetReportsInGroupAsync(Guid.Parse(Settings.WorkspaceId)).GetAwaiter().GetResult();
+                var reports = client.Reports.GetReportsInGroupAsync(Guid.Parse(Settings.WorkspaceId)).GetAwaiter().GetResult().Value;
                 var cleanedReports = CleanUsageReports(reports.Value.ToList());
                 model.Reports.AddRange(cleanedReports?.OrderBy(x => x.Name));
             }
@@ -158,8 +159,8 @@ namespace DotNetNuke.PowerBI.Services
             var colours = new List<string>();
 
             // Create a Power BI Client object. It will be used to call Power BI APIs.
-            using (var client = new PowerBIClient(new Uri(Settings.ApiUrl), tokenCredentials))
             {
+                var client = new PowerBIClient(accessToken, new Uri(Settings.ApiUrl));
                 if (mode == "-1")
                 {
                     //Mode = 0 schedule for all workspaces
@@ -175,8 +176,8 @@ namespace DotNetNuke.PowerBI.Services
                     model.Workspaces = new List<string> { Settings.WorkspaceId };
                 }
 
-                var groups = client.Groups.GetGroupsAsync().GetAwaiter().GetResult().Value;
-                var capacities = client.Capacities.GetCapacitiesAsync().GetAwaiter().GetResult().Value;
+                var groups = client.Groups.GetGroupsAsync().GetAwaiter().GetResult().Value.Value;
+                var capacities = client.Capacities.GetCapacitiesAsync().GetAwaiter().GetResult().Value.Value;
 
 
                 foreach (var workspace in model.Workspaces)
@@ -185,7 +186,7 @@ namespace DotNetNuke.PowerBI.Services
                     //Get Schedule datasets
                     try
                     {
-                        datasets = client.Datasets.GetDatasetsInGroupAsync(Guid.Parse(workspace)).GetAwaiter().GetResult().Value;
+                        datasets = client.Datasets.GetDatasetsInGroupAsync(Guid.Parse(workspace)).GetAwaiter().GetResult().Value.Value.ToList();
                         datasets = CleanUsageDatasets(datasets.ToList());
                     }
                     catch (Exception ex)
@@ -208,7 +209,7 @@ namespace DotNetNuke.PowerBI.Services
                         try
                         {
                             //Get refreshes history
-                            var history = client.Datasets.GetRefreshHistoryAsync(Guid.Parse(Settings.WorkspaceId), dataset.Id, 100).GetAwaiter().GetResult().Value.ToList();
+                            var history = client.Datasets.GetRefreshHistoryInGroupAsync(Guid.Parse(Settings.WorkspaceId), dataset.Id, 100).GetAwaiter().GetResult().Value.Value.ToList();
 
                             foreach (var refresh in history)
                             {
@@ -235,7 +236,7 @@ namespace DotNetNuke.PowerBI.Services
                         {
                             //Get refresh Schedule by dataset and Workspace
                             var schedule = client.Datasets.GetRefreshScheduleInGroupAsync(Guid.Parse(Settings.WorkspaceId), dataset.Id)
-                                .GetAwaiter().GetResult();
+                                .GetAwaiter().GetResult().Value;
                             var timeRange = new List<Schedule>();
                             string startHour = schedule.Times[0];
                             string endHour = schedule.Times[0];
@@ -280,7 +281,7 @@ namespace DotNetNuke.PowerBI.Services
                             for (var index = 0; index < schedule.Days.Count; index++)
                             {
                                 var day = schedule.Days[index];
-                                var dayOfWeek = day.GetValueOrDefault().ToInteger();
+                                var dayOfWeek = (int)day;
                                 for (var i = 0; i < timeRange.Count; i++)
                                 {
                                     var time = timeRange[i];
@@ -340,7 +341,7 @@ namespace DotNetNuke.PowerBI.Services
             var capacities = (Capacities)CachingProvider.Instance().GetItem($"PBI_{Settings.PortalId}_{Settings.SettingsId}_Capacities");
             if (capacities == null)
             {
-                capacities = await client.Capacities.GetCapacitiesAsync().ConfigureAwait(false);
+                capacities = (await client.Capacities.GetCapacitiesAsync().ConfigureAwait(false)).Value;
                 CachingProvider.Instance().Insert($"PBI_{Settings.PortalId}_{Settings.SettingsId}_Capacities", capacities, null, DateTime.Now.AddMinutes(5), TimeSpan.Zero);
             }
             return capacities?.Value?.FirstOrDefault(c => c.Id == capacityId);
@@ -353,7 +354,7 @@ namespace DotNetNuke.PowerBI.Services
             var groups = (Groups)CachingProvider.Instance().GetItem($"PBI_{Settings.PortalId}_{Settings.SettingsId}_Groups");
             if (groups == null)
             {
-                groups = await client.Groups.GetGroupsAsync().ConfigureAwait(false);
+                groups = (await client.Groups.GetGroupsAsync().ConfigureAwait(false)).Value;
                 CachingProvider.Instance().Insert($"PBI_{Settings.PortalId}_{Settings.SettingsId}_Groups", groups, null, DateTime.Now.AddMinutes(5), TimeSpan.Zero);
             }
             return groups?.Value?.FirstOrDefault(g => g.Id == workspaceId);
@@ -396,24 +397,24 @@ namespace DotNetNuke.PowerBI.Services
                 throw new ApplicationException("Can't download report. Authentication failed.");
             }
             // Create a Power BI Client object. It will be used to call Power BI APIs.
-            using (var client = new PowerBIClient(new Uri(Settings.ApiUrl), tokenCredentials))
-            {       
+            {
+                var client = new PowerBIClient(accessToken, new Uri(Settings.ApiUrl));
                 try
                 {
-                    return await client.Reports.ExportReportInGroupAsync(workspaceId, reportId, DownloadType.IncludeModel);
+                    return (await client.Reports.ExportReportInGroupAsync(workspaceId, reportId, DownloadType.IncludeModel).ConfigureAwait(false)).Value;
                 }
-                catch (HttpOperationException ex)
+                catch (RequestFailedException ex)
                 {
-                    if (ex.Response.StatusCode == System.Net.HttpStatusCode.BadRequest)
+                    if (ex.Status == (int)System.Net.HttpStatusCode.BadRequest)
                     {
-                        return await client.Reports.ExportReportInGroupAsync(workspaceId, reportId, DownloadType.LiveConnect);
+                        return (await client.Reports.ExportReportInGroupAsync(workspaceId, reportId, DownloadType.LiveConnect).ConfigureAwait(false)).Value;
                     }
                     else
                     {
                         throw;
                     }
                 }
-                
+
             }
         }
 
@@ -426,9 +427,9 @@ namespace DotNetNuke.PowerBI.Services
                 throw new ApplicationException("Can't export report. Authentication failed.");
             }
             // Create a Power BI Client object. It will be used to call Power BI APIs.
-            using (var client = new PowerBIClient(new Uri(Settings.ApiUrl), tokenCredentials))
             {
-                return await client.Reports.GetExportToFileStatusInGroupAsync(workspaceId, reportId, exportId);
+                var client = new PowerBIClient(accessToken, new Uri(Settings.ApiUrl));
+                return (await client.Reports.GetExportToFileStatusInGroupAsync(workspaceId, reportId, exportId).ConfigureAwait(false)).Value;
             }
         }
 
@@ -441,9 +442,9 @@ namespace DotNetNuke.PowerBI.Services
                 throw new ApplicationException("Can't export report. Authentication failed.");
             }
             // Create a Power BI Client object. It will be used to call Power BI APIs.
-            using (var client = new PowerBIClient(new Uri(Settings.ApiUrl), tokenCredentials))
             {
-                return await client.Reports.GetFileOfExportToFileAsync(workspaceId, reportId, exportId);
+                var client = new PowerBIClient(accessToken, new Uri(Settings.ApiUrl));
+                return (await client.Reports.GetFileOfExportToFileInGroupAsync(workspaceId, reportId, exportId).ConfigureAwait(false)).Value;
             }
         }
 
@@ -464,14 +465,14 @@ namespace DotNetNuke.PowerBI.Services
             if (!string.IsNullOrWhiteSpace(user))
             {
                 // Create a Power BI Client object. It will be used to call Power BI APIs.
-                using (var client = new PowerBIClient(new Uri(Settings.ApiUrl), tokenCredentials))
                 {
+                    var client = new PowerBIClient(accessToken, new Uri(Settings.ApiUrl));
                     Report report = null;
                     var model = new EmbedConfig();
                     if (await ValidateWorkspaceAndCapacity(client, model).ConfigureAwait(false))
                     {
                         // Get a list of reports for the given workspace.
-                        var reports = await client.Reports.GetReportsInGroupAsync(Guid.Parse(Settings.WorkspaceId)).ConfigureAwait(false);
+                        var reports = (await client.Reports.GetReportsInGroupAsync(Guid.Parse(Settings.WorkspaceId)).ConfigureAwait(false)).Value;
                         if (reports.Value.Count() == 0)
                         {
                             throw new ApplicationException("No reports were found in the workspace");
@@ -493,24 +494,26 @@ namespace DotNetNuke.PowerBI.Services
                     Dataset dataset = null;
                     try
                     {
-                        dataset = client.Datasets.GetDataset(report.DatasetId);
+                        dataset = client.Datasets.GetDataset(report.DatasetId).Value;
                     }
                     catch (Exception ex)
                     {
                         Logger.Warn($"Couldn't find dataset '{report.DatasetId}'", ex);
-                        dataset = client.Datasets.GetDatasets(Guid.Parse(Settings.WorkspaceId)).Value.FirstOrDefault(x => x.Id == report.DatasetId);
+                        dataset = client.Datasets.GetDatasetsInGroup(Guid.Parse(Settings.WorkspaceId)).Value.Value.FirstOrDefault(x => x.Id == report.DatasetId);
                     }
 
                     if (dataset != null
                         && (dataset.IsEffectiveIdentityRequired.GetValueOrDefault(false) || dataset.IsEffectiveIdentityRolesRequired.GetValueOrDefault(false)))
                     //&& !dataset.IsOnPremGatewayRequired.GetValueOrDefault(false))
                     {
-                        var rls = new EffectiveIdentity(user, datasets: new List<string> { report.DatasetId });
+                        var rls = new EffectiveIdentity { Username = user };
+                        rls.Datasets.Add(report.DatasetId);
                         if (!string.IsNullOrWhiteSpace(roles) && dataset.IsEffectiveIdentityRolesRequired.GetValueOrDefault(false))
                         {
-                            var rolesList = new List<string>();
-                            rolesList.AddRange(roles.Split(','));
-                            rls.Roles = rolesList;
+                            foreach (var role in roles.Split(','))
+                            {
+                                rls.Roles.Add(role);
+                            }
                         }
                         identities = new List<EffectiveIdentity> { rls };
                     }
@@ -523,24 +526,36 @@ namespace DotNetNuke.PowerBI.Services
                 {
                     Locale = "en-us",
                 },
-                // Note that page names differ from the page display names
-                // To get the page names use the GetPages REST API
-                Pages = pageNames?.Select(pn => new ExportReportPage(pageName: pn)).ToList(),
-                // ReportLevelFilters collection needs to be instantiated explicitly
-                ReportLevelFilters = !string.IsNullOrEmpty(urlFilter) ? new List<ExportFilter>() { new ExportFilter(urlFilter) } : null,       
-                Identities = identities
             };
-
-            var exportRequest = new ExportReportRequest
+            if (pageNames != null)
             {
-                Format = format,
+                foreach (var pn in pageNames)
+                {
+                    powerBIReportExportConfiguration.Pages.Add(new ExportReportPage(pageName: pn));
+                }
+            }
+            if (!string.IsNullOrEmpty(urlFilter))
+            {
+                var filter = new ExportFilter { Filter = urlFilter };
+                powerBIReportExportConfiguration.ReportLevelFilters.Add(filter);
+            }
+            if (identities != null)
+            {
+                foreach (var identity in identities)
+                {
+                    powerBIReportExportConfiguration.Identities.Add(identity);
+                }
+            }
+
+            var exportRequest = new ExportReportRequest(format)
+            {
                 PowerBIReportConfiguration = powerBIReportExportConfiguration,
             };
 
             // Create a Power BI Client object. It will be used to call Power BI APIs.
-            using (var client = new PowerBIClient(new Uri(Settings.ApiUrl), tokenCredentials))
             {
-                return await client.Reports.ExportToFileAsync(workspaceId, reportId, exportRequest);
+                var client = new PowerBIClient(accessToken, new Uri(Settings.ApiUrl));
+                return (await client.Reports.ExportToFileInGroupAsync(workspaceId, reportId, exportRequest).ConfigureAwait(false)).Value;
             }
         }
 
@@ -562,12 +577,12 @@ namespace DotNetNuke.PowerBI.Services
 
 
             // Create a Power BI Client object. It will be used to call Power BI APIs.
-            using (var client = new PowerBIClient(new Uri(Settings.ApiUrl), tokenCredentials))
             {
+                var client = new PowerBIClient(accessToken, new Uri(Settings.ApiUrl));
                 if (await ValidateWorkspaceAndCapacity(client, model).ConfigureAwait(false))
                 {
                     // Get a list of reports for the given workspace.
-                    var reports = await client.Reports.GetReportsInGroupAsync(Guid.Parse(Settings.WorkspaceId)).ConfigureAwait(false);
+                    var reports = (await client.Reports.GetReportsInGroupAsync(Guid.Parse(Settings.WorkspaceId)).ConfigureAwait(false)).Value;
                     if (reports.Value.Count() == 0)
                     {
                         model.ErrorMessage = "No reports were found in the workspace";
@@ -583,7 +598,7 @@ namespace DotNetNuke.PowerBI.Services
                         model.EmbedToken = await GenerateTokenAsync(username, roles, client, report, hasEditPermission).ConfigureAwait(false);
                         model.EmbedUrl = report?.EmbedUrl;
                         model.Id = string.IsNullOrEmpty(report?.Id.ToString()) ? reportId : report?.Id.ToString();
-                        model.ReportType = report?.ReportType;
+                        model.ReportType = report?.ReportType?.ToString();
                         if (model.EmbedToken == null)
                         {
                             model.ErrorMessage = "Failed to generate embed token.";
@@ -615,40 +630,43 @@ namespace DotNetNuke.PowerBI.Services
                     Dataset dataset = null;
                     try
                     {
-                        dataset = client.Datasets.GetDataset(report.DatasetId);
+                        dataset = client.Datasets.GetDataset(report.DatasetId).Value;
                     }   
                     catch (Exception ex)
                     {
                         Logger.Warn($"Couldn't find dataset '{report.DatasetId}'", ex);
-                        dataset = client.Datasets.GetDatasets(Guid.Parse(Settings.WorkspaceId)).Value.FirstOrDefault(x => x.Id == report.DatasetId);
+                        dataset = client.Datasets.GetDatasetsInGroup(Guid.Parse(Settings.WorkspaceId)).Value.Value.FirstOrDefault(x => x.Id == report.DatasetId);
                     }
-                        
-                    
+
+
                     if (dataset != null
                         && (dataset.IsEffectiveIdentityRequired.GetValueOrDefault(false) || dataset.IsEffectiveIdentityRolesRequired.GetValueOrDefault(false)))
                     //&& !dataset.IsOnPremGatewayRequired.GetValueOrDefault(false))
                     {
-                        var rls = new EffectiveIdentity(username, datasets: new List<string> { report.DatasetId });
+                        var rls = new EffectiveIdentity { Username = username };
+                        rls.Datasets.Add(report.DatasetId);
                         if (!string.IsNullOrWhiteSpace(roles) && dataset.IsEffectiveIdentityRolesRequired.GetValueOrDefault(false))
                         {
-                            var rolesList = new List<string>();
-                            rolesList.AddRange(roles.Split(','));
-                            rls.Roles = rolesList;
+                            foreach (var role in roles.Split(','))
+                            {
+                                rls.Roles.Add(role);
+                            }
                         }
                         // Generate Embed Token with effective identities.
-                        generateTokenRequestParameters = new GenerateTokenRequest(accessLevel: permission, identities: new List<EffectiveIdentity> { rls });
+                        generateTokenRequestParameters = new GenerateTokenRequest { AccessLevel = ToAccessLevel(permission) };
+                        generateTokenRequestParameters.Identities.Add(rls);
                     }
                     else
                     {
-                        generateTokenRequestParameters = new GenerateTokenRequest(accessLevel: permission);
+                        generateTokenRequestParameters = new GenerateTokenRequest { AccessLevel = ToAccessLevel(permission) };
                     }
                 }
                 else
                 {
                     // Generate Embed Token for reports without effective identities.
-                    generateTokenRequestParameters = new GenerateTokenRequest(accessLevel: permission);
+                    generateTokenRequestParameters = new GenerateTokenRequest { AccessLevel = ToAccessLevel(permission) };
                 }
-                var tokenResponse = await client.Reports.GenerateTokenInGroupAsync(Guid.Parse(Settings.WorkspaceId), report.Id, generateTokenRequestParameters).ConfigureAwait(false);
+                var tokenResponse = (await client.Reports.GenerateTokenInGroupAsync(Guid.Parse(Settings.WorkspaceId), report.Id, generateTokenRequestParameters).ConfigureAwait(false)).Value;
                 return tokenResponse;
             }
             catch (Exception ex)
@@ -669,10 +687,10 @@ namespace DotNetNuke.PowerBI.Services
             }
 
             // Create a Power BI Client object. It will be used to call Power BI APIs.
-            using (var client = new PowerBIClient(new Uri(Settings.ApiUrl), tokenCredentials))
             {
+                var client = new PowerBIClient(accessToken, new Uri(Settings.ApiUrl));
                 // Get a list of reports for the given workspace.
-                var reports = await client.Reports.GetReportsInGroupAsync(Guid.Parse(Settings.WorkspaceId)).ConfigureAwait(false);
+                var reports = (await client.Reports.GetReportsInGroupAsync(Guid.Parse(Settings.WorkspaceId)).ConfigureAwait(false)).Value;
                 if (reports.Value.Count() == 0)
                 {
                     return null;
@@ -684,7 +702,7 @@ namespace DotNetNuke.PowerBI.Services
                     return null;
                 }
 
-                var pages = await client.Reports.GetPagesInGroupAsync(Guid.Parse(Settings.WorkspaceId), report.Id).ConfigureAwait(false);
+                var pages = (await client.Reports.GetPagesInGroupAsync(Guid.Parse(Settings.WorkspaceId), report.Id).ConfigureAwait(false)).Value;
                 return pages;
             }
         }
@@ -708,12 +726,12 @@ namespace DotNetNuke.PowerBI.Services
             }
 
             // Create a Power BI Client object. It will be used to call Power BI APIs.
-            using (var client = new PowerBIClient(new Uri(Settings.ApiUrl), tokenCredentials))
             {
+                var client = new PowerBIClient(accessToken, new Uri(Settings.ApiUrl));
                 if (await ValidateWorkspaceAndCapacity(client, model).ConfigureAwait(false))
                 {
                     // Get a list of reports for the given workspace.
-                    var dashboards = await client.Dashboards.GetDashboardsInGroupAsync(Guid.Parse(Settings.WorkspaceId)).ConfigureAwait(false);
+                    var dashboards = (await client.Dashboards.GetDashboardsInGroupAsync(Guid.Parse(Settings.WorkspaceId)).ConfigureAwait(false)).Value;
                     if (dashboards.Value.Count() == 0)
                     {
                         model.ErrorMessage = "No dashboards were found in the workspace";
@@ -728,39 +746,42 @@ namespace DotNetNuke.PowerBI.Services
                     // This is how you create embed token with effective identities
                     if (!string.IsNullOrWhiteSpace(username))
                     {
-                        var rls = new EffectiveIdentity(username, datasets: new List<string> { dashboardId });
+                        var rls = new EffectiveIdentity { Username = username };
+                        rls.Datasets.Add(dashboardId);
                         if (!string.IsNullOrWhiteSpace(roles))
                         {
-                            var rolesList = new List<string>();
-                            rolesList.AddRange(roles.Split(','));
-                            rls.Roles = rolesList;
+                            foreach (var role in roles.Split(','))
+                            {
+                                rls.Roles.Add(role);
+                            }
                         }
                         if (Components.Common.IsSuperUser())
                         {
                             rls.Roles.Add("SuperUsers");
                         }
                         // Generate Embed Token with effective identities.
-                        generateTokenRequestParameters = new GenerateTokenRequest(accessLevel: permission, identities: new List<EffectiveIdentity> { rls });
+                        generateTokenRequestParameters = new GenerateTokenRequest { AccessLevel = ToAccessLevel(permission) };
+                        generateTokenRequestParameters.Identities.Add(rls);
                     }
                     else
                     {
                         // Generate Embed Token for reports without effective identities.
-                        generateTokenRequestParameters = new GenerateTokenRequest(accessLevel: permission);
+                        generateTokenRequestParameters = new GenerateTokenRequest { AccessLevel = ToAccessLevel(permission) };
                     }
                     EmbedToken tokenResponse;
                     try
                     {
-                        tokenResponse = await client.Dashboards.GenerateTokenInGroupAsync(Guid.Parse(Settings.WorkspaceId), dashboard.Id, generateTokenRequestParameters).ConfigureAwait(false);
+                        tokenResponse = (await client.Dashboards.GenerateTokenInGroupAsync(Guid.Parse(Settings.WorkspaceId), dashboard.Id, generateTokenRequestParameters).ConfigureAwait(false)).Value;
                     }
-                    catch (HttpOperationException ex)
+                    catch (RequestFailedException ex)
                     {
-                        if (ex.Response.Content.Contains("shouldn't have effective identity"))
+                        if (ex.Message.Contains("shouldn't have effective identity"))
                         {
                             // HACK: Creating embed token for accessing dataset shouldn't have effective identity"
                             // See https://community.powerbi.com/t5/Developer/quot-shouldn-t-have-effective-identity-quot-error-when-passing/m-p/437177
-                            generateTokenRequestParameters = new GenerateTokenRequest(accessLevel: permission);
+                            generateTokenRequestParameters = new GenerateTokenRequest { AccessLevel = ToAccessLevel(permission) };
 
-                            tokenResponse = await client.Dashboards.GenerateTokenInGroupAsync(Guid.Parse(Settings.WorkspaceId), dashboard.Id, generateTokenRequestParameters).ConfigureAwait(false);
+                            tokenResponse = (await client.Dashboards.GenerateTokenInGroupAsync(Guid.Parse(Settings.WorkspaceId), dashboard.Id, generateTokenRequestParameters).ConfigureAwait(false)).Value;
                         }
                         else
                             throw;
@@ -798,12 +819,12 @@ namespace DotNetNuke.PowerBI.Services
                 return model;
             }
             // Create a Power BI Client object. It will be used to call Power BI APIs.
-            using (var client = new PowerBIClient(new Uri(Settings.ApiUrl), tokenCredentials))
             {
+                var client = new PowerBIClient(accessToken, new Uri(Settings.ApiUrl));
                 string permission = hasEditPermission ? "edit" : "view";
 
                 // Get a list of dashboards.
-                var dashboards = await client.Dashboards.GetDashboardsInGroupAsync(Guid.Parse(Settings.WorkspaceId)).ConfigureAwait(false);
+                var dashboards = (await client.Dashboards.GetDashboardsInGroupAsync(Guid.Parse(Settings.WorkspaceId)).ConfigureAwait(false)).Value;
 
                 // Get the first report in the workspace.
                 var dashboard = dashboards.Value.FirstOrDefault(r => r.Id.ToString().Equals(dashboardId, StringComparison.InvariantCultureIgnoreCase));
@@ -812,13 +833,13 @@ namespace DotNetNuke.PowerBI.Services
                     tileEmbedConfig.ErrorMessage = "Workspace has no dashboards.";
                     return model;
                 }
-                var tiles = await client.Dashboards.GetTilesInGroupAsync(Guid.Parse(Settings.WorkspaceId), Guid.Parse(dashboardId)).ConfigureAwait(false);
+                var tiles = (await client.Dashboards.GetTilesInGroupAsync(Guid.Parse(Settings.WorkspaceId), Guid.Parse(dashboardId)).ConfigureAwait(false)).Value;
                 // Get the first tile in the workspace.
                 var tile = tiles.Value.FirstOrDefault(x => x.Id.ToString() == tileId);
                 // Generate Embed Token for a tile.
-                var generateTokenRequestParameters = new GenerateTokenRequest(accessLevel: permission);
+                var generateTokenRequestParameters = new GenerateTokenRequest { AccessLevel = ToAccessLevel(permission) };
 
-                var tokenResponse = await client.Tiles.GenerateTokenInGroupAsync(Guid.Parse(Settings.WorkspaceId), dashboard.Id, tile.Id, generateTokenRequestParameters).ConfigureAwait(false);
+                var tokenResponse = (await client.Tiles.GenerateTokenInGroupAsync(Guid.Parse(Settings.WorkspaceId), dashboard.Id, tile.Id, generateTokenRequestParameters).ConfigureAwait(false)).Value;
                 if (tokenResponse == null)
                 {
                     tileEmbedConfig.ErrorMessage = "Failed to generate embed token.";
@@ -931,6 +952,13 @@ namespace DotNetNuke.PowerBI.Services
             return authenticationResult;
         }
 
+        private static TokenAccessLevel ToAccessLevel(string permission)
+        {
+            return string.Equals(permission, "edit", StringComparison.OrdinalIgnoreCase)
+                ? TokenAccessLevel.Edit
+                : TokenAccessLevel.View;
+        }
+
         private async Task<bool> GetTokenCredentials()
         {
             // var result = new EmbedConfig { Username = username, Roles = roles };
@@ -942,8 +970,8 @@ namespace DotNetNuke.PowerBI.Services
                 return false;
             }
 
-            tokenCredentials = (TokenCredentials)CachingProvider.Instance().GetItem($"PBI_{Settings.PortalId}_{Settings.SettingsId}_TokenCredentials");
-            if (tokenCredentials != null)
+            accessToken = (string)CachingProvider.Instance().GetItem($"PBI_{Settings.PortalId}_{Settings.SettingsId}_TokenCredentials");
+            if (!string.IsNullOrEmpty(accessToken))
                 return true;
 
             // Authenticate using created credentials
@@ -965,8 +993,8 @@ namespace DotNetNuke.PowerBI.Services
                 return false;
             }
 
-            tokenCredentials = new TokenCredentials(authenticationResult.AccessToken, "Bearer");
-            CachingProvider.Instance().Insert($"PBI_{Settings.PortalId}_{Settings.SettingsId}_TokenCredentials", tokenCredentials, null, authenticationResult.ExpiresOn.AddMinutes(-2).UtcDateTime, TimeSpan.Zero);
+            accessToken = authenticationResult.AccessToken;
+            CachingProvider.Instance().Insert($"PBI_{Settings.PortalId}_{Settings.SettingsId}_TokenCredentials", accessToken, null, authenticationResult.ExpiresOn.AddMinutes(-2).UtcDateTime, TimeSpan.Zero);
             return true;
         }
 

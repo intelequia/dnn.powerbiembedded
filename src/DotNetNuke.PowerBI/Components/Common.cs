@@ -9,7 +9,7 @@ using DotNetNuke.Entities.Modules;
 using Microsoft.IdentityModel.Clients.ActiveDirectory;
 using Microsoft.PowerBI.Api;
 using Microsoft.PowerBI.Api.Models;
-using Microsoft.Rest;
+using Azure;
 using System;
 using System.Collections.Generic;
 using System.Configuration;
@@ -102,7 +102,7 @@ namespace DotNetNuke.PowerBI.Components
         #endregion
 
         #region Token Validation
-        public async Task<TokenCredentials> GetTokenCredentials(PowerBISettings setting)
+        public async Task<string> GetTokenCredentials(PowerBISettings setting)
         {
             var error = ValidateSettings(setting);
             if (error != null)
@@ -124,7 +124,7 @@ namespace DotNetNuke.PowerBI.Components
                 throw new Exception("Authentication Failed.");
             }
 
-            return new TokenCredentials(authenticationResult.AccessToken, "Bearer");
+            return authenticationResult.AccessToken;
         }
         public string ValidateSettings(PowerBISettings settings)
         {
@@ -278,7 +278,7 @@ namespace DotNetNuke.PowerBI.Components
 
         public async Task<Attachment> ExportPowerBIReport(
             Guid reportId,
-            TokenCredentials tokenCredentials,
+            string accessToken,
             PowerBISettings setting,
             string reportPages,
             string rolesString,
@@ -290,11 +290,12 @@ namespace DotNetNuke.PowerBI.Components
                 string urlFilter = null;
                 int pollingtimeOutInMinutes = 5;
                 FileFormat format = FileFormat.PDF;
-                Pages pageNames = await GetReportPages(reportId, tokenCredentials, setting);
+                Pages pageNames = await GetReportPages(reportId, accessToken, setting);
                 string[] pages = reportPages.Split(',');
+                IList<Page> filteredPages = pageNames.Value.ToList();
                 if (reportPages != "All" && reportPages != "")
                 {
-                    pageNames.Value = pageNames.Value.Where(page => pages.Contains(page.Name)).ToList();
+                    filteredPages = filteredPages.Where(page => pages.Contains(page.Name)).ToList();
                 }
 
                 CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
@@ -307,9 +308,9 @@ namespace DotNetNuke.PowerBI.Components
                 int retryAttempt = 1;
                 do
                 {
-                    var exportId = await PostExportRequest(reportId, tokenCredentials, setting, format, rolesString, username, pageNames, urlFilter, locale);
-                    var httpMessage = await PollExportRequest(reportId, exportId, pollingtimeOutInMinutes, cancellationToken, tokenCredentials, setting);
-                    export = httpMessage?.Body;
+                    var exportId = await PostExportRequest(reportId, accessToken, setting, format, rolesString, username, filteredPages, urlFilter, locale);
+                    var pollResponse = await PollExportRequest(reportId, exportId, pollingtimeOutInMinutes, cancellationToken, accessToken, setting);
+                    export = pollResponse?.Value;
                     if (export == null)
                     {
                         throw new ApplicationException("There was a failure exporting the report");
@@ -317,9 +318,9 @@ namespace DotNetNuke.PowerBI.Components
                     if (export.Status == ExportState.Failed)
                     {
                         // Some failure cases indicate that the system is currently busy. The entire export operation can be retried after a certain delay
-                        // In such cases the recommended waiting time before retrying the entire export operation can be found in the RetryAfter header
-                        var retryAfter = httpMessage.Response.Headers.RetryAfter ?? throw new ApplicationException("Export Error: Failed state with no RetryAfter header indicates that the export failed permanently.");
-                        var retryAfterInSec = retryAfter.Delta.Value.Seconds;
+                        // In such cases the recommended waiting time before retrying the entire export operation can be found in the Retry-After header
+                        var retryAfterInSec = GetRetryAfterSeconds(pollResponse?.GetRawResponse())
+                            ?? throw new ApplicationException("Export Error: Failed state with no RetryAfter header indicates that the export failed permanently.");
                         await Task.Delay(retryAfterInSec * 1000);
                     }
                 }
@@ -330,7 +331,7 @@ namespace DotNetNuke.PowerBI.Components
                     throw new ApplicationException("Export Error: The export didn't succeed");
                 }
 
-                ExportedFile exportedFile = await GetExportedFile(reportId, export, tokenCredentials, setting);
+                ExportedFile exportedFile = await GetExportedFile(reportId, export, accessToken, setting);
                 return new Attachment(exportedFile.FileStream, export.ReportName + exportedFile.FileSuffix, MediaTypeNames.Application.Pdf);
             }
             catch (Exception ex)
@@ -338,44 +339,43 @@ namespace DotNetNuke.PowerBI.Components
                 throw new ApplicationException($"Export Error: {ex.Message}");
             }
         }
+
+        private static int? GetRetryAfterSeconds(Azure.Response rawResponse)
+        {
+            if (rawResponse == null)
+                return null;
+            if (rawResponse.Headers.TryGetValue("Retry-After", out string retryAfter)
+                && int.TryParse(retryAfter, out int seconds))
+            {
+                return seconds;
+            }
+            return null;
+        }
+
         public async Task<string> PostExportRequest(
     Guid reportId,
-    TokenCredentials tokenCredentials,
+    string accessToken,
     PowerBISettings setting,
     FileFormat format,
     string rolesString,
     string username,
-    Pages pageNames = null, /* Get the page names from the GetPages REST API */
+    IList<Page> pageNames = null, /* Get the page names from the GetPages REST API */
     string urlFilter = null,
     string locale = "en-us")
         {
             try
             {
-                IList<ExportReportPage> pages = new List<ExportReportPage>();
-                foreach (Page page in pageNames.Value)
-                {
-                    ExportReportPage exportPage = new ExportReportPage();
-                    exportPage.PageName = page.Name;
-                    pages.Add(exportPage);
-
-                }
                 PortalSettings portalSettings = new PortalSettings(0);
-
-
 
                 Reports reports;
                 Report report;
                 Dataset dataset;
-                using (var client = new PowerBIClient(new Uri(setting.ApiUrl), tokenCredentials))
                 {
-                    reports = await client.Reports.GetReportsInGroupAsync(Guid.Parse(setting.WorkspaceId)).ConfigureAwait(false);
+                    var client = new PowerBIClient(accessToken, new Uri(setting.ApiUrl));
+                    reports = (await client.Reports.GetReportsInGroupAsync(Guid.Parse(setting.WorkspaceId)).ConfigureAwait(false)).Value;
                     report = reports.Value.FirstOrDefault(r => r.Id.ToString().Equals(reportId.ToString(), StringComparison.InvariantCultureIgnoreCase));
-                    dataset = await client.Datasets.GetDatasetInGroupAsync(Guid.Parse(setting.WorkspaceId), report.DatasetId).ConfigureAwait(false);
+                    dataset = (await client.Datasets.GetDatasetInGroupAsync(Guid.Parse(setting.WorkspaceId), report.DatasetId).ConfigureAwait(false)).Value;
                 }
-
-
-
-
 
                 var powerBIReportExportConfiguration = new PowerBIReportExportConfiguration
                 {
@@ -383,40 +383,45 @@ namespace DotNetNuke.PowerBI.Components
                     {
                         Locale = locale
                     },
-                    // Note that page names differ from the page display names
-                    // To get the page names use the GetPages REST API
-                    Pages = pages,
-                    // ReportLevelFilters collection needs to be instantiated explicitly
-                    ReportLevelFilters = !string.IsNullOrEmpty(urlFilter) ? new List<ExportFilter>() { new ExportFilter(urlFilter) } : null,
-                    Identities = null
                 };
+                if (pageNames != null)
+                {
+                    foreach (var page in pageNames)
+                    {
+                        powerBIReportExportConfiguration.Pages.Add(new ExportReportPage(pageName: page.Name));
+                    }
+                }
+                if (!string.IsNullOrEmpty(urlFilter))
+                {
+                    powerBIReportExportConfiguration.ReportLevelFilters.Add(new ExportFilter { Filter = urlFilter });
+                }
 
                 // Let's check if RLS is required
                 if (dataset != null
                     && (dataset.IsEffectiveIdentityRequired.GetValueOrDefault(false) || dataset.IsEffectiveIdentityRolesRequired.GetValueOrDefault(false)))
-                { 
-                    var rls = new EffectiveIdentity( username, datasets: new List<string> { report.DatasetId });
+                {
+                    var rls = new EffectiveIdentity { Username = username };
+                    rls.Datasets.Add(report.DatasetId);
                     if (!string.IsNullOrWhiteSpace(rolesString) && dataset.IsEffectiveIdentityRolesRequired.GetValueOrDefault(false))
                     {
-                        var rolesList = new List<string>();
-                        rolesList.AddRange(rolesString.Split(','));
-                        rls.Roles = rolesList;
+                        foreach (var role in rolesString.Split(','))
+                        {
+                            rls.Roles.Add(role);
+                        }
                     }
-                    powerBIReportExportConfiguration.Identities = new List<EffectiveIdentity> { rls };
+                    powerBIReportExportConfiguration.Identities.Add(rls);
                 }
 
-                var exportRequest = new ExportReportRequest
+                var exportRequest = new ExportReportRequest(format)
                 {
-                    Format = format,
                     PowerBIReportConfiguration = powerBIReportExportConfiguration,
                 };
 
                 // The 'Client' object is an instance of the Power BI .NET SDK
-                using (var client = new PowerBIClient(new Uri(setting.ApiUrl), tokenCredentials))
                 {
-                    var export = await client.Reports.ExportToFileInGroupAsync(Guid.Parse(setting.WorkspaceId), reportId, exportRequest);
+                    var client = new PowerBIClient(accessToken, new Uri(setting.ApiUrl));
+                    var export = (await client.Reports.ExportToFileInGroupAsync(Guid.Parse(setting.WorkspaceId), reportId, exportRequest).ConfigureAwait(false)).Value;
                     return export.Id;
-
                 }
             }
             catch (Exception e)
@@ -424,18 +429,18 @@ namespace DotNetNuke.PowerBI.Components
                 throw new ApplicationException($"Post Export Error: {e.Message}");
             }
         }
-        public async Task<HttpOperationResponse<Export>> PollExportRequest(Guid reportId, string exportId, int timeOutInMinutes,
-                    CancellationToken token, TokenCredentials tokenCredentials, PowerBISettings setting)
+        public async Task<Response<Export>> PollExportRequest(Guid reportId, string exportId, int timeOutInMinutes,
+                    CancellationToken token, string accessToken, PowerBISettings setting)
         {
             try
             {
-                HttpOperationResponse<Export> httpMessage = null;
+                Response<Export> response = null;
                 Export exportStatus = null;
                 DateTime startTime = DateTime.UtcNow;
                 if (!int.TryParse(ConfigurationManager.AppSettings["PowerBI.Export.PollInterval"], out int c_secToMillisec))
                     c_secToMillisec = 4000;
 
-                var client = new PowerBIClient(new Uri(setting.ApiUrl), tokenCredentials);
+                var client = new PowerBIClient(accessToken, new Uri(setting.ApiUrl));
                 do
                 {
                     if (DateTime.UtcNow.Subtract(startTime).TotalMinutes > timeOutInMinutes || token.IsCancellationRequested)
@@ -444,22 +449,21 @@ namespace DotNetNuke.PowerBI.Components
                     }
 
                     // The 'Client' object is an instance of the Power BI .NET SDK
-                    httpMessage = await client.Reports.GetExportToFileStatusInGroupWithHttpMessagesAsync(Guid.Parse(setting.WorkspaceId), reportId, exportId);
-                    exportStatus = httpMessage.Body;
+                    response = await client.Reports.GetExportToFileStatusInGroupAsync(Guid.Parse(setting.WorkspaceId), reportId, exportId).ConfigureAwait(false);
+                    exportStatus = response.Value;
 
                     if (exportStatus.Status == ExportState.Running || exportStatus.Status == ExportState.NotStarted)
                     {
-                        // The recommended waiting time between polling requests can be found in the RetryAfter header
+                        // The recommended waiting time between polling requests can be found in the Retry-After header
                         // Note that this header is not always populated
-                        var retryAfter = httpMessage.Response.Headers.RetryAfter;
-                        var retryAfterInSec = retryAfter.Delta.Value.Seconds;
+                        var retryAfterInSec = GetRetryAfterSeconds(response.GetRawResponse()) ?? 1;
                         await Task.Delay(retryAfterInSec * c_secToMillisec);
                     }
                 }
                 // While not in a terminal state, keep polling
                 while (exportStatus.Status != ExportState.Succeeded && exportStatus.Status != ExportState.Failed);
 
-                return httpMessage;
+                return response;
             }
             catch (Exception ex)
             {
@@ -470,17 +474,17 @@ namespace DotNetNuke.PowerBI.Components
         public async Task<ExportedFile> GetExportedFile(
     Guid reportId,
     Export export, /* Get from the PollExportRequest response */
-    TokenCredentials tokenCredentials,
+    string accessToken,
     PowerBISettings setting)
         {
             try
             {
-                var client = new PowerBIClient(new Uri(setting.ApiUrl), tokenCredentials);
+                var client = new PowerBIClient(accessToken, new Uri(setting.ApiUrl));
 
                 if (export.Status == ExportState.Succeeded)
                 {
                     // The 'Client' object is an instance of the Power BI .NET SDK
-                    var fileStream = await client.Reports.GetFileOfExportToFileInGroupAsync(Guid.Parse(setting.WorkspaceId), reportId, export.Id);
+                    var fileStream = (await client.Reports.GetFileOfExportToFileInGroupAsync(Guid.Parse(setting.WorkspaceId), reportId, export.Id).ConfigureAwait(false)).Value;
                     return new ExportedFile
                     {
                         FileStream = fileStream,
@@ -497,16 +501,16 @@ namespace DotNetNuke.PowerBI.Components
 
         public async Task<Pages> GetReportPages(
             Guid reportId,
-            TokenCredentials tokenCredentials,
+            string accessToken,
             PowerBISettings settings)
         {
             try
             {
                 Pages pages = null;
 
-                using (var client = new PowerBIClient(new Uri(settings.ApiUrl), tokenCredentials))
                 {
-                    pages = await client.Reports.GetPagesInGroupAsync(Guid.Parse(settings.WorkspaceId), reportId);
+                    var client = new PowerBIClient(accessToken, new Uri(settings.ApiUrl));
+                    pages = (await client.Reports.GetPagesInGroupAsync(Guid.Parse(settings.WorkspaceId), reportId).ConfigureAwait(false)).Value;
                 }
                 return pages;
             }

@@ -10,7 +10,7 @@ using DotNetNuke.Security;
 using DotNetNuke.UI.UserControls;
 using DotNetNuke.Web.Api;
 using Microsoft.PowerBI.Api.Models;
-using Microsoft.Rest;
+using Azure;
 using System;
 using System.IO;
 using System.Linq;
@@ -99,10 +99,10 @@ namespace DotNetNuke.PowerBI.Services
                         fileFormat = FileFormat.PDF;
                         break;
                     case "pptx":
-                        fileFormat = FileFormat.PPTX;
+                        fileFormat = FileFormat.Pptx;
                         break;
                     case "xlsx":
-                        fileFormat = FileFormat.XLSX;
+                        fileFormat = FileFormat.Xlsx;
                         break;
                     default:
                         return Request.CreateResponse(HttpStatusCode.BadRequest, "Invalid format");
@@ -196,24 +196,30 @@ namespace DotNetNuke.PowerBI.Services
                 var roles = string.Join(",", PortalSettings.UserInfo.Roles);
 
                 Export export = await embedService.ExportReportAsync(Guid.Parse(embedService.Settings.WorkspaceId), reportId, fileFormat, user, roles);
-                if (string.IsNullOrEmpty(export.ReportName))
+                var exportPayload = new
                 {
-                    export.ReportName = $"{report.Name}.{format}";
-                }
-                
-                return Request.CreateResponse(HttpStatusCode.OK, export);
+                    export.Id,
+                    export.Status,
+                    export.PercentComplete,
+                    export.ResourceLocation,
+                    export.ResourceFileExtension,
+                    export.ExpirationTime,
+                    ReportName = string.IsNullOrEmpty(export.ReportName) ? $"{report.Name}.{format}" : export.ReportName
+                };
+
+                return Request.CreateResponse(HttpStatusCode.OK, exportPayload);
             }
-            catch(Microsoft.Rest.HttpOperationException httpEx)
+            catch(RequestFailedException httpEx)
             {
-                if (httpEx.Response.StatusCode == HttpStatusCode.Forbidden)
+                if (httpEx.Status == (int)HttpStatusCode.Forbidden)
                 {
                     return Request.CreateResponse(HttpStatusCode.Forbidden, "User doesn't have permissions for this resource");
                 }
-                else if (httpEx.Response.StatusCode == HttpStatusCode.NotFound)
+                else if (httpEx.Status == (int)HttpStatusCode.NotFound)
                 {
                     return Request.CreateResponse(HttpStatusCode.NotFound, "Report not found");
                 }
-                else if (httpEx.Response.StatusCode == HttpStatusCode.BadRequest)
+                else if (httpEx.Status == (int)HttpStatusCode.BadRequest)
                 {
                     return Request.CreateResponse(HttpStatusCode.BadRequest, "Bad Request");
                 }
@@ -271,17 +277,17 @@ namespace DotNetNuke.PowerBI.Services
                 return Request.CreateResponse(HttpStatusCode.OK, export);
 
             }
-            catch (HttpOperationException httpEx)
+            catch (RequestFailedException httpEx)
             {
-                if (httpEx.Response.StatusCode == HttpStatusCode.Forbidden)
+                if (httpEx.Status == (int)HttpStatusCode.Forbidden)
                 {
                     return Request.CreateResponse(HttpStatusCode.Forbidden, "User doesn't have permissions for this resource");
                 }
-                else if (httpEx.Response.StatusCode == HttpStatusCode.NotFound)
+                else if (httpEx.Status == (int)HttpStatusCode.NotFound)
                 {
                     return Request.CreateResponse(HttpStatusCode.NotFound, "Report not found");
                 }
-                else if (httpEx.Response.StatusCode == HttpStatusCode.BadRequest)
+                else if (httpEx.Status == (int)HttpStatusCode.BadRequest)
                 {
                     return Request.CreateResponse(HttpStatusCode.BadRequest, "Bad Request");
                 }
