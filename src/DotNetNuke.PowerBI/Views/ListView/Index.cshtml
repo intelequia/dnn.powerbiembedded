@@ -8,7 +8,11 @@
     function setWorkspaceCookie(workspaceId) {
         var expires = new Date();
         expires.setFullYear(expires.getFullYear() + 1);
-        document.cookie = "dnn_powerbi_workspace=" + encodeURIComponent(workspaceId) + "; expires=" + expires.toUTCString() + "; path=/";
+        var cookie = "dnn_powerbi_workspace=" + encodeURIComponent(workspaceId) + "; expires=" + expires.toUTCString() + "; path=/; SameSite=Lax";
+        if (window.location.protocol === "https:") {
+            cookie += "; Secure";
+        }
+        document.cookie = cookie;
     }
 
     function changeWorkspace(e) {
