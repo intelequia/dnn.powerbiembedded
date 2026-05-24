@@ -367,16 +367,10 @@ namespace DotNetNuke.PowerBI.Components
             {
                 PortalSettings portalSettings = new PortalSettings(0);
 
-                Reports reports;
-                Report report;
-                Dataset dataset;
-                {
-                    var client = new PowerBIClient(accessToken, new Uri(setting.ApiUrl));
-                    reports = (await client.Reports.GetReportsInGroupAsync(Guid.Parse(setting.WorkspaceId)).ConfigureAwait(false)).Value;
-                    report = reports.Value.FirstOrDefault(r => r.Id.ToString().Equals(reportId.ToString(), StringComparison.InvariantCultureIgnoreCase));
-                    dataset = (await client.Datasets.GetDatasetInGroupAsync(Guid.Parse(setting.WorkspaceId), report.DatasetId).ConfigureAwait(false)).Value;
-                }
-
+                PowerBIClient client = new PowerBIClient(accessToken, new Uri(setting.ApiUrl));
+                Reports reports = (await client.Reports.GetReportsInGroupAsync(Guid.Parse(setting.WorkspaceId)).ConfigureAwait(false)).Value;
+                Report report = reports.Value.FirstOrDefault(r => r.Id.ToString().Equals(reportId.ToString(), StringComparison.InvariantCultureIgnoreCase));
+                Dataset dataset = (await client.Datasets.GetDatasetInGroupAsync(Guid.Parse(setting.WorkspaceId), report.DatasetId).ConfigureAwait(false)).Value;
                 var powerBIReportExportConfiguration = new PowerBIReportExportConfiguration
                 {
                     Settings = new ExportReportSettings
