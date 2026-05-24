@@ -23,9 +23,25 @@ namespace DotNetNuke.PowerBI.Controllers
                 var settingsGroupId = Request.QueryString["sid"];
                 if (string.IsNullOrEmpty(settingsGroupId))
                 {
-                    var defaultPbiSettingsGroupId = (string)ModuleContext.Settings["PowerBIEmbedded_SettingsGroupId"];
                     var pbiSettings = SharedSettingsRepository.Instance.GetSettings(ModuleContext.PortalId).RemoveUnauthorizedItems(User);
-                    if (!string.IsNullOrEmpty(defaultPbiSettingsGroupId) && pbiSettings.Any(x => x.SettingsGroupId == defaultPbiSettingsGroupId))
+
+                    // Honor the workspace previously selected by the user (persisted client-side
+                    // in the "dnn_powerbi_workspace" cookie) so the page renders the right workspace
+                    // on the first request, avoiding a client-side redirect roundtrip.
+                    var cookieSid = Request.Cookies["dnn_powerbi_workspace"]?.Value;
+                    if (!string.IsNullOrEmpty(cookieSid))
+                    {
+                        cookieSid = Server.UrlDecode(cookieSid);
+                    }
+
+                    var defaultPbiSettingsGroupId = (string)ModuleContext.Settings["PowerBIEmbedded_SettingsGroupId"];
+                    if (!string.IsNullOrEmpty(cookieSid)
+                        && pbiSettings.Any(x => x.SettingsGroupId == cookieSid)
+                        && PowerBIListViewExtensions.UserHasPermissionsToWorkspace(cookieSid, User))
+                    {
+                        settingsGroupId = cookieSid;
+                    }
+                    else if (!string.IsNullOrEmpty(defaultPbiSettingsGroupId) && pbiSettings.Any(x => x.SettingsGroupId == defaultPbiSettingsGroupId))
                     {
                         settingsGroupId = defaultPbiSettingsGroupId;
                     }

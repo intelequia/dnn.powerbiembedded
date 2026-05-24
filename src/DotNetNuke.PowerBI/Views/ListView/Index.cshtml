@@ -48,11 +48,12 @@
 
             if (Model.Workspaces.Count > 1)
             {
+                var currentSid = (string)ViewBag.SettingsGroupId ?? Request.QueryString["sid"];
                 <div class="workspacesSection">
                     <select class="workspace" onchange="return changeWorkspace();">
                         @foreach (var w in Model.Workspaces)
                         {
-                            <option value="@w.Id" @(Request.QueryString["sid"] == w.Id ? "selected": "")>@w.Name</option>
+                            <option value="@w.Id" @(currentSid == w.Id ? "selected": "")>@w.Name</option>
                         }
                     </select>
                 </div>
@@ -96,26 +97,6 @@
     </div>
     <script>
         window.onload = function () {
-            var workspaceSelect = document.getElementsByClassName('workspace');
-            if (workspaceSelect.length > 0) {
-                var savedWorkspace = getCookieValue('dnn_powerbi_workspace');
-                if (savedWorkspace) {
-                    var workspaceExists = false;
-                    for (var j = 0; j < workspaceSelect[0].options.length; j++) {
-                        if (workspaceSelect[0].options[j].value === savedWorkspace) {
-                            workspaceExists = true;
-                            break;
-                        }
-                    }
-
-                    if (workspaceExists && workspaceSelect[0].value !== savedWorkspace) {
-                        workspaceSelect[0].value = savedWorkspace;
-                        changeWorkspace();
-                        return;
-                    }
-                }
-            }
-
             var scrollableLists = document.getElementsByClassName('scrollableList');
             if (scrollableLists.length > 0) {
                 scrollableLists[0].scrollTop = 0;
