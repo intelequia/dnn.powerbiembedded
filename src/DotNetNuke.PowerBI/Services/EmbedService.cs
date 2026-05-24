@@ -8,11 +8,14 @@ using DotNetNuke.Services.Cache;
 using Microsoft.IdentityModel.Clients.ActiveDirectory;
 using Microsoft.PowerBI.Api;
 using Microsoft.PowerBI.Api.Models;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Linq;
@@ -491,15 +494,18 @@ namespace DotNetNuke.PowerBI.Services
                     // Check if the dataset has effective identity required
                     // var dataset = await client.Datasets.GetDatasetAsync(report.DatasetId).ConfigureAwait(false);
                     // The line above returns an unauthorization exception when using "Service Principal" credentials. Seems a bug in the PowerBI API.
+                    var reportWorkspaceId = Guid.Parse(Settings.WorkspaceId);
+                    var datasetWorkspaceId = await GetReportDatasetWorkspaceIdAsync(reportWorkspaceId, report.Id).ConfigureAwait(false)
+                                             ?? reportWorkspaceId;
                     Dataset dataset = null;
                     try
                     {
-                        dataset = client.Datasets.GetDataset(report.DatasetId).Value;
+                        dataset = client.Datasets.GetDatasetInGroup(datasetWorkspaceId, report.DatasetId).Value;
                     }
                     catch (Exception ex)
                     {
-                        Logger.Warn($"Couldn't find dataset '{report.DatasetId}'", ex);
-                        dataset = client.Datasets.GetDatasetsInGroup(Guid.Parse(Settings.WorkspaceId)).Value.Value.FirstOrDefault(x => x.Id == report.DatasetId);
+                        Logger.Warn($"Couldn't find dataset '{report.DatasetId}' in workspace '{datasetWorkspaceId}'", ex);
+                        dataset = client.Datasets.GetDatasetsInGroup(datasetWorkspaceId).Value.Value.FirstOrDefault(x => x.Id == report.DatasetId);
                     }
 
                     if (dataset != null
@@ -616,11 +622,16 @@ namespace DotNetNuke.PowerBI.Services
 
             try
             {
+                var reportWorkspaceId = Guid.Parse(Settings.WorkspaceId);
 
+                // If the report uses a shared dataset that lives in a different workspace,
+                // the dataset must be looked up in its own workspace. The SDK Report model in
+                // Microsoft.PowerBI.Api 5.x does not surface DatasetWorkspaceId, so fetch it via REST.
+                var datasetWorkspaceId = await GetReportDatasetWorkspaceIdAsync(reportWorkspaceId, report.Id).ConfigureAwait(false)
+                                         ?? reportWorkspaceId;
+                bool isCrossWorkspaceDataset = datasetWorkspaceId != reportWorkspaceId;
 
-                // Generate Embed Token for reports without effective identities.
-                GenerateTokenRequest generateTokenRequestParameters;
-                // This is how you create embed token with effective identities
+                EffectiveIdentity rls = null;
                 string permission = hasEditPermission ? "edit" : "view";
                 if (!string.IsNullOrWhiteSpace(username))
                 {
@@ -630,20 +641,19 @@ namespace DotNetNuke.PowerBI.Services
                     Dataset dataset = null;
                     try
                     {
-                        dataset = client.Datasets.GetDataset(report.DatasetId).Value;
-                    }   
+                        dataset = client.Datasets.GetDatasetInGroup(datasetWorkspaceId, report.DatasetId).Value;
+                    }
                     catch (Exception ex)
                     {
-                        Logger.Warn($"Couldn't find dataset '{report.DatasetId}'", ex);
-                        dataset = client.Datasets.GetDatasetsInGroup(Guid.Parse(Settings.WorkspaceId)).Value.Value.FirstOrDefault(x => x.Id == report.DatasetId);
+                        Logger.Warn($"Couldn't find dataset '{report.DatasetId}' in workspace '{datasetWorkspaceId}'", ex);
+                        dataset = client.Datasets.GetDatasetsInGroup(datasetWorkspaceId).Value.Value.FirstOrDefault(x => x.Id == report.DatasetId);
                     }
-
 
                     if (dataset != null
                         && (dataset.IsEffectiveIdentityRequired.GetValueOrDefault(false) || dataset.IsEffectiveIdentityRolesRequired.GetValueOrDefault(false)))
                     //&& !dataset.IsOnPremGatewayRequired.GetValueOrDefault(false))
                     {
-                        var rls = new EffectiveIdentity { Username = username };
+                        rls = new EffectiveIdentity { Username = username };
                         rls.Datasets.Add(report.DatasetId);
                         if (!string.IsNullOrWhiteSpace(roles) && dataset.IsEffectiveIdentityRolesRequired.GetValueOrDefault(false))
                         {
@@ -652,26 +662,80 @@ namespace DotNetNuke.PowerBI.Services
                                 rls.Roles.Add(role);
                             }
                         }
-                        // Generate Embed Token with effective identities.
-                        generateTokenRequestParameters = new GenerateTokenRequest { AccessLevel = ToAccessLevel(permission) };
-                        generateTokenRequestParameters.Identities.Add(rls);
                     }
-                    else
+                }
+
+                EmbedToken tokenResponse;
+                if (isCrossWorkspaceDataset)
+                {
+                    // Cross-workspace report + dataset: must use the multi-resource embed token endpoint
+                    // (POST /v1.0/myorg/GenerateToken) with targetWorkspaces for both workspaces.
+                    var v2Request = new GenerateTokenRequestV2();
+                    v2Request.Datasets.Add(new GenerateTokenRequestV2Dataset(report.DatasetId));
+                    v2Request.Reports.Add(new GenerateTokenRequestV2Report(report.Id) { AllowEdit = hasEditPermission });
+                    v2Request.TargetWorkspaces.Add(new GenerateTokenRequestV2TargetWorkspace(reportWorkspaceId));
+                    v2Request.TargetWorkspaces.Add(new GenerateTokenRequestV2TargetWorkspace(datasetWorkspaceId));
+                    if (rls != null)
                     {
-                        generateTokenRequestParameters = new GenerateTokenRequest { AccessLevel = ToAccessLevel(permission) };
+                        v2Request.Identities.Add(rls);
                     }
+                    tokenResponse = (await client.EmbedToken.GenerateTokenAsync(v2Request).ConfigureAwait(false)).Value;
                 }
                 else
                 {
-                    // Generate Embed Token for reports without effective identities.
-                    generateTokenRequestParameters = new GenerateTokenRequest { AccessLevel = ToAccessLevel(permission) };
+                    var generateTokenRequestParameters = new GenerateTokenRequest { AccessLevel = ToAccessLevel(permission) };
+                    if (rls != null)
+                    {
+                        generateTokenRequestParameters.Identities.Add(rls);
+                    }
+                    tokenResponse = (await client.Reports.GenerateTokenInGroupAsync(reportWorkspaceId, report.Id, generateTokenRequestParameters).ConfigureAwait(false)).Value;
                 }
-                var tokenResponse = (await client.Reports.GenerateTokenInGroupAsync(Guid.Parse(Settings.WorkspaceId), report.Id, generateTokenRequestParameters).ConfigureAwait(false)).Value;
                 return tokenResponse;
             }
             catch (Exception ex)
             {
                 Logger.Error(ex);
+                return null;
+            }
+        }
+
+        private async Task<Guid?> GetReportDatasetWorkspaceIdAsync(Guid reportWorkspaceId, Guid reportId)
+        {
+            var cacheKey = $"PBI_{Settings.PortalId}_{Settings.SettingsId}_DatasetWorkspaceId_{reportWorkspaceId}_{reportId}";
+            var cached = CachingProvider.Instance().GetItem(cacheKey);
+            if (cached is Guid cachedGuid)
+                return cachedGuid;
+            if (cached is string cachedString && cachedString == "none")
+                return null;
+
+            try
+            {
+                var apiUrl = (Settings.ApiUrl ?? "https://api.powerbi.com").TrimEnd('/');
+                var requestUrl = $"{apiUrl}/v1.0/myorg/groups/{reportWorkspaceId}/reports/{reportId}";
+                using (var http = new HttpClient())
+                {
+                    http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+                    var response = await http.GetAsync(requestUrl).ConfigureAwait(false);
+                    if (!response.IsSuccessStatusCode)
+                    {
+                        Logger.Warn($"GetReport REST call returned {response.StatusCode} for report {reportId} in workspace {reportWorkspaceId}");
+                        return null;
+                    }
+                    var json = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+                    var token = JObject.Parse(json);
+                    var dsWsId = (string)token["datasetWorkspaceId"];
+                    if (!string.IsNullOrEmpty(dsWsId) && Guid.TryParse(dsWsId, out var parsed))
+                    {
+                        CachingProvider.Instance().Insert(cacheKey, parsed, null, DateTime.Now.AddMinutes(15), TimeSpan.Zero);
+                        return parsed;
+                    }
+                    CachingProvider.Instance().Insert(cacheKey, "none", null, DateTime.Now.AddMinutes(15), TimeSpan.Zero);
+                    return null;
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.Warn($"Error retrieving datasetWorkspaceId for report {reportId} in workspace {reportWorkspaceId}", ex);
                 return null;
             }
         }
