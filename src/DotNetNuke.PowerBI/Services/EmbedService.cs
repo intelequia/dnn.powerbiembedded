@@ -629,7 +629,14 @@ namespace DotNetNuke.PowerBI.Services
                 // Microsoft.PowerBI.Api 5.x does not surface DatasetWorkspaceId, so fetch it via REST.
                 var datasetWorkspaceId = await GetReportDatasetWorkspaceIdAsync(reportWorkspaceId, report.Id).ConfigureAwait(false)
                                          ?? reportWorkspaceId;
+
+                // Discover chained datasets (composite models / DirectQuery to Power BI dataset).
+                // If the report's primary dataset depends on other Power BI datasets in different
+                // workspaces, all of them must be declared in the embed token.
+                var chainedDatasets = await GetChainedDatasetsAsync(client, datasetWorkspaceId, report.DatasetId).ConfigureAwait(false);
+
                 bool isCrossWorkspaceDataset = datasetWorkspaceId != reportWorkspaceId;
+                bool useV2 = isCrossWorkspaceDataset || chainedDatasets.Count > 0;
 
                 EffectiveIdentity rls = null;
                 string permission = hasEditPermission ? "edit" : "view";
@@ -649,13 +656,34 @@ namespace DotNetNuke.PowerBI.Services
                         dataset = client.Datasets.GetDatasetsInGroup(datasetWorkspaceId).Value.Value.FirstOrDefault(x => x.Id == report.DatasetId);
                     }
 
-                    if (dataset != null
-                        && (dataset.IsEffectiveIdentityRequired.GetValueOrDefault(false) || dataset.IsEffectiveIdentityRolesRequired.GetValueOrDefault(false)))
+                    // RLS may be required either by the primary dataset or by any chained (remote) dataset.
+                    bool chainedNeedsIdentity = chainedDatasets.Any(c => c.IsEffectiveIdentityRequired || c.IsEffectiveIdentityRolesRequired);
+                    bool primaryNeedsIdentity = dataset != null
+                        && (dataset.IsEffectiveIdentityRequired.GetValueOrDefault(false) || dataset.IsEffectiveIdentityRolesRequired.GetValueOrDefault(false));
+
+                    if (primaryNeedsIdentity || chainedNeedsIdentity)
                     //&& !dataset.IsOnPremGatewayRequired.GetValueOrDefault(false))
                     {
                         rls = new EffectiveIdentity { Username = username };
-                        rls.Datasets.Add(report.DatasetId);
-                        if (!string.IsNullOrWhiteSpace(roles) && dataset.IsEffectiveIdentityRolesRequired.GetValueOrDefault(false))
+                        // Only attach the identity to the datasets that actually require it.
+                        // Listing datasets without RLS here makes Power BI try to resolve the
+                        // identity against them via MSOLAP and fail with errors such as
+                        // "Failed to open the MSOLAP connection".
+                        if (primaryNeedsIdentity)
+                        {
+                            rls.Datasets.Add(report.DatasetId);
+                        }
+                        foreach (var chained in chainedDatasets)
+                        {
+                            if ((chained.IsEffectiveIdentityRequired || chained.IsEffectiveIdentityRolesRequired)
+                                && !rls.Datasets.Contains(chained.DatasetId))
+                            {
+                                rls.Datasets.Add(chained.DatasetId);
+                            }
+                        }
+                        bool rolesRequiredAnywhere = (dataset != null && dataset.IsEffectiveIdentityRolesRequired.GetValueOrDefault(false))
+                                                     || chainedDatasets.Any(c => c.IsEffectiveIdentityRolesRequired);
+                        if (!string.IsNullOrWhiteSpace(roles) && rolesRequiredAnywhere)
                         {
                             foreach (var role in roles.Split(','))
                             {
@@ -666,15 +694,35 @@ namespace DotNetNuke.PowerBI.Services
                 }
 
                 EmbedToken tokenResponse;
-                if (isCrossWorkspaceDataset)
+                if (useV2)
                 {
-                    // Cross-workspace report + dataset: must use the multi-resource embed token endpoint
-                    // (POST /v1.0/myorg/GenerateToken) with targetWorkspaces for both workspaces.
+                    // Cross-workspace report/dataset or composite model with chained datasets:
+                    // must use the multi-resource embed token endpoint (POST /v1.0/myorg/GenerateToken)
+                    // declaring every dataset and every workspace involved.
                     var v2Request = new GenerateTokenRequestV2();
-                    v2Request.Datasets.Add(new GenerateTokenRequestV2Dataset(report.DatasetId));
+                    // Composite models / DirectQuery to Power BI datasets require XMLA read access
+                    // on every dataset; without this the service returns
+                    // "Cannot connect to dataset ... because XMLA permissions are off".
+                    var xmlaPermissions = chainedDatasets.Count > 0
+                        ? (XmlaPermissions?)XmlaPermissions.ReadOnly
+                        : null;
+                    v2Request.Datasets.Add(new GenerateTokenRequestV2Dataset(report.DatasetId) { XmlaPermissions = xmlaPermissions });
+                    foreach (var chained in chainedDatasets)
+                    {
+                        if (!v2Request.Datasets.Any(d => d.Id == chained.DatasetId))
+                            v2Request.Datasets.Add(new GenerateTokenRequestV2Dataset(chained.DatasetId) { XmlaPermissions = xmlaPermissions });
+                    }
                     v2Request.Reports.Add(new GenerateTokenRequestV2Report(report.Id) { AllowEdit = hasEditPermission });
-                    v2Request.TargetWorkspaces.Add(new GenerateTokenRequestV2TargetWorkspace(reportWorkspaceId));
-                    v2Request.TargetWorkspaces.Add(new GenerateTokenRequestV2TargetWorkspace(datasetWorkspaceId));
+
+                    var targetWorkspaces = new HashSet<Guid> { reportWorkspaceId, datasetWorkspaceId };
+                    foreach (var chained in chainedDatasets)
+                    {
+                        targetWorkspaces.Add(chained.WorkspaceId);
+                    }
+                    foreach (var ws in targetWorkspaces)
+                    {
+                        v2Request.TargetWorkspaces.Add(new GenerateTokenRequestV2TargetWorkspace(ws));
+                    }
                     if (rls != null)
                     {
                         v2Request.Identities.Add(rls);
@@ -697,6 +745,160 @@ namespace DotNetNuke.PowerBI.Services
                 Logger.Error(ex);
                 return null;
             }
+        }
+
+        private class ChainedDatasetInfo
+        {
+            public Guid WorkspaceId { get; set; }
+            public string DatasetId { get; set; }
+            public bool IsEffectiveIdentityRequired { get; set; }
+            public bool IsEffectiveIdentityRolesRequired { get; set; }
+        }
+
+        /// <summary>
+        /// Returns the list of Power BI datasets that the given dataset depends on via DirectQuery
+        /// (composite model / "DirectQuery to Power BI dataset"). Each remote dataset and its
+        /// workspace must be declared when generating the embed token; otherwise visuals fail with
+        /// errors like "OnPremiseServiceException".
+        /// </summary>
+        private async Task<List<ChainedDatasetInfo>> GetChainedDatasetsAsync(PowerBIClient client, Guid datasetWorkspaceId, string datasetId)
+        {
+            var cacheKey = $"PBI_{Settings.PortalId}_{Settings.SettingsId}_ChainedDatasets_{datasetWorkspaceId}_{datasetId}";
+            var cached = CachingProvider.Instance().GetItem(cacheKey) as List<ChainedDatasetInfo>;
+            if (cached != null)
+                return cached;
+
+            var result = new List<ChainedDatasetInfo>();
+            try
+            {
+                var apiUrl = (Settings.ApiUrl ?? "https://api.powerbi.com").TrimEnd('/');
+                var requestUrl = $"{apiUrl}/v1.0/myorg/groups/{datasetWorkspaceId}/datasets/{datasetId}/datasources";
+                JObject root;
+                using (var http = new HttpClient())
+                {
+                    http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+                    var response = await http.GetAsync(requestUrl).ConfigureAwait(false);
+                    if (!response.IsSuccessStatusCode)
+                    {
+                        Logger.Warn($"GetDatasources REST call returned {response.StatusCode} for dataset {datasetId} in workspace {datasetWorkspaceId}");
+                        CachingProvider.Instance().Insert(cacheKey, result, null, DateTime.Now.AddMinutes(15), TimeSpan.Zero);
+                        return result;
+                    }
+                    var json = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+                    root = JObject.Parse(json);
+                }
+
+                var datasources = root["value"] as JArray;
+                if (datasources == null)
+                {
+                    CachingProvider.Instance().Insert(cacheKey, result, null, DateTime.Now.AddMinutes(15), TimeSpan.Zero);
+                    return result;
+                }
+
+                // Lazy-resolved caches scoped to this call
+                IReadOnlyList<Group> groupsList = null;
+                var datasetsByWorkspace = new Dictionary<Guid, IReadOnlyList<Dataset>>();
+
+                foreach (var ds in datasources)
+                {
+                    var dsType = (string)ds["datasourceType"];
+                    var conn = ds["connectionDetails"];
+                    if (conn == null)
+                        continue;
+
+                    var server = (string)conn["server"];
+                    var database = (string)conn["database"];
+                    if (string.IsNullOrEmpty(server) || string.IsNullOrEmpty(database))
+                        continue;
+
+                    // Chained Power BI dataset connections look like:
+                    //   server   = "powerbi://api.powerbi.com/v1.0/myorg/<WorkspaceName>"
+                    //   database = "<DatasetName>" (sometimes a GUID)
+                    if (!server.StartsWith("powerbi://", StringComparison.OrdinalIgnoreCase)
+                        && !(dsType != null && dsType.Equals("AnalysisServices", StringComparison.OrdinalIgnoreCase)
+                             && server.IndexOf("powerbi", StringComparison.OrdinalIgnoreCase) >= 0))
+                    {
+                        continue;
+                    }
+
+                    var workspaceName = ExtractChainedWorkspaceName(server);
+                    if (string.IsNullOrEmpty(workspaceName))
+                        continue;
+
+                    if (groupsList == null)
+                    {
+                        groupsList = (await client.Groups.GetGroupsAsync().ConfigureAwait(false)).Value.Value;
+                    }
+                    var remoteGroup = groupsList.FirstOrDefault(g => string.Equals(g.Name, workspaceName, StringComparison.OrdinalIgnoreCase));
+                    if (remoteGroup == null)
+                    {
+                        Logger.Warn($"Chained dataset references workspace '{workspaceName}' which is not visible to the current credentials.");
+                        continue;
+                    }
+
+                    if (!datasetsByWorkspace.TryGetValue(remoteGroup.Id, out var remoteDatasets))
+                    {
+                        remoteDatasets = (await client.Datasets.GetDatasetsInGroupAsync(remoteGroup.Id).ConfigureAwait(false)).Value.Value;
+                        datasetsByWorkspace[remoteGroup.Id] = remoteDatasets;
+                    }
+
+                    Dataset remoteDataset = null;
+                    if (Guid.TryParse(database, out _))
+                    {
+                        remoteDataset = remoteDatasets.FirstOrDefault(d => string.Equals(d.Id, database, StringComparison.OrdinalIgnoreCase));
+                    }
+                    if (remoteDataset == null)
+                    {
+                        remoteDataset = remoteDatasets.FirstOrDefault(d => string.Equals(d.Name, database, StringComparison.OrdinalIgnoreCase));
+                    }
+                    if (remoteDataset == null)
+                    {
+                        Logger.Warn($"Chained dataset '{database}' was not found in workspace '{workspaceName}' ({remoteGroup.Id}).");
+                        continue;
+                    }
+
+                    if (result.Any(c => c.DatasetId == remoteDataset.Id))
+                        continue;
+
+                    result.Add(new ChainedDatasetInfo
+                    {
+                        WorkspaceId = remoteGroup.Id,
+                        DatasetId = remoteDataset.Id,
+                        IsEffectiveIdentityRequired = remoteDataset.IsEffectiveIdentityRequired.GetValueOrDefault(false),
+                        IsEffectiveIdentityRolesRequired = remoteDataset.IsEffectiveIdentityRolesRequired.GetValueOrDefault(false)
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.Warn($"Error retrieving chained datasets for dataset {datasetId} in workspace {datasetWorkspaceId}", ex);
+            }
+
+            CachingProvider.Instance().Insert(cacheKey, result, null, DateTime.Now.AddMinutes(15), TimeSpan.Zero);
+            return result;
+        }
+
+        private static string ExtractChainedWorkspaceName(string server)
+        {
+            // Expected formats:
+            //   powerbi://api.powerbi.com/v1.0/myorg/<WorkspaceName>
+            //   powerbi://api.powerbi.com/v1.0/myorg/<WorkspaceName>/
+            const string marker = "/myorg/";
+            var idx = server.IndexOf(marker, StringComparison.OrdinalIgnoreCase);
+            if (idx < 0)
+                return null;
+            var name = server.Substring(idx + marker.Length).Trim('/');
+            if (string.IsNullOrEmpty(name))
+                return null;
+            try
+            {
+                name = Uri.UnescapeDataString(name);
+            }
+            catch
+            {
+                // Leave as-is if not a valid escape sequence
+            }
+            return name;
         }
 
         private async Task<Guid?> GetReportDatasetWorkspaceIdAsync(Guid reportWorkspaceId, Guid reportId)
