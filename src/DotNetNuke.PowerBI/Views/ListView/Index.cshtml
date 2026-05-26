@@ -47,12 +47,13 @@
             if (Model.Workspaces.Count > 1)
             {
                 var currentSid = (string)ViewBag.SettingsGroupId ?? Request.QueryString["sid"];
-                var selectedWorkspaceName = Model.Workspaces.FirstOrDefault(w => w.Id == currentSid)?.Name ?? "";
+                var selectedWorkspace = Model.Workspaces.FirstOrDefault(w => w.Id == currentSid) ?? Model.Workspaces[0];
+                var selectedWorkspaceName = string.IsNullOrWhiteSpace(selectedWorkspace.Name) ? null : selectedWorkspace.Name;
                 <div class="workspacesSection">
                     <select class="workspace" title="@selectedWorkspaceName" onchange="return changeWorkspace();">
                         @foreach (var w in Model.Workspaces)
                         {
-                            <option value="@w.Id" @(currentSid == w.Id ? "selected": "")>@w.Name</option>
+                            <option value="@w.Id" @(selectedWorkspace.Id == w.Id ? "selected": "")>@w.Name</option>
                         }
                     </select>
                 </div>
