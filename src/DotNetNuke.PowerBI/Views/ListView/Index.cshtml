@@ -47,11 +47,13 @@
             if (Model.Workspaces.Count > 1)
             {
                 var currentSid = (string)ViewBag.SettingsGroupId ?? Request.QueryString["sid"];
+                var selectedWorkspace = Model.Workspaces.FirstOrDefault(w => w.Id == currentSid) ?? Model.Workspaces[0];
+                var selectedWorkspaceName = string.IsNullOrWhiteSpace(selectedWorkspace.Name) ? null : selectedWorkspace.Name;
                 <div class="workspacesSection">
-                    <select class="workspace" onchange="return changeWorkspace();">
+                    <select class="workspace" title="@selectedWorkspaceName" onchange="return changeWorkspace();">
                         @foreach (var w in Model.Workspaces)
                         {
-                            <option value="@w.Id" @(currentSid == w.Id ? "selected": "")>@w.Name</option>
+                            <option value="@w.Id" @(selectedWorkspace.Id == w.Id ? "selected": "")>@w.Name</option>
                         }
                     </select>
                 </div>
@@ -68,7 +70,7 @@
                     @foreach (var d in Model.Dashboards)
                     {
                         var sid = !string.IsNullOrEmpty(ViewBag.SettingsGroupId) ? "&sid=" + ViewBag.SettingsGroupId : "";
-                        <li class='normal@(d.Id.ToString() == Request["dashboardId"] ? " active" : "")'><a href='@ViewBag.ReportsPage?dashboardId=@d.Id@sid'>@d.DisplayName</a></li>
+                        <li class='normal@(d.Id.ToString() == Request["dashboardId"] ? " active" : "")'><a href='@ViewBag.ReportsPage?dashboardId=@d.Id@sid' title="@d.DisplayName">@d.DisplayName</a></li>
                     }
                 </ul>
             </div>
@@ -85,7 +87,7 @@
                     @foreach (var r in Model.Reports)
                     {
                         var sid = !string.IsNullOrEmpty(ViewBag.SettingsGroupId) ? "&sid=" + ViewBag.SettingsGroupId : "";
-                        <li class='normal@(r.Id.ToString() == Request["reportId"] ? " active" : "")'><a href='@ViewBag.ReportsPage?reportId=@r.Id@sid'>@r.Name</a></li>
+                        <li class='normal@(r.Id.ToString() == Request["reportId"] ? " active" : "")'><a href='@ViewBag.ReportsPage?reportId=@r.Id@sid' title="@r.Name">@r.Name</a></li>
                     }
                 </ul>
             </div>
