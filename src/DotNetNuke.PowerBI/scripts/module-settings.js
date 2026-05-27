@@ -3,7 +3,7 @@
 app.settings = function (context) {
     var that = this;
     this.service = {
-        path: 'Bookmarks',
+        path: 'PowerBI/Services',
         controller: 'ModuleSettings',
         framework: $.ServicesFramework(context.ModuleId)
     };
@@ -15,13 +15,21 @@ app.settings = function (context) {
             groupId: groupId,
         };
 
+        var $contentItems = $('#ContentItemId');
+        if ($contentItems.length === 0) {
+            // The Content Item dropdown is only rendered for ContentView, nothing to refresh.
+            return;
+        }
+
+        var previousValue = $contentItems.val();
+        $contentItems.prop('disabled', true);
+
         $.ajax({
             url: that.service.baseUrl + that.service.controller + '/GetContentItemsByGroup',
             type: 'GET',
             async: true,
             data: params,
-            dataType: '',
-            contentType: '',
+            dataType: 'json',
             headers: {
                 'PortalId': context.PortalId,
                 'ModuleId': context.ModuleId,
@@ -29,27 +37,45 @@ app.settings = function (context) {
                 'RequestVerificationToken': $.ServicesFramework().getAntiForgeryValue(),
             }
         }).done(function (data) {
-            if(data.contentItems != null) {
-                var $contentItems = $('#ContentItemId');
-                $contentItems.empty();
-                $contentItems.append($('<option>', { value: '', text: 'Choose one...' }));
+            // Web API may serialize using either PascalCase or camelCase depending on the
+            // configured JsonFormatter. Be tolerant to both.
+            var contentItems = data && (data.contentItems || data.ContentItems);
+            if (contentItems == null) {
+                return;
+            }
 
-                $.each(data.contentItems.Dashboards, function (i, item) {
-                    $contentItems.append($('<option>', { 
-                        text: 'Dashboard - ' + item.displayName,
-                        value: 'D_' + item.id,
-                    }));
-                });
-                
-                $.each(data.contentItems.Reports, function (i, item) {
-                    $contentItems.append($('<option>', { 
-                        text: 'Reports - ' + item.name,
-                        value: 'R_' + item.id,
-                    }));
-                });
+            var dashboards = contentItems.Dashboards || contentItems.dashboards || [];
+            var reports = contentItems.Reports || contentItems.reports || [];
+
+            $contentItems.empty();
+            $contentItems.append($('<option>', { value: '', text: 'Choose one...' }));
+
+            $.each(dashboards, function (i, item) {
+                var id = item.Id || item.id;
+                var displayName = item.DisplayName || item.displayName;
+                $contentItems.append($('<option>', {
+                    text: 'Dashboard - ' + displayName,
+                    value: 'D_' + id,
+                }));
+            });
+
+            $.each(reports, function (i, item) {
+                var id = item.Id || item.id;
+                var name = item.Name || item.name;
+                $contentItems.append($('<option>', {
+                    text: 'Reports - ' + name,
+                    value: 'R_' + id,
+                }));
+            });
+
+            // Preserve the previously selected item if it still exists in the new list.
+            if (previousValue && $contentItems.find('option[value="' + previousValue + '"]').length > 0) {
+                $contentItems.val(previousValue);
             }
         }).fail(function (error, exception) {
             console.error(error);
+        }).always(function () {
+            $contentItems.prop('disabled', false);
         });
     };
 
