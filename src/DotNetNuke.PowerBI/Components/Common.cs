@@ -411,12 +411,9 @@ namespace DotNetNuke.PowerBI.Components
                     PowerBIReportConfiguration = powerBIReportExportConfiguration,
                 };
 
-                // The 'Client' object is an instance of the Power BI .NET SDK
-                {
-                    var client = new PowerBIClient(accessToken, new Uri(setting.ApiUrl));
-                    var export = (await client.Reports.ExportToFileInGroupAsync(Guid.Parse(setting.WorkspaceId), reportId, exportRequest).ConfigureAwait(false)).Value;
-                    return export.Id;
-                }
+                // The 'Client' object is an instance of the Power BI .NET SDK                
+                var export = (await client.Reports.ExportToFileInGroupAsync(Guid.Parse(setting.WorkspaceId), reportId, exportRequest).ConfigureAwait(false)).Value;
+                return export.Id;
             }
             catch (Exception e)
             {
