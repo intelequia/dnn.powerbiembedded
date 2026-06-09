@@ -228,6 +228,15 @@
   <data name="SubscriptionRunNow.Text" xml:space="preserve">
     <value>Ejecutar ahora</value>
   </data>
+  <data name="SubscriptionRunRunning.Text" xml:space="preserve">
+    <value>Ejecutando</value> 
+  </data>
+  <data name="SubscriptionRunSuccess.Text" xml:space="preserve">
+    <value>Éxito</value>
+  </data>
+  <data name="SubscriptionRunError.Text" xml:space="preserve">
+    <value>Error</value>
+  </data>
   <data name="SubscriptionSearchRoles.Text" xml:space="preserve">
     <value>Añadir Roles</value>
   </data>

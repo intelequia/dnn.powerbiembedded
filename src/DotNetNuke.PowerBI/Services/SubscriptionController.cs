@@ -1,4 +1,5 @@
 ﻿using DotNetNuke.Entities.Users;
+using DotNetNuke.Instrumentation;
 using DotNetNuke.PowerBI.Data;
 using DotNetNuke.PowerBI.Data.Models;
 using DotNetNuke.PowerBI.Data.SharedSettings;
@@ -9,11 +10,13 @@ using DotNetNuke.Security;
 using DotNetNuke.Security.Roles;
 using DotNetNuke.Web.Api;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
+using System.Web.Hosting;
 using System.Web.Http;
 using System.Web.Script.Serialization;
 using Subscription = DotNetNuke.PowerBI.Data.Subscriptions.Models.Subscription;
@@ -289,8 +292,19 @@ namespace DotNetNuke.PowerBI.Services
             }
         }
 
+        private static readonly ILog Logger = LoggerSource.Instance.GetLogger(typeof(SubscriptionController));
+
+        private static readonly ConcurrentDictionary<string, RunNowJob> RunNowJobs = new ConcurrentDictionary<string, RunNowJob>();
+
+        private class RunNowJob
+        {
+            public string Status { get; set; }
+            public string Error { get; set; }
+            public DateTime StartedOn { get; set; }
+        }
+
         [HttpPost]
-        public async Task<HttpResponseMessage> RunSubscriptionNow(SubscriptionViewModel subscriptionViewModel)
+        public HttpResponseMessage RunSubscriptionNow(SubscriptionViewModel subscriptionViewModel)
         {
             try
             {
@@ -357,14 +371,43 @@ namespace DotNetNuke.PowerBI.Services
                     });
                 }
 
-                var common = new Components.Common();
-                var accessToken = await common.GetTokenCredentials(settings);
-                var processor = new Components.SubscriptionProcessor(common);
-                await processor.ProcessSubscriptionAsync(settings, accessToken, subscription, force: true, subscribers: subscribers);
+                var jobId = Guid.NewGuid().ToString("N");
+                var job = new RunNowJob { Status = "Running", StartedOn = DateTime.UtcNow };
+                RunNowJobs[jobId] = job;
+
+                // Capture the current request context so it can be restored on the background
+                // thread. Custom RLS extensions (IRlsCustomExtension.GetRlsValue) read values from
+                // HttpContext.Current (e.g. auth cookies); the background work item otherwise runs
+                // without an HttpContext.
+                var httpContext = System.Web.HttpContext.Current;
+
+                // Run the export and email send in the background so the HTTP request returns
+                // immediately. The operation can take several minutes and the Azure load balancer
+                // drops idle requests after ~4 minutes. The client polls GetRunSubscriptionStatus
+                // to show progress and the final result.
+                HostingEnvironment.QueueBackgroundWorkItem(async cancellationToken =>
+                {
+                    try
+                    {
+                        System.Web.HttpContext.Current = httpContext;
+                        var common = new Components.Common();
+                        var accessToken = await common.GetTokenCredentials(settings);
+                        var processor = new Components.SubscriptionProcessor(common);
+                        await processor.ProcessSubscriptionAsync(settings, accessToken, subscription, force: true, subscribers: subscribers);
+                        job.Status = "Success";
+                    }
+                    catch (Exception ex)
+                    {
+                        job.Status = "Error";
+                        job.Error = ex.InnerException != null ? $"{ex.Message} -> {ex.InnerException.Message}" : ex.Message;
+                        Logger.Error($"Error running subscription '{subscription.Name}' on demand", ex);
+                    }
+                });
 
                 return Request.CreateResponse(HttpStatusCode.OK, new
                 {
                     Success = true,
+                    JobId = jobId,
                 });
             }
             catch (Exception e)
@@ -375,6 +418,30 @@ namespace DotNetNuke.PowerBI.Services
                     Error = e.Message,
                 });
             }
+        }
+
+        [HttpGet]
+        public HttpResponseMessage GetRunSubscriptionStatus(string jobId)
+        {
+            if (!string.IsNullOrEmpty(jobId) && RunNowJobs.TryGetValue(jobId, out var job))
+            {
+                // Drop the job once a terminal state has been read to avoid leaking memory.
+                if (job.Status != "Running")
+                {
+                    RunNowJobs.TryRemove(jobId, out _);
+                }
+
+                return Request.CreateResponse(HttpStatusCode.OK, new
+                {
+                    job.Status,
+                    job.Error,
+                });
+            }
+
+            return Request.CreateResponse(HttpStatusCode.OK, new
+            {
+                Status = "NotFound",
+            });
         }
 
         [HttpPost]

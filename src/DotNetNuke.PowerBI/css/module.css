@@ -864,6 +864,25 @@
 
 .norows {
     padding: 10px;
+} 
+
+.runNowFeedback {
+    display: inline-block;
+    margin-left: 10px;
+    font-weight: bold;
+    vertical-align: middle;
+}
+
+.runNowFeedback.runNowRunning {
+    color: #605e5c;
+}
+
+.runNowFeedback.runNowSuccess {
+    color: #107c10;
+}
+
+.runNowFeedback.runNowError {
+    color: #d13438;
 }
 .lateral-tab input[type=date],
 .lateral-tab input[type=time] {

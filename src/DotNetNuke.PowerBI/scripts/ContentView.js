@@ -193,6 +193,8 @@
         };
 
         this.editSubscription = function () {
+            if (parent.runNowTimer || parent.runNowPoll) { parent.stopRunNow(); }
+            parent.runNowStatus('');
             that.startEditing();
             parent.selectedSubscription(that);
         };
@@ -661,6 +663,8 @@
 
 
         this.cancelEditing = function (subscription) {
+            if (that.runNowTimer || that.runNowPoll) { that.stopRunNow(); }
+            that.runNowStatus('');
             if (subscription.id() == -1) {
                 that.subscriptionsArray.splice(that.subscriptionsArray.indexOf(subscription), 1);
             }
@@ -671,6 +675,8 @@
             that.selectedSubscription(null);
         };
         this.addNewSubscription = function () {
+            if (that.runNowTimer || that.runNowPoll) { that.stopRunNow(); }
+            that.runNowStatus('');
             var b = new SubscriptionModel(
                 that,
                 -1,
@@ -740,10 +746,53 @@
             }
         };
 
+        this.runNowStatus = ko.observable(''); // '', 'running', 'success', 'error'
+        this.runNowElapsed = ko.observable(0);
+        this.runNowTimer = null;
+        this.runNowPoll = null;
+
+        this.runNowElapsedText = ko.computed(function () {
+            var total = that.runNowElapsed();
+            var minutes = Math.floor(total / 60);
+            var seconds = total % 60;
+            return (minutes < 10 ? '0' + minutes : minutes) + ':' + (seconds < 10 ? '0' + seconds : seconds);
+        });
+
+        this.stopRunNow = function () {
+            if (that.runNowTimer) { clearInterval(that.runNowTimer); that.runNowTimer = null; }
+            if (that.runNowPoll) { clearInterval(that.runNowPoll); that.runNowPoll = null; }
+            $('#btnRunSubscriptionNow').removeClass('disabled');
+        };
+
+        this.pollRunNowStatus = function (jobId) {
+            that.runNowPoll = setInterval(function () {
+                Common.Call("GET", "GetRunSubscriptionStatus", that.subscriptionsService, { jobId: jobId },
+                    function (data) {
+                        if (data.Status === 'Running') {
+                            return;
+                        }
+                        that.stopRunNow();
+                        that.runNowStatus(data.Status === 'Success' ? 'success' : 'error');
+                    },
+                    function (error) {
+                        console.log(error);
+                        that.stopRunNow();
+                        that.runNowStatus('error');
+                    },
+                    function () {
+                    });
+            }, 3000); 
+        };
+
         this.runSubscriptionNow = function (subscription) {
 
             if (subscription.editSubscriptionErrors().length > 0) {
                 subscription.editSubscriptionErrors.showAllMessages(true);
+                return;
+            }
+
+            var btn = $('#btnRunSubscriptionNow');
+            if (btn.hasClass('disabled')) {
                 return;
             }
 
@@ -770,29 +819,28 @@
                 Roles: serializedRoles,
             };
 
-            var btn = $('#btnRunSubscriptionNow');
-            if (btn.hasClass('disabled')) {
-                return;
-            }
             btn.addClass('disabled');
+            that.runNowStatus('running');
+            that.runNowElapsed(0);
+            if (that.runNowTimer) { clearInterval(that.runNowTimer); }
+            that.runNowTimer = setInterval(function () {
+                that.runNowElapsed(that.runNowElapsed() + 1);
+            }, 1000);
 
             Common.Call("POST", "RunSubscriptionNow", that.subscriptionsService, params,
                 function (data) {
-                    btn.removeClass('disabled');
-                    if (data.Success) {
-                        alert("The subscription report has been sent.");
-                    }
-                    else if (data.Error === "NoSubscribers") {
-                        alert("Add at least one user or role before running the subscription.");
+                    if (data.Success && data.JobId) {
+                        that.pollRunNowStatus(data.JobId);
                     }
                     else {
-                        alert("There was an error sending the subscription report.");
+                        that.stopRunNow();
+                        that.runNowStatus('error');
                     }
                 },
                 function (error) {
-                    btn.removeClass('disabled');
                     console.log(error);
-                    alert("There was an error sending the subscription report.");
+                    that.stopRunNow();
+                    that.runNowStatus('error');
                 },
                 function () {
                 });
