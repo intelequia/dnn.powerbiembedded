@@ -273,7 +273,8 @@
 
         // Subscriptions
         this.subscriptionsArray = ko.observableArray([]);
-        this.pagesArray = ko.observableArray(context.ReportPages.Value.slice());
+        // Dashboards have no report pages, so ReportPages comes back null from the server.
+        this.pagesArray = ko.observableArray(context.ReportPages && context.ReportPages.Value ? context.ReportPages.Value.slice() : []);
         this.selectedSubscription = ko.observable();
 
 
@@ -446,15 +447,25 @@
             }
         }
 
-        // Embed the report and display it within the div container.
-        this.report = powerbi.load(that.reportContainer, that.config);
+        // Dashboards don't support report-only features (bookmarks, pages, phased render),
+        // so embed them with powerbi.embed() and skip that report-specific logic.
+        this.isDashboard = context.ContentType === "dashboard";
 
-        //Getreport bookmarks
-        this.report.bookmarksManager.getBookmarks()
-            .then(function (bookmarks) {
-                // Create bookmarks list from the existing report bookmarks 
-                that.updateBookmarksList(bookmarks);
-            });
+        // Embed the report and display it within the div container.
+        // Reports use phased embedding (load + render); dashboards must use embed() because
+        // the Dashboard component has no render() method and would otherwise stay blank.
+        this.report = that.isDashboard
+            ? powerbi.embed(that.reportContainer, that.config)
+            : powerbi.load(that.reportContainer, that.config);
+
+        if (!that.isDashboard) {
+            //Getreport bookmarks
+            this.report.bookmarksManager.getBookmarks()
+                .then(function (bookmarks) {
+                    // Create bookmarks list from the existing report bookmarks 
+                    that.updateBookmarksList(bookmarks);
+                });
+        }
         this.trackEvent = function (eventName, data) {
             if (that.applicationInsightsEnabled && typeof appInsights !== "undefined") {
                 let userId = "-1";
@@ -508,6 +519,9 @@
         }
 
         this.report.on("loaded", async function () {
+            if (that.isDashboard) {
+                return;
+            }
             if (that.isMobile && that.config.settings.layoutType != that.models.LayoutType.MobilePortrait) {
                 var page = await that.report.getActivePage()
                 const hasLayout = await page.hasLayout(that.models.LayoutType.MobilePortrait);
@@ -1098,7 +1112,9 @@
         });
 
         this.Init = function () {
-            that.createBookmarksList();
+            if (!that.isDashboard) {
+                that.createBookmarksList();
+            }
         };
     };
 
