@@ -105,10 +105,75 @@ app.settings = function (context) {
             }
 
             that.toggleReportSectionName();
+            that.refreshReportPages();
         }).fail(function (error, exception) {
             console.error(error);
         }).always(function () {
             $contentItems.prop('disabled', false);
+        });
+    };
+
+    // Populates the Report Section Name dropdown (#PageName) with the pages of the
+    // selected report, fetched from the Power BI Get Pages REST API.
+    this.refreshReportPages = function () {
+        var $contentItems = $('#ContentItemId');
+        var $pageName = $('#PageName');
+        if ($contentItems.length === 0 || $pageName.length === 0) {
+            return;
+        }
+
+        var contentItemValue = $contentItems.val() || '';
+        if (contentItemValue.indexOf('R_') !== 0) {
+            // Only reports have pages; leave the (hidden) dropdown untouched.
+            return;
+        }
+
+        var params = {
+            groupId: $('#SettingsGroupId').val() || '',
+            reportId: contentItemValue
+        };
+
+        var previousValue = $pageName.val();
+        $pageName.prop('disabled', true);
+
+        $.ajax({
+            url: that.service.baseUrl + that.service.controller + '/GetReportPages',
+            type: 'GET',
+            async: true,
+            data: params,
+            dataType: 'json',
+            headers: {
+                'PortalId': context.PortalId,
+                'ModuleId': context.ModuleId,
+                'TabId': context.TabId,
+                'RequestVerificationToken': $.ServicesFramework().getAntiForgeryValue(),
+            }
+        }).done(function (data) {
+            var pages = data && (data.pages || data.Pages);
+            if (pages == null) {
+                return;
+            }
+
+            $pageName.empty();
+            $pageName.append($('<option>', { value: '', text: '(Default page)' }));
+
+            $.each(pages, function (i, page) {
+                var name = page.name || page.Name;
+                var displayName = page.displayName || page.DisplayName || name;
+                $pageName.append($('<option>', {
+                    text: displayName,
+                    value: name,
+                }));
+            });
+
+            // Preserve the previously selected page if it still exists in the new list.
+            if (previousValue && $pageName.find('option[value="' + previousValue + '"]').length > 0) {
+                $pageName.val(previousValue);
+            }
+        }).fail(function (error) {
+            console.error(error);
+        }).always(function () {
+            $pageName.prop('disabled', false);
         });
     };
 
@@ -125,6 +190,7 @@ app.settings = function (context) {
         $(document).off('change.pbiReportSection', '#ContentItemId')
             .on('change.pbiReportSection', '#ContentItemId', function () {
                 that.toggleReportSectionName();
+                that.refreshReportPages();
             });
 
         $(document).off('change.pbiRlsUserProperty', '#UserProperty')
@@ -143,5 +209,6 @@ app.settings = function (context) {
 
         that.toggleReportSectionName();
         that.toggleRlsUserProperty();
+        that.refreshReportPages();
     };
 };
