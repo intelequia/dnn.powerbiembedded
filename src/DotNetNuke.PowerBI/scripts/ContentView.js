@@ -150,10 +150,12 @@
         this.addUserToSubscription = function (user) {
             that.addedUsers.push(user);
             that.availableUsers.remove(user);
+            that.editUserSearchQuery('');
         };
         this.addRoleToSubscription = function (role) {
             that.addedRoles.push(role);
             that.availableRoles.remove(role);
+            that.editRoleSearchQuery('');
         };
         this.addPageToSubscription = function (page) {
             that.addedPages.push(page);
@@ -274,7 +276,9 @@
         // Subscriptions
         this.subscriptionsArray = ko.observableArray([]);
         // Dashboards have no report pages, so ReportPages comes back null from the server.
-        this.pagesArray = ko.observableArray(context.ReportPages && context.ReportPages.Value ? context.ReportPages.Value.slice() : []);
+        this.pagesArray = ko.observableArray(context.ReportPages && context.ReportPages.Value ? context.ReportPages.Value.map(function (page) {
+            return { name: page.Name, displayName: page.DisplayName };
+        }) : []);
         this.selectedSubscription = ko.observable();
 
 
@@ -338,7 +342,6 @@
                                 subscription.Enabled,
                                 JSON.parse(subscription.Users),
                                 JSON.parse(subscription.Roles),
-                                context.PortalId,
                                 context.ModuleId,
                             );
                             subscriptions.push(b);
@@ -736,6 +739,65 @@
                     });
             }
         };
+
+        this.runSubscriptionNow = function (subscription) {
+
+            if (subscription.editSubscriptionErrors().length > 0) {
+                subscription.editSubscriptionErrors.showAllMessages(true);
+                return;
+            }
+
+            let serializedUsers = subscription.addedUsers().map(user => user.UserID).join(",");
+            let serializedRoles = subscription.addedRoles().map(role => role.RoleID).join(",");
+            let serializedReportPages = subscription.addedPages().map(page => page.name).join(",");
+            let params = {
+                Id: subscription.id(),
+                ReportId: subscription.reportId(),
+                GroupId: subscription.groupId(),
+                ModuleId: subscription.moduleId(),
+                PortalId: subscription.portalId(),
+                Name: subscription.name(),
+                StartDate: subscription.startDate(),
+                EndDate: subscription.endDate(),
+                RepeatPeriod: subscription.repeatPeriod(),
+                RepeatTime: subscription.repeatTime(),
+                TimeZone: subscription.timeZone(),
+                EmailSubject: subscription.emailSubject(),
+                Message: subscription.message(),
+                ReportPages: serializedReportPages,
+                Enabled: subscription.enabled(),
+                Users: serializedUsers,
+                Roles: serializedRoles,
+            };
+
+            var btn = $('#btnRunSubscriptionNow');
+            if (btn.hasClass('disabled')) {
+                return;
+            }
+            btn.addClass('disabled');
+
+            Common.Call("POST", "RunSubscriptionNow", that.subscriptionsService, params,
+                function (data) {
+                    btn.removeClass('disabled');
+                    if (data.Success) {
+                        alert("The subscription report has been sent.");
+                    }
+                    else if (data.Error === "NoSubscribers") {
+                        alert("Add at least one user or role before running the subscription.");
+                    }
+                    else {
+                        alert("There was an error sending the subscription report.");
+                    }
+                },
+                function (error) {
+                    btn.removeClass('disabled');
+                    console.log(error);
+                    alert("There was an error sending the subscription report.");
+                },
+                function () {
+                });
+        };
+
         this.getParameterByName = function (name, url) {
             if (!url) url = window.location.href;
             name = name.replace(/[\[\]]/g, '\\$&');

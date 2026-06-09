@@ -71,7 +71,7 @@
         </div>
     }
 
-    @if (ViewBag.ShowSubscription)
+    @if (ViewBag.ShowSubscription && ViewBag.CanEdit)
     {
         <a href="#" class="subscription" data-bind="click: openLateralTab">
             <div class="subscribeImg"></div>
@@ -307,6 +307,7 @@
                 </fieldset>
                 <a id="btnSaveEditSubscription" class="dnnPrimaryAction" data-bind="click: $root.saveEditedSubscription">@Dnn.LocalizeString("SubscriptionSave")</a>
                 <a id="btnSaveCancel" class="dnnSecondaryAction" data-bind="click: $root.cancelEditing">@Dnn.LocalizeString("SubscriptionCancel")</a>
+                <a id="btnRunSubscriptionNow" class="dnnSecondaryAction" data-bind="click: $root.runSubscriptionNow">@Dnn.LocalizeString("SubscriptionRunNow")</a>
             </div>
         </div>
         <!-- /ko -->

@@ -13,6 +13,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Threading.Tasks;
 using System.Web.Http;
 using System.Web.Script.Serialization;
 using Subscription = DotNetNuke.PowerBI.Data.Subscriptions.Models.Subscription;
@@ -284,6 +285,94 @@ namespace DotNetNuke.PowerBI.Services
                 {
                     Success = false,
                     Error = e
+                });
+            }
+        }
+
+        [HttpPost]
+        public async Task<HttpResponseMessage> RunSubscriptionNow(SubscriptionViewModel subscriptionViewModel)
+        {
+            try
+            {
+                int portalId = ActiveModule.PortalID;
+                var settings = SharedSettingsRepository.Instance.GetSettingsByGroupId(subscriptionViewModel.GroupId, portalId);
+                string comparison = settings.InheritPermissions ? subscriptionViewModel.GroupId : subscriptionViewModel.ReportId;
+                if (!UserHasPermission(comparison))
+                {
+                    return Request.CreateResponse(HttpStatusCode.Unauthorized, new
+                    {
+                        Success = false,
+                    });
+                }
+
+                // Build a transient subscription from the current form state so it can be tested
+                // immediately, without waiting for the scheduled task and without persisting changes.
+                var subscription = new Subscription
+                {
+                    Id = subscriptionViewModel.Id,
+                    PortalId = portalId,
+                    ReportId = subscriptionViewModel.ReportId,
+                    GroupId = subscriptionViewModel.GroupId,
+                    ModuleId = subscriptionViewModel.ModuleId,
+                    Name = subscriptionViewModel.Name,
+                    StartDate = subscriptionViewModel.StartDate,
+                    EndDate = subscriptionViewModel.EndDate,
+                    RepeatPeriod = subscriptionViewModel.RepeatPeriod,
+                    RepeatTime = subscriptionViewModel.RepeatTime,
+                    TimeZone = subscriptionViewModel.TimeZone,
+                    EmailSubject = subscriptionViewModel.EmailSubject,
+                    Message = subscriptionViewModel.Message,
+                    ReportPages = subscriptionViewModel.ReportPages,
+                    Enabled = subscriptionViewModel.Enabled
+                };
+
+                var subscribers = new List<SubscriptionSubscriber>();
+                if (!string.IsNullOrEmpty(subscriptionViewModel.Users))
+                {
+                    foreach (string user in subscriptionViewModel.Users.Split(','))
+                    {
+                        if (int.TryParse(user, out int userId))
+                        {
+                            subscribers.Add(new SubscriptionSubscriber { SubscriptionId = subscription.Id, UserId = userId });
+                        }
+                    }
+                }
+                if (!string.IsNullOrEmpty(subscriptionViewModel.Roles))
+                {
+                    foreach (string role in subscriptionViewModel.Roles.Split(','))
+                    {
+                        if (int.TryParse(role, out int roleId))
+                        {
+                            subscribers.Add(new SubscriptionSubscriber { SubscriptionId = subscription.Id, RoleId = roleId });
+                        }
+                    }
+                }
+
+                if (!subscribers.Any())
+                {
+                    return Request.CreateResponse(HttpStatusCode.OK, new
+                    {
+                        Success = false,
+                        Error = "NoSubscribers",
+                    });
+                }
+
+                var common = new Components.Common();
+                var accessToken = await common.GetTokenCredentials(settings);
+                var processor = new Components.SubscriptionProcessor(common);
+                await processor.ProcessSubscriptionAsync(settings, accessToken, subscription, force: true, subscribers: subscribers);
+
+                return Request.CreateResponse(HttpStatusCode.OK, new
+                {
+                    Success = true,
+                });
+            }
+            catch (Exception e)
+            {
+                return Request.CreateResponse(HttpStatusCode.InternalServerError, new
+                {
+                    Success = false,
+                    Error = e.Message,
                 });
             }
         }
