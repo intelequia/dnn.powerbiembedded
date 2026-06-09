@@ -10,13 +10,44 @@ app.settings = function (context) {
     this.service.baseUrl = that.service.framework.getServiceRoot(that.service.path);
     this.$workspaces;
 
+    // These settings only apply to reports (content item values prefixed with 'R_').
+    // They are also shown when no workspace or no content item is selected, since that
+    // is the configuration used when no specific content item is targeted.
+    this.toggleReportSectionName = function () {
+        var $contentItems = $('#ContentItemId');
+        var $reportOnlyItems = $('.pbi-report-only');
+        if ($contentItems.length === 0 || $reportOnlyItems.length === 0) {
+            return;
+        }
+
+        var contentItemValue = $contentItems.val() || '';
+        var workspaceValue = ($('#SettingsGroupId').val() || '');
+        var isReport = contentItemValue.indexOf('R_') === 0;
+        var noSelection = workspaceValue === '' || contentItemValue === '';
+        $reportOnlyItems.toggleClass('pbi-hidden', !(isReport || noSelection));
+    };
+
+    // Shows the matching RLS textbox depending on the selected User Property Method.
+    this.toggleRlsUserProperty = function () {
+        var $userProperty = $('#UserProperty');
+        var $customUserPropertyItem = $('#CustomUserPropertyItem');
+        var $customExtensionLibraryItem = $('#CustomExtensionLibraryItem');
+        if ($userProperty.length === 0) {
+            return;
+        }
+
+        var value = $userProperty.val() || '';
+        $customUserPropertyItem.toggleClass('pbi-hidden', value !== 'Custom User Profile Property');
+        $customExtensionLibraryItem.toggleClass('pbi-hidden', value !== 'Custom Extension Library');
+    };
+
     this.refreshContentItems = function (groupId) {
         let params = {
             groupId: groupId,
         };
 
         var $contentItems = $('#ContentItemId');
-        if ($contentItems.length === 0) {
+        if ($contentItems.length === 0) { 
             // The Content Item dropdown is only rendered for ContentView, nothing to refresh.
             return;
         }
@@ -72,6 +103,8 @@ app.settings = function (context) {
             if (previousValue && $contentItems.find('option[value="' + previousValue + '"]').length > 0) {
                 $contentItems.val(previousValue);
             }
+
+            that.toggleReportSectionName();
         }).fail(function (error, exception) {
             console.error(error);
         }).always(function () {
@@ -84,6 +117,31 @@ app.settings = function (context) {
 
         that.workspaces.on('change', function () {
             that.refreshContentItems(that.workspaces.val());
+            that.toggleReportSectionName();
         });
+
+        // Use delegated handlers bound to the document so they survive DNN partial
+        // postbacks that re-render the settings form (and therefore the dropdown). 
+        $(document).off('change.pbiReportSection', '#ContentItemId')
+            .on('change.pbiReportSection', '#ContentItemId', function () {
+                that.toggleReportSectionName();
+            });
+
+        $(document).off('change.pbiRlsUserProperty', '#UserProperty')
+            .on('change.pbiRlsUserProperty', '#UserProperty', function () {
+                that.toggleRlsUserProperty();
+            });
+
+        // Re-apply the initial visibility after each partial postback, since the
+        // re-rendered dropdown defaults to "visible" until we evaluate it again.
+        if (window.Sys && Sys.WebForms && Sys.WebForms.PageRequestManager) {
+            Sys.WebForms.PageRequestManager.getInstance().add_endRequest(function () {
+                that.toggleReportSectionName();
+                that.toggleRlsUserProperty();
+            });
+        }
+
+        that.toggleReportSectionName();
+        that.toggleRlsUserProperty();
     };
 };

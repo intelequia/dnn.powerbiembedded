@@ -3,13 +3,14 @@
 @using DotNetNuke.Web.Mvc.Helpers
 @using DotNetNuke.Web.Client.ClientResourceManagement
 @{
-    ClientResourceManager.RegisterScript(Dnn.DnnPage, "~/DesktopModules/MVC/PowerBIEmbedded/scripts/module-settings.js", 25, "DnnPageHeaderProvider");
+    var pbiModuleVersion = typeof(DotNetNuke.PowerBI.Controllers.SettingsController).Assembly.GetName().Version.ToString();
+    ClientResourceManager.RegisterScript(Dnn.DnnPage, "~/DesktopModules/MVC/PowerBIEmbedded/scripts/module-settings.js?v=" + pbiModuleVersion, 25, "DnnPageHeaderProvider");
     ClientResourceManager.RegisterStyleSheet(Dnn.DnnPage, "~/DesktopModules/MVC/PowerBIEmbedded/Css/module.css", 9, "DnnPageHeaderProvider");
 }
 @using DotNetNuke.UI.Utilities
 @using DotNetNuke.Common.Utilities
 
-<div id="PowerBISettings" class="dnnForm">
+<div id="PowerBISettings" class="dnnForm"> 
     <div class="dnnFormExpandContent"><a href="">@Dnn.LocalizeString("ExpandAll")</a></div>
     <h2 class="dnnFormSectionHead"><a href="#">Workspace Settings</a></h2>
     <fieldset id="ListViewGroupSettings">
@@ -32,7 +33,7 @@
             </div>
         </div>
         @{
-            if (Model.IsContentView)
+            if (Model.IsContentView) 
             {
                 <div class="dnnFormItem">
                     <div class="leftGroup">
@@ -62,7 +63,7 @@
                         @Html.DropDownListFor(m => m.ContentItemId, contentItems, "Choose one...")
                     </div>
                 </div>
-                <div class="dnnFormItem">
+                <div class="dnnFormItem pbi-report-only pbi-hidden" id="ReportSectionNameItem">
                     <div class="leftGroup">
                         <label>Report Section Name</label>
                         @Html.TextBoxFor(m => m.PageName)
@@ -75,95 +76,96 @@
                         @Html.TextBoxFor(m => m.Height, new { @class = "number" })
                     </div>
                 </div>
-                <div class="dnnFormItem">
-                    <div class="leftGroup">
-                        <label>Override Filter Pane Visibility</label>
-                        @Html.CheckBoxFor(m => m.OverrideFilterPaneVisibility, true)
+                <div class="pbi-report-only pbi-checkbox-grid pbi-hidden">
+                    <div class="dnnFormItem">
+                        <div class="leftGroup">
+                            <label>Override Filter Pane Visibility</label>
+                            @Html.CheckBoxFor(m => m.OverrideFilterPaneVisibility, true)
+                        </div>
                     </div>
-                </div>
-                <div class="dnnFormItem">
-                    <div class="leftGroup">
-                        <label>Filter Pane Visible</label>
-                        @Html.CheckBoxFor(m => m.FilterPaneVisible, true)
+                    <div class="dnnFormItem">
+                        <div class="leftGroup">
+                            <label>Filter Pane Visible</label>
+                            @Html.CheckBoxFor(m => m.FilterPaneVisible, true)
+                        </div>
                     </div>
-                </div>
-                //
-                <div class="dnnFormItem">
-                    <div class="leftGroup">
-                        <label>Nav Pane Visible</label>
-                        @Html.CheckBoxFor(m => m.NavPaneVisible, true)
+                    <div class="dnnFormItem">
+                        <div class="leftGroup">
+                            <label>Nav Pane Visible</label>
+                            @Html.CheckBoxFor(m => m.NavPaneVisible, true)
+                        </div>
                     </div>
-                </div>
-                <div class="dnnFormItem">
-                    <div class="leftGroup">
-                        <label>Override Visual Header Visibility</label>
-                        @Html.CheckBoxFor(m => m.OverrideVisualHeaderVisibility, true)
+                    <div class="dnnFormItem">
+                        <div class="leftGroup">
+                            <label>Override Visual Header Visibility</label>
+                            @Html.CheckBoxFor(m => m.OverrideVisualHeaderVisibility, true)
+                        </div>
                     </div>
-                </div>
-                <div class="dnnFormItem">
-                    <div class="leftGroup">
-                        <label>Visual Header Visible</label>
-                        @Html.CheckBoxFor(m => m.VisualHeaderVisible, true)
+                    <div class="dnnFormItem">
+                        <div class="leftGroup">
+                            <label>Visual Header Visible</label>
+                            @Html.CheckBoxFor(m => m.VisualHeaderVisible, true)
+                        </div>
                     </div>
-                </div>
-                <div class="dnnFormItem">
-                    <div class="leftGroup">
-                        <label>Hide Visualizers and Data when editing</label>
-                        @Html.CheckBoxFor(m => m.HideVisualizationData, true)
+                    <div class="dnnFormItem">
+                        <div class="leftGroup">
+                            <label>Hide Visualizers and Data when editing</label>
+                            @Html.CheckBoxFor(m => m.HideVisualizationData, true)
+                        </div>
                     </div>
-                </div>
-                <div class="dnnFormItem">
-                    <div class="leftGroup">
-                        <label>Show Subscriptions</label>
-                        @Html.CheckBoxFor(m => m.ShowSubscription, true)
+                    <div class="dnnFormItem">
+                        <div class="leftGroup">
+                            <label>Show Subscriptions</label>
+                            @Html.CheckBoxFor(m => m.ShowSubscription, true)
+                        </div>
                     </div>
-                </div>
-                <div class="dnnFormItem">
-                    <div class="leftGroup">
-                        <label>Toolbar Visible</label>
-                        @Html.CheckBoxFor(m => m.ToolbarVisible, true)
+                    <div class="dnnFormItem">
+                        <div class="leftGroup">
+                            <label>Toolbar Visible</label>
+                            @Html.CheckBoxFor(m => m.ToolbarVisible, true)
+                        </div>
                     </div>
-                </div>
-                <div class="dnnFormItem">
-                    <div class="leftGroup">
-                        <label>Refresh Visible</label>
-                        @Html.CheckBoxFor(m => m.RefreshVisible, true)
+                    <div class="dnnFormItem">
+                        <div class="leftGroup">
+                            <label>Refresh Visible</label>
+                            @Html.CheckBoxFor(m => m.RefreshVisible, true)
+                        </div>
                     </div>
-                </div>
-                <div class="dnnFormItem">
-                    <div class="leftGroup">
-                        <label>Print Visible</label>
-                        @Html.CheckBoxFor(m => m.PrintVisible, true)
+                    <div class="dnnFormItem">
+                        <div class="leftGroup">
+                            <label>Print Visible</label>
+                            @Html.CheckBoxFor(m => m.PrintVisible, true)
+                        </div>
                     </div>
-                </div>
-                <div class="dnnFormItem">
-                    <div class="leftGroup">
-                        <label>Full Screen Visible</label>
-                        @Html.CheckBoxFor(m => m.FullScreenVisible, true)
+                    <div class="dnnFormItem">
+                        <div class="leftGroup">
+                            <label>Full Screen Visible</label>
+                            @Html.CheckBoxFor(m => m.FullScreenVisible, true)
+                        </div>
                     </div>
-                </div>
-                <div class="dnnFormItem">
-                    <div class="leftGroup">
-                        <label>Bookmarks Visible</label>
-                        @Html.CheckBoxFor(m => m.BookmarksVisible, true)
+                    <div class="dnnFormItem">
+                        <div class="leftGroup">
+                            <label>Bookmarks Visible</label>
+                            @Html.CheckBoxFor(m => m.BookmarksVisible, true)
+                        </div>
                     </div>
-                </div>
-                <div class="dnnFormItem">
-                    <div class="leftGroup">
-                        <label>Edit Visible (by permissions)</label>
-                        @Html.CheckBoxFor(m => m.EditVisible, true)
+                    <div class="dnnFormItem">
+                        <div class="leftGroup">
+                            <label>Edit Visible (by permissions)</label>
+                            @Html.CheckBoxFor(m => m.EditVisible, true)
+                        </div>
                     </div>
-                </div>
-                <div class="dnnFormItem">
-                    <div class="leftGroup">
-                        <label>Download Visible (by permissions)</label>
-                        @Html.CheckBoxFor(m => m.DownloadVisible, true)
+                    <div class="dnnFormItem">
+                        <div class="leftGroup">
+                            <label>Download Visible (by permissions)</label>
+                            @Html.CheckBoxFor(m => m.DownloadVisible, true)
+                        </div>
                     </div>
-                </div>
-                <div class="dnnFormItem">
-                    <div class="leftGroup">
-                        <label>Export Visible (by permissions)</label>
-                        @Html.CheckBoxFor(m => m.ExportVisible, true)
+                    <div class="dnnFormItem">
+                        <div class="leftGroup">
+                            <label>Export Visible (by permissions)</label>
+                            @Html.CheckBoxFor(m => m.ExportVisible, true)
+                        </div>
                     </div>
                 </div>
                 <div class="dnnFormItem">
@@ -185,7 +187,7 @@
     <fieldset id="ListViewGroupSettings">
         <div class="dnnFormItem">
             <div class="leftGroup">
-                <p class="dnnFormMessage dnnFormInfo">
+                <p>
                     RLS controls what data users can see in Power BI reports based on their DNN user properties. 
                     <a href="https://github.com/intelequia/dnn.powerbiembedded/blob/master/docs/RLS-Configuration.md" target="_blank">View RLS Configuration Guide</a>
                 </p>
@@ -194,6 +196,9 @@
         @{
             if (Model.IsContentView)
             {
+                <div>
+                    Select how to identify users in Power BI reports. Options include Username, Email, PowerBiGroup profile property, Custom profile property template, or Custom extension library.
+                </div>                
                 <div class="dnnFormItem">
                     <div class="leftGroup">
                         <label>User Property Method</label>
@@ -212,25 +217,22 @@
                             }
                         }
                         @Html.DropDownListFor(m => m.UserProperty, userPropertiesItems, "Choose one...")
-                        <div class="dnnFormMessage dnnFormInfo">
-                            Select how to identify users in Power BI reports. Options include Username, Email, PowerBiGroup profile property, Custom profile property template, or Custom extension library.
-                        </div>
                     </div>
                 </div>
-                <div class="dnnFormItem">
+                <div class="dnnFormItem pbi-hidden" id="CustomUserPropertyItem">
                     <div class="leftGroup">
                         <label>Custom User Profile Property Template</label> 
                         @Html.TextBoxFor(m => m.CustomUserProperty, new { placeholder = "e.g., [PROFILE:Department] or [PROFILE:FirstName].[PROFILE:LastName]" })
-                        <div class="dnnFormMessage dnnFormInfo">
+                        <div>
                             Use when "Custom User Profile Property" is selected. Enter template using [PROFILE:PropertyName] syntax to reference DNN profile properties.
                         </div>
                     </div>
                 </div>
-                <div class="dnnFormItem">
+                <div class="dnnFormItem pbi-hidden" id="CustomExtensionLibraryItem">
                     <div class="leftGroup">
                         <label>Custom Extension Library Type</label>
                         @Html.TextBoxFor(m => m.CustomExtensionLibrary, new { placeholder = "e.g., MyNamespace.MyRlsExtension, MyAssembly" })
-                        <div class="dnnFormMessage dnnFormInfo">
+                        <div>
                             Use when "Custom Extension Library" is selected. Enter the fully qualified type name of your class that implements IRlsCustomExtension.
                         </div>
                     </div>
@@ -250,7 +252,7 @@
                 targetArea: '#PowerBISettings'
             });
         };
-        setupModule();
+        setupModule(); 
         Sys.WebForms.PageRequestManager.getInstance().add_endRequest(function () {
             setupModule();
         });
