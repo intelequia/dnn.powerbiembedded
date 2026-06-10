@@ -150,10 +150,12 @@
         this.addUserToSubscription = function (user) {
             that.addedUsers.push(user);
             that.availableUsers.remove(user);
+            that.editUserSearchQuery('');
         };
         this.addRoleToSubscription = function (role) {
             that.addedRoles.push(role);
             that.availableRoles.remove(role);
+            that.editRoleSearchQuery('');
         };
         this.addPageToSubscription = function (page) {
             that.addedPages.push(page);
@@ -191,6 +193,8 @@
         };
 
         this.editSubscription = function () {
+            if (parent.runNowTimer || parent.runNowPoll) { parent.stopRunNow(); }
+            parent.runNowStatus('');
             that.startEditing();
             parent.selectedSubscription(that);
         };
@@ -273,7 +277,10 @@
 
         // Subscriptions
         this.subscriptionsArray = ko.observableArray([]);
-        this.pagesArray = ko.observableArray(context.ReportPages.Value.slice());
+        // Dashboards have no report pages, so ReportPages comes back null from the server.
+        this.pagesArray = ko.observableArray(context.ReportPages && context.ReportPages.Value ? context.ReportPages.Value.map(function (page) {
+            return { name: page.Name, displayName: page.DisplayName };
+        }) : []);
         this.selectedSubscription = ko.observable();
 
 
@@ -337,7 +344,6 @@
                                 subscription.Enabled,
                                 JSON.parse(subscription.Users),
                                 JSON.parse(subscription.Roles),
-                                context.PortalId,
                                 context.ModuleId,
                             );
                             subscriptions.push(b);
@@ -446,15 +452,25 @@
             }
         }
 
-        // Embed the report and display it within the div container.
-        this.report = powerbi.load(that.reportContainer, that.config);
+        // Dashboards don't support report-only features (bookmarks, pages, phased render),
+        // so embed them with powerbi.embed() and skip that report-specific logic.
+        this.isDashboard = context.ContentType === "dashboard";
 
-        //Getreport bookmarks
-        this.report.bookmarksManager.getBookmarks()
-            .then(function (bookmarks) {
-                // Create bookmarks list from the existing report bookmarks 
-                that.updateBookmarksList(bookmarks);
-            });
+        // Embed the report and display it within the div container.
+        // Reports use phased embedding (load + render); dashboards must use embed() because
+        // the Dashboard component has no render() method and would otherwise stay blank.
+        this.report = that.isDashboard
+            ? powerbi.embed(that.reportContainer, that.config)
+            : powerbi.load(that.reportContainer, that.config);
+
+        if (!that.isDashboard) {
+            //Getreport bookmarks
+            this.report.bookmarksManager.getBookmarks()
+                .then(function (bookmarks) {
+                    // Create bookmarks list from the existing report bookmarks 
+                    that.updateBookmarksList(bookmarks);
+                });
+        }
         this.trackEvent = function (eventName, data) {
             if (that.applicationInsightsEnabled && typeof appInsights !== "undefined") {
                 let userId = "-1";
@@ -508,6 +524,9 @@
         }
 
         this.report.on("loaded", async function () {
+            if (that.isDashboard) {
+                return;
+            }
             if (that.isMobile && that.config.settings.layoutType != that.models.LayoutType.MobilePortrait) {
                 var page = await that.report.getActivePage()
                 const hasLayout = await page.hasLayout(that.models.LayoutType.MobilePortrait);
@@ -644,6 +663,8 @@
 
 
         this.cancelEditing = function (subscription) {
+            if (that.runNowTimer || that.runNowPoll) { that.stopRunNow(); }
+            that.runNowStatus('');
             if (subscription.id() == -1) {
                 that.subscriptionsArray.splice(that.subscriptionsArray.indexOf(subscription), 1);
             }
@@ -654,6 +675,8 @@
             that.selectedSubscription(null);
         };
         this.addNewSubscription = function () {
+            if (that.runNowTimer || that.runNowPoll) { that.stopRunNow(); }
+            that.runNowStatus('');
             var b = new SubscriptionModel(
                 that,
                 -1,
@@ -722,6 +745,107 @@
                     });
             }
         };
+
+        this.runNowStatus = ko.observable(''); // '', 'running', 'success', 'error'
+        this.runNowElapsed = ko.observable(0);
+        this.runNowTimer = null;
+        this.runNowPoll = null;
+
+        this.runNowElapsedText = ko.computed(function () {
+            var total = that.runNowElapsed();
+            var minutes = Math.floor(total / 60);
+            var seconds = total % 60;
+            return (minutes < 10 ? '0' + minutes : minutes) + ':' + (seconds < 10 ? '0' + seconds : seconds);
+        });
+
+        this.stopRunNow = function () {
+            if (that.runNowTimer) { clearInterval(that.runNowTimer); that.runNowTimer = null; }
+            if (that.runNowPoll) { clearInterval(that.runNowPoll); that.runNowPoll = null; }
+            $('#btnRunSubscriptionNow').removeClass('disabled');
+        };
+
+        this.pollRunNowStatus = function (jobId) {
+            that.runNowPoll = setInterval(function () {
+                Common.Call("GET", "GetRunSubscriptionStatus", that.subscriptionsService, { jobId: jobId },
+                    function (data) {
+                        if (data.Status === 'Running') {
+                            return;
+                        }
+                        that.stopRunNow();
+                        that.runNowStatus(data.Status === 'Success' ? 'success' : 'error');
+                    },
+                    function (error) {
+                        console.log(error);
+                        that.stopRunNow();
+                        that.runNowStatus('error');
+                    },
+                    function () {
+                    });
+            }, 3000); 
+        };
+
+        this.runSubscriptionNow = function (subscription) {
+
+            if (subscription.editSubscriptionErrors().length > 0) {
+                subscription.editSubscriptionErrors.showAllMessages(true);
+                return;
+            }
+
+            var btn = $('#btnRunSubscriptionNow');
+            if (btn.hasClass('disabled')) {
+                return;
+            }
+
+            let serializedUsers = subscription.addedUsers().map(user => user.UserID).join(",");
+            let serializedRoles = subscription.addedRoles().map(role => role.RoleID).join(",");
+            let serializedReportPages = subscription.addedPages().map(page => page.name).join(",");
+            let params = {
+                Id: subscription.id(),
+                ReportId: subscription.reportId(),
+                GroupId: subscription.groupId(),
+                ModuleId: subscription.moduleId(),
+                PortalId: subscription.portalId(),
+                Name: subscription.name(),
+                StartDate: subscription.startDate(),
+                EndDate: subscription.endDate(),
+                RepeatPeriod: subscription.repeatPeriod(),
+                RepeatTime: subscription.repeatTime(),
+                TimeZone: subscription.timeZone(),
+                EmailSubject: subscription.emailSubject(),
+                Message: subscription.message(),
+                ReportPages: serializedReportPages,
+                Enabled: subscription.enabled(),
+                Users: serializedUsers,
+                Roles: serializedRoles,
+            };
+
+            btn.addClass('disabled');
+            that.runNowStatus('running');
+            that.runNowElapsed(0);
+            if (that.runNowTimer) { clearInterval(that.runNowTimer); }
+            that.runNowTimer = setInterval(function () {
+                that.runNowElapsed(that.runNowElapsed() + 1);
+            }, 1000);
+
+            Common.Call("POST", "RunSubscriptionNow", that.subscriptionsService, params,
+                function (data) {
+                    if (data.Success && data.JobId) {
+                        that.pollRunNowStatus(data.JobId);
+                    }
+                    else {
+                        that.stopRunNow();
+                        that.runNowStatus('error');
+                    }
+                },
+                function (error) {
+                    console.log(error);
+                    that.stopRunNow();
+                    that.runNowStatus('error');
+                },
+                function () {
+                });
+        };
+
         this.getParameterByName = function (name, url) {
             if (!url) url = window.location.href;
             name = name.replace(/[\[\]]/g, '\\$&');
@@ -1098,7 +1222,9 @@
         });
 
         this.Init = function () {
-            that.createBookmarksList();
+            if (!that.isDashboard) {
+                that.createBookmarksList();
+            }
         };
     };
 

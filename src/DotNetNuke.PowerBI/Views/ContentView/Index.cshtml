@@ -71,7 +71,7 @@
         </div>
     }
 
-    @if (ViewBag.ShowSubscription)
+    @if (ViewBag.ShowSubscription && ViewBag.CanEdit)
     {
         <a href="#" class="subscription" data-bind="click: openLateralTab">
             <div class="subscribeImg"></div>
@@ -299,7 +299,7 @@
                     </table>
                     <div data-bind="visible: addedPages().length === 0" class="norows">
                         <span>@Dnn.LocalizeString("SubscriptionNoPages")</span>
-                    </div>
+                    </div> 
                     <div class="dnnFormItem">
                         <label class="inline" for="chkEditEnable">@Dnn.LocalizeString("SubscriptionEnabled")</label>
                         <input type="checkbox" id="chkEditEnable" data-bind="checked: enabled" />
@@ -307,6 +307,12 @@
                 </fieldset>
                 <a id="btnSaveEditSubscription" class="dnnPrimaryAction" data-bind="click: $root.saveEditedSubscription">@Dnn.LocalizeString("SubscriptionSave")</a>
                 <a id="btnSaveCancel" class="dnnSecondaryAction" data-bind="click: $root.cancelEditing">@Dnn.LocalizeString("SubscriptionCancel")</a>
+                <a id="btnRunSubscriptionNow" class="dnnSecondaryAction" data-bind="click: $root.runSubscriptionNow">@Dnn.LocalizeString("SubscriptionRunNow")</a>
+                <span class="runNowFeedback runNowRunning" data-bind="visible: $root.runNowStatus() === 'running'">
+                    @Dnn.LocalizeString("SubscriptionRunRunning") <span data-bind="text: $root.runNowElapsedText"></span>
+                </span>
+                <span class="runNowFeedback runNowSuccess" data-bind="visible: $root.runNowStatus() === 'success'">@Dnn.LocalizeString("SubscriptionRunSuccess")</span>
+                <span class="runNowFeedback runNowError" data-bind="visible: $root.runNowStatus() === 'error'">@Dnn.LocalizeString("SubscriptionRunError")</span>
             </div>
         </div>
         <!-- /ko -->

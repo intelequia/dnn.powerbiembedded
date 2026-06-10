@@ -11,7 +11,7 @@
 #dnn_Side_Menu .powerbiListView {
     padding: 0px 20px 0px 25px;
 }
-
+ 
     #dnn_Side_Menu .powerbiListView li {
         list-style: none;
     }
@@ -190,6 +190,26 @@
 
 #PowerBISettings .dnnFormItem input[type="checkbox"] + span {
     margin-left: 0px;
+}
+
+/* Visibility toggle for report-only settings (controlled from module-settings.js) */
+.pbi-hidden {
+    display: none !important;
+}
+
+/* Two-column layout for the report-only checkboxes */
+#PowerBISettings .pbi-checkbox-grid {
+    display: flex;
+    flex-wrap: wrap;
+}
+
+#PowerBISettings .pbi-checkbox-grid > .dnnFormItem {
+    width: 50%;
+    box-sizing: border-box;
+}
+
+#PowerBISettings .pbi-checkbox-grid label {
+    width: 230px;
 }
 
 .powerbiContentView .pbitoolbar {
@@ -844,6 +864,25 @@
 
 .norows {
     padding: 10px;
+} 
+
+.runNowFeedback {
+    display: inline-block;
+    margin-left: 10px;
+    font-weight: bold;
+    vertical-align: middle;
+}
+
+.runNowFeedback.runNowRunning {
+    color: #605e5c;
+}
+
+.runNowFeedback.runNowSuccess {
+    color: #107c10;
+}
+
+.runNowFeedback.runNowError {
+    color: #d13438;
 }
 .lateral-tab input[type=date],
 .lateral-tab input[type=time] {

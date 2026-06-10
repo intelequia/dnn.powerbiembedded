@@ -1061,7 +1061,7 @@ namespace DotNetNuke.PowerBI.Services
 
         public async Task<EmbedConfig> GetDashboardEmbedConfigAsync(int userId, string username, string roles, string dashboardId, bool hasEditPermission)
         {
-            string permission = hasEditPermission ? "edit" : "view";
+            string permission = "view"; // Dashboards only support "view" access level for now. Edit access level is not supported and will be ignored by the service.
 
             var model = (EmbedConfig)CachingProvider.Instance().GetItem($"PBI_{Settings.PortalId}_{Settings.SettingsId}_{userId}_{username}_{roles}_{Thread.CurrentThread.CurrentUICulture.Name}_Dashboard_{dashboardId}");
             if (model != null)
@@ -1093,56 +1093,81 @@ namespace DotNetNuke.PowerBI.Services
                     {
                         model.ErrorMessage = "No dashboard with the given ID was found in the workspace. Make sure ReportId is valid.";
                     }
-                    // Generate Embed Token for reports without effective identities.
-                    GenerateTokenRequest generateTokenRequestParameters;
-                    // This is how you create embed token with effective identities
-                    if (!string.IsNullOrWhiteSpace(username))
-                    {
-                        var rls = new EffectiveIdentity { Username = username };
-                        rls.Datasets.Add(dashboardId);
-                        if (!string.IsNullOrWhiteSpace(roles))
-                        {
-                            AppendEffectiveRoles(rls, roles);
-                        }
-                        if (Components.Common.IsSuperUser())
-                        {
-                            rls.Roles.Add("SuperUsers");
-                        }
-                        // Generate Embed Token with effective identities.
-                        generateTokenRequestParameters = new GenerateTokenRequest { AccessLevel = ToAccessLevel(permission) };
-                        generateTokenRequestParameters.Identities.Add(rls);
-                    }
                     else
                     {
-                        // Generate Embed Token for reports without effective identities.
-                        generateTokenRequestParameters = new GenerateTokenRequest { AccessLevel = ToAccessLevel(permission) };
-                    }
-                    EmbedToken tokenResponse;
-                    try
-                    {
-                        tokenResponse = (await client.Dashboards.GenerateTokenInGroupAsync(Guid.Parse(Settings.WorkspaceId), dashboard.Id, generateTokenRequestParameters).ConfigureAwait(false)).Value;
-                    }
-                    catch (RequestFailedException ex)
-                    {
-                        if (ex.Message.Contains("shouldn't have effective identity"))
-                        {
-                            // HACK: Creating embed token for accessing dataset shouldn't have effective identity"
-                            // See https://community.powerbi.com/t5/Developer/quot-shouldn-t-have-effective-identity-quot-error-when-passing/m-p/437177
-                            generateTokenRequestParameters = new GenerateTokenRequest { AccessLevel = ToAccessLevel(permission) };
+                        var workspaceId = Guid.Parse(Settings.WorkspaceId);
 
-                            tokenResponse = (await client.Dashboards.GenerateTokenInGroupAsync(Guid.Parse(Settings.WorkspaceId), dashboard.Id, generateTokenRequestParameters).ConfigureAwait(false)).Value;
+                        // A dashboard surfaces tiles that belong to one or more datasets. To honor RLS the
+                        // effective identity must reference the actual dataset IDs behind those tiles (not the
+                        // dashboard ID) and must only be attached when a dataset actually requires it; otherwise
+                        // Power BI fails with "requires effective identity to be provided" / "shouldn't have effective identity".
+                        EffectiveIdentity rls = null;
+                        if (!string.IsNullOrWhiteSpace(username))
+                        {
+                            var datasets = await GetDashboardDatasetsAsync(client, workspaceId, dashboard.Id).ConfigureAwait(false);
+                            var datasetsRequiringIdentity = datasets
+                                .Where(d => d.IsEffectiveIdentityRequired || d.IsEffectiveIdentityRolesRequired)
+                                .ToList();
+                            if (datasetsRequiringIdentity.Count > 0)
+                            {
+                                rls = new EffectiveIdentity { Username = username };
+                                // Only attach the identity to the datasets that actually require it. Listing
+                                // datasets without RLS makes Power BI try to resolve the identity against them
+                                // and fail (e.g. "Failed to open the MSOLAP connection").
+                                foreach (var ds in datasetsRequiringIdentity)
+                                {
+                                    if (!rls.Datasets.Contains(ds.DatasetId))
+                                    {
+                                        rls.Datasets.Add(ds.DatasetId);
+                                    }
+                                }
+                                if (datasetsRequiringIdentity.Any(d => d.IsEffectiveIdentityRolesRequired))
+                                {
+                                    if (!string.IsNullOrWhiteSpace(roles))
+                                    {
+                                        AppendEffectiveRoles(rls, roles);
+                                    }
+                                    if (Components.Common.IsSuperUser())
+                                    {
+                                        rls.Roles.Add("SuperUsers");
+                                    }
+                                }
+                            }
                         }
-                        else
-                            throw;
+
+                        var generateTokenRequestParameters = new GenerateTokenRequest { AccessLevel = ToAccessLevel(permission) };
+                        if (rls != null)
+                        {
+                            generateTokenRequestParameters.Identities.Add(rls);
+                        }
+
+                        EmbedToken tokenResponse;
+                        try
+                        {
+                            tokenResponse = (await client.Dashboards.GenerateTokenInGroupAsync(workspaceId, dashboard.Id, generateTokenRequestParameters).ConfigureAwait(false)).Value;
+                        }
+                        catch (RequestFailedException ex)
+                        {
+                            if (ex.Message.Contains("shouldn't have effective identity"))
+                            {
+                                // HACK: Creating embed token for accessing dataset shouldn't have effective identity"
+                                // See https://community.powerbi.com/t5/Developer/quot-shouldn-t-have-effective-identity-quot-error-when-passing/m-p/437177
+                                generateTokenRequestParameters = new GenerateTokenRequest { AccessLevel = ToAccessLevel(permission) };
+
+                                tokenResponse = (await client.Dashboards.GenerateTokenInGroupAsync(workspaceId, dashboard.Id, generateTokenRequestParameters).ConfigureAwait(false)).Value;
+                            }
+                            else
+                                throw;
+                        }
+                        if (tokenResponse == null)
+                        {
+                            model.ErrorMessage = "Failed to generate embed token.";
+                        }
+                        // Generate Embed Configuration.
+                        model.EmbedToken = tokenResponse;
+                        model.EmbedUrl = dashboard.EmbedUrl;
+                        model.Id = dashboard.Id.ToString();
                     }
-                    if (tokenResponse == null)
-                    {
-                        model.ErrorMessage = "Failed to generate embed token.";
-                    }
-                    // Generate Embed Configuration.
-                    model.EmbedToken = tokenResponse;
-                    model.EmbedUrl = dashboard.EmbedUrl;
-                    model.Id = dashboard.Id.ToString();
                 }
                 model.ContentType = "dashboard";
 
@@ -1150,6 +1175,67 @@ namespace DotNetNuke.PowerBI.Services
             }
             return model;
 
+        }
+
+        private class DashboardDatasetInfo
+        {
+            public string DatasetId { get; set; }
+            public bool IsEffectiveIdentityRequired { get; set; }
+            public bool IsEffectiveIdentityRolesRequired { get; set; }
+        }
+
+        /// <summary>
+        /// Returns the distinct Power BI datasets that back the tiles of the given dashboard together
+        /// with their effective identity (RLS) requirements. The effective identity passed when
+        /// generating a dashboard embed token must reference these dataset IDs, not the dashboard ID.
+        /// </summary>
+        private async Task<List<DashboardDatasetInfo>> GetDashboardDatasetsAsync(PowerBIClient client, Guid workspaceId, Guid dashboardId)
+        {
+            var cacheKey = $"PBI_{Settings.PortalId}_{Settings.SettingsId}_DashboardDatasets_{workspaceId}_{dashboardId}";
+            var cached = CachingProvider.Instance().GetItem(cacheKey) as List<DashboardDatasetInfo>;
+            if (cached != null)
+                return cached;
+
+            var result = new List<DashboardDatasetInfo>();
+            try
+            {
+                var tiles = (await client.Dashboards.GetTilesInGroupAsync(workspaceId, dashboardId).ConfigureAwait(false)).Value;
+                var datasetIds = tiles.Value
+                    .Select(t => t.DatasetId)
+                    .Where(id => !string.IsNullOrWhiteSpace(id))
+                    .Distinct(StringComparer.OrdinalIgnoreCase)
+                    .ToList();
+
+                foreach (var datasetId in datasetIds)
+                {
+                    Dataset dataset = null;
+                    try
+                    {
+                        dataset = client.Datasets.GetDatasetInGroup(workspaceId, datasetId).Value;
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.Warn($"Couldn't find dataset '{datasetId}' in workspace '{workspaceId}'", ex);
+                        dataset = client.Datasets.GetDatasetsInGroup(workspaceId).Value.Value.FirstOrDefault(x => x.Id == datasetId);
+                    }
+                    if (dataset == null)
+                        continue;
+
+                    result.Add(new DashboardDatasetInfo
+                    {
+                        DatasetId = dataset.Id,
+                        IsEffectiveIdentityRequired = dataset.IsEffectiveIdentityRequired.GetValueOrDefault(false),
+                        IsEffectiveIdentityRolesRequired = dataset.IsEffectiveIdentityRolesRequired.GetValueOrDefault(false)
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.Warn($"Error retrieving datasets for dashboard {dashboardId} in workspace {workspaceId}", ex);
+            }
+
+            CachingProvider.Instance().Insert(cacheKey, result, null, DateTime.Now.AddMinutes(15), TimeSpan.Zero);
+            return result;
         }
 
         public async Task<TileEmbedConfig> GetTileEmbedConfigAsync(int userId, string tileId, string dashboardId, bool hasEditPermission)

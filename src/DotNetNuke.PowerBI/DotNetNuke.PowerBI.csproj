@@ -249,6 +249,7 @@
     <Compile Include="Components\FeatureController.cs" />
     <Compile Include="Components\MenuController.cs" />
     <Compile Include="Components\RouteMapper.cs" />
+    <Compile Include="Components\SubscriptionProcessor.cs" />
     <Compile Include="Controllers\CalendarViewController.cs" />
     <Compile Include="Services\ExportsController.cs" />
     <Compile Include="Controllers\ContentViewController.cs" />

@@ -225,6 +225,18 @@
   <data name="SubscriptionSave.Text" xml:space="preserve">
     <value>Save</value>
   </data>
+  <data name="SubscriptionRunNow.Text" xml:space="preserve">
+    <value>Run now</value>
+  </data>
+  <data name="SubscriptionRunRunning.Text" xml:space="preserve">
+    <value>Running</value> 
+  </data>
+  <data name="SubscriptionRunSuccess.Text" xml:space="preserve">
+    <value>Success</value>
+  </data>
+  <data name="SubscriptionRunError.Text" xml:space="preserve">
+    <value>Error</value>
+  </data>
   <data name="SubscriptionSearchRoles.Text" xml:space="preserve">
     <value>Add Roles</value>
   </data>

@@ -43,6 +43,7 @@ namespace DotNetNuke.PowerBI.Tasks
             try
             {
                 var common = new Components.Common();
+                var processor = new Components.SubscriptionProcessor(common, note => this.ScheduleHistoryItem.AddLogNote(note));
                 var settings = SharedSettingsRepository.Instance.GetAllSettings();
 
                 foreach (var setting in settings.AsParallel())
@@ -52,7 +53,7 @@ namespace DotNetNuke.PowerBI.Tasks
 
                     foreach (var subscription in subscriptions.AsParallel())
                     {
-                        ProcessSubscription(common, setting, accessToken, subscription);
+                        ProcessSubscription(processor, setting, accessToken, subscription);
                     }
                 }
 
@@ -65,166 +66,15 @@ namespace DotNetNuke.PowerBI.Tasks
             }
         }
 
-        private void ProcessSubscription(Components.Common common, PowerBISettings setting, string accessToken, Subscription subscription)
+        private void ProcessSubscription(Components.SubscriptionProcessor processor, PowerBISettings setting, string accessToken, Subscription subscription)
         {
             try
             {
-                var portalSettings = new PortalSettings(subscription.PortalId);
-
-                if (subscription.Enabled && IsSubscriptionDue(subscription))
-                {
-                    var htmlBody = CreateEmailBody(subscription);
-                    var subject = subscription.EmailSubject;
-
-                    var subscriptionSubscribers = SubscriptionsSubscribersRepository.Instance.GetSubscribersBySubscription(subscription.Id);
-                    var userIds = subscriptionSubscribers
-                        .Where(subscriber => subscriber.UserId.HasValue)
-                        .Select(subscriber => subscriber.UserId.Value);
-
-                    foreach (var subscriptionSubscriber in subscriptionSubscribers.AsParallel())
-                    {
-                        if (subscriptionSubscriber.UserId != null)
-                        {
-                            var userInfo = UserController.GetUserById(portalSettings.PortalId, (int)subscriptionSubscriber.UserId);
-                            SendEmail(common, setting, accessToken, subscription, userInfo, subject, htmlBody, portalSettings);
-                        }
-                        else
-                        {
-                            ProcessRoleSubscribers(common, setting, accessToken, subscription, portalSettings, subscriptionSubscriber, userIds, subject, htmlBody);
-                        }
-                    }
-                    this.ScheduleHistoryItem.AddLogNote($"Processed '{subscription.Name}'");
-                    subscription.LastProcessedOn = DateTime.Now;
-                    SubscriptionsRepository.Instance.EditSubscription(subscription);
-                }
+                processor.ProcessSubscriptionAsync(setting, accessToken, subscription).GetAwaiter().GetResult();
             }
             catch (Exception ex)
             {
                 HandleError($"Error processing the subscription '{subscription.Name}', {ex}", subscription);
-            }
-        }
-
-        private bool IsSubscriptionDue(Subscription subscription)
-        {
-            var currentDate = DateTime.Now;
-            var timeSinceLastProcessed = currentDate - (subscription.LastProcessedOn ?? currentDate);
-            const string daily = "Daily";
-            const string weekly = "Weekly";
-            const string monthly = "Monthly";
-
-
-            // If LastProcessedOn is null, treat it as if it's been a long time since the last processing
-            if (subscription.LastProcessedOn == null)
-            {
-                return true;
-            }
-
-            var totalDays = (int)timeSinceLastProcessed.TotalDays;
-            var currentDateTime = TimeZoneInfo.ConvertTimeBySystemTimeZoneId(DateTime.Now, subscription.TimeZone);
-            var repeatDateTime = currentDateTime.Date + subscription.RepeatTime;
-
-            return (currentDateTime >= repeatDateTime) &&
-                ((subscription.RepeatPeriod.Equals(daily) && totalDays >= 1) ||
-                 (subscription.RepeatPeriod.Equals(weekly) && totalDays >= 7) ||
-                 (subscription.RepeatPeriod.Equals(monthly) && totalDays >= 30));
-        }
-
-
-        private string CreateEmailBody(Subscription subscription)
-        {
-            const string subscriptionName = "[[SubscriptionName]]";
-            const string emailBody = "[[EmailBody]]";
-            const string reportDate = "[[ReportDate]]";
-            var templatePath = HostingEnvironment.MapPath("~\\DesktopModules\\MVC\\PowerBiEmbedded\\Views\\emailtemplate.cshtml");
-            if (!string.IsNullOrEmpty(ConfigurationManager.AppSettings["PowerBI.Export.EmailTemplatePath"]))
-                templatePath = ConfigurationManager.AppSettings["PowerBI.Export.EmailTemplatePath"];
-
-            var htmlBody = File.ReadAllText(templatePath);
-            htmlBody = htmlBody.Replace(subscriptionName, subscription.Name);
-            htmlBody = htmlBody.Replace(emailBody, subscription.Message);
-            htmlBody = htmlBody.Replace(reportDate, DateTime.UtcNow.Date.ToShortDateString());
-
-            return htmlBody;
-        }
-
-        private void SendEmail(Components.Common common, PowerBISettings setting, string accessToken, Subscription subscription, UserInfo userInfo, string subject, string htmlBody, PortalSettings portalSettings)
-        {
-            var username = common.GetUsernameProperty(subscription.ModuleId, userInfo);
-            var roles = RoleController.Instance.GetUserRoles(UserController.Instance.GetUserByDisplayname(subscription.PortalId, userInfo.DisplayName), true);
-            var roleList = roles.Select(role => role.RoleName).ToList();
-            var rolesString = string.Join(",", roleList);
-            const string reportName = "[[ReportName]]";
-            Attachment attachment = null;
-
-            try
-            {
-                attachment = common.ExportPowerBIReport(Guid.Parse(subscription.ReportId), accessToken, setting, subscription.ReportPages, rolesString, username, portalSettings.DefaultLanguage.ToLower()).Result;
-            }
-            catch (Exception ex)
-            {
-                HandleException(ex, subscription);
-            }
-
-            if (attachment == null)
-            {
-                HandleError("There was an error processing the export.", subscription);
-            }
-
-            var attachments = new List<Attachment> { attachment };
-            htmlBody = htmlBody.Replace(reportName, attachment.Name);
-
-            try
-            {
-                Mail.SendMail(
-                    HostController.Instance.GetString("HostEmail"),
-                    userInfo.Email,
-                    string.Empty,
-                    string.Empty,
-                    string.Empty,
-                    MailPriority.Normal,
-                    subject,
-                    MailFormat.Html,
-                    Encoding.UTF8,
-                    htmlBody,
-                    attachments,
-                    string.Empty,
-                    string.Empty,
-                    string.Empty,
-                    string.Empty,
-                    true);
-            }
-            catch (Exception ex)
-            {
-                HandleException(ex, subscription);
-            }
-        }
-
-        private void ProcessRoleSubscribers(
-            Components.Common common,
-            PowerBISettings setting,
-            string accessToken,
-            Subscription subscription,
-            PortalSettings portalSettings,
-            SubscriptionSubscriber subscriptionSubscriber,
-            IEnumerable<int> userIds,
-            string subject,
-            string htmlBody)
-        {
-            var roleController = new RoleController();
-            var roleInfo = roleController.GetRoleById(portalSettings.PortalId, (int)subscriptionSubscriber.RoleId);
-            var userInfo = roleController.GetUsersByRole(portalSettings.PortalId, roleInfo.RoleName).ToList();
-
-            foreach (var user in userInfo.AsParallel())
-            {
-                if (userIds.Contains(user.UserID))
-                {
-                    continue;
-                }
-
-                if (Mail.IsValidEmailAddress(user.Email, subscription.PortalId))
-                {
-                    SendEmail(common, setting, accessToken, subscription, user, subject, htmlBody, portalSettings);
-                }
             }
         }
 
