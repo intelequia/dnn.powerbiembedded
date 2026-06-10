@@ -182,6 +182,37 @@
 
           </assemblies>
         </component>
+        <component type="Config">
+          <config>
+            <configFile>web.config</configFile>
+            <install>
+              <configuration>
+                <nodes>
+                  <node path="/configuration/runtime/asmbnd:assemblyBinding" action="update"
+                        targetpath="/configuration/runtime/asmbnd:assemblyBinding/asmbnd:dependentAssembly[asmbnd:assemblyIdentity/@name='Azure.Core']"
+                        collision="overwrite"
+                        nameSpace="urn:schemas-microsoft-com:asm.v1"
+                        nameSpacePrefix="asmbnd">
+                    <dependentAssembly xmlns="urn:schemas-microsoft-com:asm.v1">
+                      <assemblyIdentity name="Azure.Core" publicKeyToken="92742159e12e44c8" culture="neutral" />
+                      <bindingRedirect oldVersion="0.0.0.0-1.44.1.0" newVersion="1.44.1.0" />
+                    </dependentAssembly>
+                  </node>
+                </nodes>
+              </configuration>
+            </install>
+            <uninstall>
+              <configuration>
+                <nodes>
+                  <node path="/configuration/runtime/asmbnd:assemblyBinding/asmbnd:dependentAssembly[asmbnd:assemblyIdentity/@name='Azure.Core']"
+                        action="remove"
+                        nameSpace="urn:schemas-microsoft-com:asm.v1"
+                        nameSpacePrefix="asmbnd" />
+                </nodes>
+              </configuration>
+            </uninstall>
+          </config>
+        </component>
       </components>
     </package>
     <package name="PowerBIEmbeddedContent" type="Module" version="01.05.01">
