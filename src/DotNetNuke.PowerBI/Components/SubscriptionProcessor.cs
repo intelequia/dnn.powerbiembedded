@@ -152,10 +152,29 @@ namespace DotNetNuke.PowerBI.Components
                 throw new ApplicationException($"There was an error processing the export for subscription '{subscription.Name}'.");
             }
 
-            var attachments = new List<Attachment> { attachment };
             htmlBody = htmlBody.Replace(reportName, attachment.Name);
 
-            Mail.SendMail(
+            byte[] attachmentContent;
+            using (var memoryStream = new MemoryStream())
+            {
+                attachment.ContentStream.CopyTo(memoryStream);
+                attachmentContent = memoryStream.ToArray();
+            }
+
+            var attachments = new List<MailAttachment>
+            {
+                new MailAttachment(attachment.Name, attachmentContent),
+            };
+
+            // The host email is read via HostController because this code runs on background
+            // threads (scheduled task and "Run now" background work item) where there is no live
+            // DI scope, and DNN's application-level service provider is internal (not reachable
+            // from a module). HostController.Instance.GetString itself works fine; only the
+            // Instance accessor carries an obsolete attribute, which is suppressed below.
+#pragma warning disable CS0618 // Type or member is obsolete
+            var hostEmail = HostController.Instance.GetString("HostEmail");
+#pragma warning restore CS0618 // Type or member is obsolete
+            var sendResult = Mail.SendMail(
                 HostController.Instance.GetString("HostEmail"),
                 userInfo.Email,
                 string.Empty,
@@ -172,6 +191,10 @@ namespace DotNetNuke.PowerBI.Components
                 string.Empty,
                 string.Empty,
                 true);
+            if (!string.IsNullOrEmpty(sendResult))
+            {
+                throw new ApplicationException($"Error sending the subscription email to '{userInfo.Email}': {sendResult}");
+            }
         }
 
         private async Task ProcessRoleSubscribersAsync(

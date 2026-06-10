@@ -61,6 +61,7 @@ namespace DotNetNuke.PowerBI.Services
             public int RoleID { get; set; }
             public string RoleName { get; set; }
         }
+
         [HttpGet]
         public HttpResponseMessage GetSubscriptions(string workspaceId, string reportId)
         {

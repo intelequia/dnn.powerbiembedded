@@ -26,6 +26,7 @@ using MailPriority = DotNetNuke.Services.Mail.MailPriority;
 using Subscription = DotNetNuke.PowerBI.Data.Subscriptions.Models.Subscription;
 using UserInfo = DotNetNuke.Entities.Users.UserInfo;
 
+
 namespace DotNetNuke.PowerBI.Tasks
 {
 
