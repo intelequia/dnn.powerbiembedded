@@ -509,6 +509,12 @@ namespace DotNetNuke.PowerBI.Services
                     RoleName = "Administrators",
                     RoleID = administrators.RoleID
                 });
+
+                objectPermissions.Add(new ObjectPermission
+                {
+                    RoleName = "Superusers",
+                    RoleID = -2
+                });
                 List<UserViewModel> users = new List<UserViewModel>();
                 foreach (ObjectPermission permission in objectPermissions)
                 {
@@ -531,7 +537,22 @@ namespace DotNetNuke.PowerBI.Services
                     }
                     else if (permission.RoleID != null)
                     {
-                        List<UserInfo> roleUsers = RoleController.Instance.GetUsersByRole(portalId, permission.RoleName).ToList();
+
+                        List<UserInfo> roleUsers = null;
+                        if (permission.RoleID == -2)
+                        {
+                            var superUserArrayList = UserController.GetUsers(includeDeleted: false, superUsersOnly: true, portalId: -1);
+                            var superUserList = new List<UserInfo>();
+                            foreach (UserInfo user in superUserArrayList)
+                            {
+                                superUserList.Add(user);
+                            }
+                            roleUsers = superUserList;
+                        }
+                        else
+                        {
+                            roleUsers = RoleController.Instance.GetUsersByRole(portalId, permission.RoleName).ToList();
+                        }
                         foreach (UserInfo user in roleUsers)
                         {
                             if ((user.DisplayName.ToLower().Contains(searchName.ToLower()))
