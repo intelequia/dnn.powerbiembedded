@@ -54,6 +54,7 @@ namespace DotNetNuke.PowerBI.Services
         {
             public int UserID { get; set; }
             public string DisplayName { get; set; }
+            public string Email { get; set; }
         }
 
         public class RoleViewModel
@@ -89,7 +90,7 @@ namespace DotNetNuke.PowerBI.Services
                             var user = UserController.Instance.GetUserById(portalId, subscriptionSubscriber.UserId.Value);
                             if (user != null)
                             {
-                                users.Add(new UserViewModel { UserID = user.UserID, DisplayName = user.DisplayName });
+                                users.Add(new UserViewModel { UserID = user.UserID, DisplayName = user.DisplayName, Email = user.Email });
                             }
                         }
                         else if (subscriptionSubscriber.RoleId.HasValue)
@@ -533,7 +534,8 @@ namespace DotNetNuke.PowerBI.Services
                                 users.Add(new UserViewModel
                                 {
                                     UserID = addingUser.UserID,
-                                    DisplayName = addingUser.DisplayName
+                                    DisplayName = addingUser.DisplayName,
+                                    Email = addingUser.Email
                                 });
                             }
                         }
@@ -566,7 +568,8 @@ namespace DotNetNuke.PowerBI.Services
                                     users.Add(new UserViewModel
                                     {
                                         UserID = user.UserID,
-                                        DisplayName = user.DisplayName
+                                        DisplayName = user.DisplayName,
+                                        Email = user.Email
                                     });
                                 }
                             }

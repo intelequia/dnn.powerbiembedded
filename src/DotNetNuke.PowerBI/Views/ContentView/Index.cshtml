@@ -180,7 +180,7 @@
                             <input type="text" class="txtSearch" data-bind="value: editUserSearchQuery, valueUpdate: 'keyup'" placeholder="@Dnn.LocalizeString("SubscriptionUserQuery")" />
                             <ul class="user-dropdown" data-bind="visible: editUserSearchQuery().length > 0 && availableUsers().length > 0, foreach: availableUsers">
                                 <li data-bind="click: $parent.addUserToSubscription">
-                                    <span data-bind="text: DisplayName"></span>
+                                    <span data-bind="text: Email ? DisplayName + ' (' + Email + ')' : DisplayName"></span>
                                     <a class="btnAdd">@Dnn.LocalizeString("btnAdd")</a>
                                 </li>
                             </ul>
@@ -194,7 +194,7 @@
                     <table class="removeUserTable">
                         <tbody data-bind="foreach: addedUsers">
                             <tr data-bind="click: $parent.removeUserFromSubscription">
-                                <td><span data-bind="text: DisplayName"></span></td>
+                                <td><span data-bind="text: Email ? DisplayName + ' (' + Email + ')' : DisplayName"></span></td>
                                 <td><a class="btnRemove">@Dnn.LocalizeString("btnRemove")</a></td>
                             </tr>
                         </tbody>
