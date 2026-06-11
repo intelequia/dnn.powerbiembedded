@@ -2,6 +2,8 @@ using DotNetNuke.Entities.Controllers;
 using DotNetNuke.Entities.Portals;
 using DotNetNuke.Entities.Users;
 using DotNetNuke.Instrumentation;
+using DotNetNuke.PowerBI.Data;
+using DotNetNuke.PowerBI.Data.Bookmarks;
 using DotNetNuke.PowerBI.Data.Models;
 using DotNetNuke.PowerBI.Data.Subscriptions;
 using DotNetNuke.PowerBI.Data.Subscriptions.Models;
@@ -69,6 +71,13 @@ namespace DotNetNuke.PowerBI.Components
             var htmlBody = CreateEmailBody(subscription);
             var subject = subscription.EmailSubject;
 
+            // Resolve the permission object (workspace when inheriting, otherwise the report) and
+            // load its permissions once, so access can be re-validated per recipient at send time.
+            // This guarantees that subscribers whose permission was revoked after being added stop
+            // receiving the report, for both the scheduled task and the "Run now" action.
+            var permissionObjectId = setting.InheritPermissions ? subscription.GroupId : subscription.ReportId;
+            var objectPermissions = ObjectPermissionsRepository.Instance.GetObjectPermissions(permissionObjectId, subscription.PortalId).ToList();
+
             var subscriptionSubscribers = subscribers ?? SubscriptionsSubscribersRepository.Instance.GetSubscribersBySubscription(subscription.Id);
             var userIds = subscriptionSubscribers
                 .Where(subscriber => subscriber.UserId.HasValue)
@@ -79,11 +88,16 @@ namespace DotNetNuke.PowerBI.Components
                 if (subscriptionSubscriber.UserId != null)
                 {
                     var userInfo = UserController.GetUserById(portalSettings.PortalId, (int)subscriptionSubscriber.UserId);
+                    if (!UserCanAccess(objectPermissions, subscription.PortalId, userInfo))
+                    {
+                        Note($"Skipped subscriber '{userInfo?.Email ?? subscriptionSubscriber.UserId.ToString()}' for '{subscription.Name}': no permission to the report.");
+                        continue;
+                    }
                     await SendEmailAsync(setting, accessToken, subscription, userInfo, subject, htmlBody, portalSettings);
                 }
                 else
                 {
-                    await ProcessRoleSubscribersAsync(setting, accessToken, subscription, portalSettings, subscriptionSubscriber, userIds, subject, htmlBody);
+                    await ProcessRoleSubscribersAsync(setting, accessToken, subscription, portalSettings, subscriptionSubscriber, userIds, subject, htmlBody, objectPermissions);
                 }
             }
 
@@ -145,17 +159,42 @@ namespace DotNetNuke.PowerBI.Components
             var rolesString = string.Join(",", roleList);
             const string reportName = "[[ReportName]]";
 
-            var attachment = await _common.ExportPowerBIReport(Guid.Parse(subscription.ReportId), accessToken, setting, subscription.ReportPages, rolesString, username, portalSettings.DefaultLanguage.ToLower());
+            string bookmarkState = null;
+            if (subscription.IncludeMyChanges)
+            {
+                bookmarkState = BookmarksRepository.Instance.GetBookmarkBySubscription(subscription.PortalId, subscription.Id)?.State;
+            }
+
+            var attachment = await _common.ExportPowerBIReport(Guid.Parse(subscription.ReportId), accessToken, setting, subscription.ReportPages, rolesString, username, portalSettings.DefaultLanguage.ToLower(), bookmarkState);
 
             if (attachment == null)
             {
                 throw new ApplicationException($"There was an error processing the export for subscription '{subscription.Name}'.");
             }
 
-            var attachments = new List<Attachment> { attachment };
             htmlBody = htmlBody.Replace(reportName, attachment.Name);
 
-            Mail.SendMail(
+            byte[] attachmentContent;
+            using (var memoryStream = new MemoryStream())
+            {
+                attachment.ContentStream.CopyTo(memoryStream);
+                attachmentContent = memoryStream.ToArray();
+            }
+
+            var attachments = new List<MailAttachment>
+            {
+                new MailAttachment(attachment.Name, attachmentContent),
+            };
+
+            // The host email is read via HostController because this code runs on background
+            // threads (scheduled task and "Run now" background work item) where there is no live
+            // DI scope, and DNN's application-level service provider is internal (not reachable
+            // from a module). HostController.Instance.GetString itself works fine; only the
+            // Instance accessor carries an obsolete attribute, which is suppressed below.
+#pragma warning disable CS0618 // Type or member is obsolete
+            var hostEmail = HostController.Instance.GetString("HostEmail");
+#pragma warning restore CS0618 // Type or member is obsolete
+            var sendResult = Mail.SendMail(
                 HostController.Instance.GetString("HostEmail"),
                 userInfo.Email,
                 string.Empty,
@@ -172,6 +211,10 @@ namespace DotNetNuke.PowerBI.Components
                 string.Empty,
                 string.Empty,
                 true);
+            if (!string.IsNullOrEmpty(sendResult))
+            {
+                throw new ApplicationException($"Error sending the subscription email to '{userInfo.Email}': {sendResult}");
+            }
         }
 
         private async Task ProcessRoleSubscribersAsync(
@@ -182,7 +225,8 @@ namespace DotNetNuke.PowerBI.Components
             SubscriptionSubscriber subscriptionSubscriber,
             IEnumerable<int> userIds,
             string subject,
-            string htmlBody)
+            string htmlBody,
+            IList<ObjectPermission> objectPermissions)
         {
             var roleController = new RoleController();
             var roleInfo = roleController.GetRoleById(portalSettings.PortalId, (int)subscriptionSubscriber.RoleId);
@@ -195,11 +239,55 @@ namespace DotNetNuke.PowerBI.Components
                     continue;
                 }
 
+                if (!UserCanAccess(objectPermissions, subscription.PortalId, user))
+                {
+                    Note($"Skipped role subscriber '{user.Email}' for '{subscription.Name}': no permission to the report.");
+                    continue;
+                }
+
                 if (Mail.IsValidEmailAddress(user.Email, subscription.PortalId))
                 {
                     await SendEmailAsync(setting, accessToken, subscription, user, subject, htmlBody, portalSettings);
                 }
             }
+        }
+
+        /// <summary>
+        /// Re-validates, against a pre-loaded permission set, whether <paramref name="user"/> still
+        /// has view access to the subscription's report/workspace. Mirrors
+        /// <see cref="Data.ObjectPermissionsRepository.HasPermissions"/> but evaluates in memory to
+        /// avoid a database round-trip per recipient.
+        /// </summary>
+        private static bool UserCanAccess(IList<ObjectPermission> objectPermissions, int portalId, UserInfo user)
+        {
+            const int viewPermissionId = 1;
+            const int allUsersRoleId = -1;
+
+            if (user == null)
+            {
+                return false;
+            }
+
+            if (user.IsSuperUser)
+            {
+                return true;
+            }
+
+            if (objectPermissions.Any(permission => permission.RoleID == allUsersRoleId))
+            {
+                return true;
+            }
+
+            var userRoleIds = RoleController.Instance.GetRoles(portalId, role => user.Roles.Contains(role.RoleName))
+                .Select(role => role.RoleID)
+                .ToList();
+
+            return objectPermissions.Any(permission => permission.PermissionID == viewPermissionId
+                && permission.AllowAccess
+                && (
+                    (permission.UserID.HasValue && permission.UserID.Value == user.UserID)
+                    || (permission.RoleID.HasValue && userRoleIds.Contains(permission.RoleID.Value))
+                ));
         }
     }
 }

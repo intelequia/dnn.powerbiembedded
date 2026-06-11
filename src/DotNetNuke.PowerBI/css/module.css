@@ -11,7 +11,7 @@
 #dnn_Side_Menu .powerbiListView {
     padding: 0px 20px 0px 25px;
 }
- 
+  
     #dnn_Side_Menu .powerbiListView li {
         list-style: none;
     }
@@ -743,6 +743,16 @@
         margin-bottom: 5px;
     }
 
+    .lateral-tab .dnnFormItem .repeatTimeSelectors {
+        display: flex;
+        gap: 8px;
+    }
+
+        .lateral-tab .dnnFormItem .repeatTimeSelectors select {
+            flex: 1 1 0;
+            width: auto;
+        }
+
         .lateral-tab .dnnFormItem input[type="checkbox"] {
             height: auto;
             width: auto;
@@ -767,6 +777,52 @@
     background-color: #f0f0f0;
     padding: 10px;
 }
+
+.subscription-mychanges {
+    margin: 12px 0;
+}
+
+.subscription-mychanges-header {
+    width: 100%;
+    background-color: #f0f0f0;
+    padding: 10px;
+    font-weight: bold;
+}
+
+.subscription-mychanges-description {
+    margin: 8px 0;
+    color: #666;
+}
+
+.subscription-mychanges-state {
+    margin: 6px 0;
+    color: #444;
+}
+
+.subscription-mychanges-actions {
+    margin: 8px 0;
+}
+
+    .subscription-mychanges-actions .mychanges-link {
+        cursor: pointer;
+        color: #0078d4;
+        text-decoration: none;
+    }
+
+        .subscription-mychanges-actions .mychanges-link:hover {
+            text-decoration: underline;
+        }
+
+        .subscription-mychanges-actions .mychanges-link.disabled {
+            color: #aaa;
+            cursor: default;
+            pointer-events: none;
+        }
+
+    .subscription-mychanges-actions .mychanges-sep {
+        margin: 0 8px;
+        color: #ccc;
+    }
 
     .sidenav a, .lateral-tab .closebtn {
         padding: 8px 8px 8px 32px;

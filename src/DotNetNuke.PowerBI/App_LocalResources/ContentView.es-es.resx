@@ -9,7 +9,7 @@
     that is mostly human readable. The generation and parsing of the 
     various data types are done through the TypeConverter classes 
     associated with the data types.
-    
+     
     Example:
     
     ... ado.net/XML headers & schema ...
@@ -183,6 +183,27 @@
   <data name="SubscriptionEnabled.Text" xml:space="preserve">
     <value>Habilitado</value>
   </data>
+  <data name="SubscriptionMyChanges.Text" xml:space="preserve">
+    <value>Mis cambios</value>
+  </data>
+  <data name="SubscriptionMyChangesDescription.Text" xml:space="preserve">
+    <value>Incluye los cambios realizados en el informe, como filtros aplicados, drilldowns, spotlights y más.</value>
+  </data>
+  <data name="SubscriptionMyChangesInclude.Text" xml:space="preserve">
+    <value>Incluir mis cambios</value>
+  </data>
+  <data name="SubscriptionMyChangesStateAsOf.Text" xml:space="preserve">
+    <value>Estado a fecha de</value>
+  </data>
+  <data name="SubscriptionMyChangesNoState.Text" xml:space="preserve">
+    <value>Aún no hay un estado guardado.</value>
+  </data>
+  <data name="SubscriptionMyChangesPreview.Text" xml:space="preserve">
+    <value>Previsualizar</value>
+  </data>
+  <data name="SubscriptionMyChangesUpdate.Text" xml:space="preserve">
+    <value>Actualizar</value>
+  </data>
   <data name="SubscriptionEndDate.Text" xml:space="preserve">
     <value>Fecha de Finalización *</value>
   </data>
@@ -221,6 +242,9 @@
   </data>
   <data name="Subscriptions.Text" xml:space="preserve">
     <value>Suscripciones</value>
+  </data>
+  <data name="Subscribe.Text" xml:space="preserve">
+    <value>Suscribirse</value>
   </data>
   <data name="SubscriptionSave.Text" xml:space="preserve">
     <value>Guardar</value>

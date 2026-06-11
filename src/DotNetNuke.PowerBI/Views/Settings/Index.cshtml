@@ -19,14 +19,17 @@
                 <label>Workspace</label>
                 @{
                     List<SelectListItem> listItems = new List<SelectListItem>();
-                    foreach (var settingsGroup in ViewBag.Settings)
+                    if (ViewBag.Settings != null)
                     {
-                        listItems.Add(new SelectListItem
+                        foreach (var settingsGroup in ViewBag.Settings)
                         {
-                            Text = settingsGroup.SettingsGroupName,
-                            Value = settingsGroup.SettingsGroupId
-                        });
+                            listItems.Add(new SelectListItem
+                            {
+                                Text = settingsGroup.SettingsGroupName,
+                                Value = settingsGroup.SettingsGroupId
+                            });
 
+                        }
                     }
                 }
                 @Html.DropDownListFor(m => m.SettingsGroupId, listItems, "(Default workspace)")
@@ -175,7 +178,7 @@
                     </div>
                     <div class="dnnFormItem">
                         <div class="leftGroup">
-                            <label>Show Subscriptions (needs Edit permissions)</label>
+                            <label>Show Subscriptions</label>
                             @Html.CheckBoxFor(m => m.ShowSubscription, true)
                         </div>
                     </div>

@@ -1,5 +1,6 @@
 ﻿using DotNetNuke.Entities.Portals;
 using DotNetNuke.Entities.Users;
+using DotNetNuke.Instrumentation;
 using DotNetNuke.PowerBI.Data.Models;
 using DotNetNuke.PowerBI.Extensibility;
 using DotNetNuke.PowerBI.Models;
@@ -10,11 +11,14 @@ using Microsoft.IdentityModel.Clients.ActiveDirectory;
 using Microsoft.PowerBI.Api;
 using Microsoft.PowerBI.Api.Models;
 using Azure;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Configuration;
 using System.Globalization;
 using System.Linq;
+using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Net.Mail;
 using System.Net.Mime;
 using System.Reflection;
@@ -33,6 +37,7 @@ namespace DotNetNuke.PowerBI.Components
 {
     public class Common
     {
+        private static readonly ILog Logger = LoggerSource.Instance.GetLogger(typeof(Common));
 
         #region Portal Info
         /// <summary>
@@ -283,7 +288,8 @@ namespace DotNetNuke.PowerBI.Components
             string reportPages,
             string rolesString,
             string username,
-            string locale = "en-us")
+            string locale = "en-us",
+            string bookmarkState = null)
         {
             try
             {
@@ -308,7 +314,7 @@ namespace DotNetNuke.PowerBI.Components
                 int retryAttempt = 1;
                 do
                 {
-                    var exportId = await PostExportRequest(reportId, accessToken, setting, format, rolesString, username, filteredPages, urlFilter, locale);
+                    var exportId = await PostExportRequest(reportId, accessToken, setting, format, rolesString, username, filteredPages, urlFilter, locale, bookmarkState);
                     var pollResponse = await PollExportRequest(reportId, exportId, pollingtimeOutInMinutes, cancellationToken, accessToken, setting);
                     export = pollResponse?.Value;
                     if (export == null)
@@ -361,7 +367,8 @@ namespace DotNetNuke.PowerBI.Components
     string username,
     IList<Page> pageNames = null, /* Get the page names from the GetPages REST API */
     string urlFilter = null,
-    string locale = "en-us")
+    string locale = "en-us",
+    string bookmarkState = null)
         {
             try
             {
@@ -370,7 +377,32 @@ namespace DotNetNuke.PowerBI.Components
                 PowerBIClient client = new PowerBIClient(accessToken, new Uri(setting.ApiUrl));
                 Reports reports = (await client.Reports.GetReportsInGroupAsync(Guid.Parse(setting.WorkspaceId)).ConfigureAwait(false)).Value;
                 Report report = reports.Value.FirstOrDefault(r => r.Id.ToString().Equals(reportId.ToString(), StringComparison.InvariantCultureIgnoreCase));
-                Dataset dataset = (await client.Datasets.GetDatasetInGroupAsync(Guid.Parse(setting.WorkspaceId), report.DatasetId).ConfigureAwait(false)).Value;
+                if (report == null)
+                {
+                    throw new ApplicationException($"No report with ID '{reportId}' was found in workspace '{setting.WorkspaceId}'");
+                }
+
+                // The dataset may live in a different workspace (shared/golden dataset). Resolve its workspace first.
+                var reportWorkspaceId = Guid.Parse(setting.WorkspaceId);
+                var datasetWorkspaceId = await GetReportDatasetWorkspaceIdAsync(reportWorkspaceId, report.Id, accessToken, setting).ConfigureAwait(false)
+                                         ?? reportWorkspaceId;
+                Dataset dataset = null;
+                try
+                {
+                    dataset = (await client.Datasets.GetDatasetInGroupAsync(datasetWorkspaceId, report.DatasetId).ConfigureAwait(false)).Value;
+                }
+                catch (Exception ex)
+                {
+                    Logger.Warn($"Couldn't find dataset '{report.DatasetId}' in workspace '{datasetWorkspaceId}'", ex);
+                    try
+                    {
+                        dataset = (await client.Datasets.GetDatasetsInGroupAsync(datasetWorkspaceId).ConfigureAwait(false)).Value.Value.FirstOrDefault(x => x.Id == report.DatasetId);
+                    }
+                    catch (Exception ex2)
+                    {
+                        Logger.Warn($"Couldn't list datasets in workspace '{datasetWorkspaceId}'", ex2);
+                    }
+                }
                 var powerBIReportExportConfiguration = new PowerBIReportExportConfiguration
                 {
                     Settings = new ExportReportSettings
@@ -388,6 +420,13 @@ namespace DotNetNuke.PowerBI.Components
                 if (!string.IsNullOrEmpty(urlFilter))
                 {
                     powerBIReportExportConfiguration.ReportLevelFilters.Add(new ExportFilter { Filter = urlFilter });
+                }
+
+                // Apply the saved "My changes" state (filters, drilling, spotlight, ...) captured
+                // by the user from the embedded report so the exported file mirrors it.
+                if (!string.IsNullOrEmpty(bookmarkState))
+                {
+                    powerBIReportExportConfiguration.DefaultBookmark = new PageBookmark { State = bookmarkState };
                 }
 
                 // Let's check if RLS is required
@@ -420,6 +459,39 @@ namespace DotNetNuke.PowerBI.Components
                 throw new ApplicationException($"Post Export Error: {e.Message}");
             }
         }
+
+        private static async Task<Guid?> GetReportDatasetWorkspaceIdAsync(Guid reportWorkspaceId, Guid reportId, string accessToken, PowerBISettings setting)
+        {
+            try
+            {
+                var apiUrl = (setting.ApiUrl ?? "https://api.powerbi.com").TrimEnd('/');
+                var requestUrl = $"{apiUrl}/v1.0/myorg/groups/{reportWorkspaceId}/reports/{reportId}";
+                using (var http = new HttpClient())
+                {
+                    http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+                    var response = await http.GetAsync(requestUrl).ConfigureAwait(false);
+                    if (!response.IsSuccessStatusCode)
+                    {
+                        Logger.Warn($"GetReport REST call returned {response.StatusCode} for report {reportId} in workspace {reportWorkspaceId}");
+                        return null;
+                    }
+                    var json = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+                    var token = JObject.Parse(json);
+                    var dsWsId = (string)token["datasetWorkspaceId"];
+                    if (!string.IsNullOrEmpty(dsWsId) && Guid.TryParse(dsWsId, out var parsed))
+                    {
+                        return parsed;
+                    }
+                    return null;
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.Warn($"Error retrieving datasetWorkspaceId for report {reportId} in workspace {reportWorkspaceId}", ex);
+                return null;
+            }
+        }
+
         public async Task<Response<Export>> PollExportRequest(Guid reportId, string exportId, int timeOutInMinutes,
                     CancellationToken token, string accessToken, PowerBISettings setting)
         {

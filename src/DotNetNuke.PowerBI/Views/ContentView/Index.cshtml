@@ -8,13 +8,13 @@
     ClientResourceManager.RegisterScript(Dnn.DnnPage, "https://npmcdn.com/es6-promise@3.2.1", 20);
     ClientResourceManager.RegisterScript(Dnn.DnnPage, "~/DesktopModules/MVC/PowerBIEmbedded/scripts/ContentView.js", 25);
     ClientResourceManager.RegisterStyleSheet(Dnn.DnnPage, "~/DesktopModules/MVC/PowerBIEmbedded/Css/module.css", 10, "DnnPageHeaderProvider");
-}
+} 
 <div class="pbi-overlay"></div>
 <div id="powerbiContentView_@Dnn.ActiveModule.ModuleID" class="powerbiContentView">
     @if (Model == null || string.IsNullOrEmpty(Model.Id))
     {
         if (!string.IsNullOrEmpty(ViewBag.BackgroundImageUrl))
-        {
+        { 
             <img src="@Url.Content(ViewBag.BackgroundImageUrl)" />
         }
     }
@@ -71,11 +71,11 @@
         </div>
     }
 
-    @if (ViewBag.ShowSubscription && ViewBag.CanEdit)
+    @if (ViewBag.ShowSubscription)
     {
         <a href="#" class="subscription" data-bind="click: openLateralTab">
             <div class="subscribeImg"></div>
-            <span>@Dnn.LocalizeString("Subscriptions")</span>
+            <span>@Dnn.LocalizeString("Subscribe")</span>
         </a>
     }
     @if (ViewBag.CanExport)
@@ -135,7 +135,7 @@
                 </div>
             </div>
         </div>
-        if (ViewBag.ShowSubscription && ViewBag.CanEdit)
+        if (ViewBag.ShowSubscription)
         {
 <div class="lateral-tab">
     <div class="close-panel">
@@ -180,7 +180,7 @@
                             <input type="text" class="txtSearch" data-bind="value: editUserSearchQuery, valueUpdate: 'keyup'" placeholder="@Dnn.LocalizeString("SubscriptionUserQuery")" />
                             <ul class="user-dropdown" data-bind="visible: editUserSearchQuery().length > 0 && availableUsers().length > 0, foreach: availableUsers">
                                 <li data-bind="click: $parent.addUserToSubscription">
-                                    <span data-bind="text: DisplayName"></span>
+                                    <span data-bind="text: Email ? DisplayName + ' (' + Email + ')' : DisplayName"></span>
                                     <a class="btnAdd">@Dnn.LocalizeString("btnAdd")</a>
                                 </li>
                             </ul>
@@ -194,7 +194,7 @@
                     <table class="removeUserTable">
                         <tbody data-bind="foreach: addedUsers">
                             <tr data-bind="click: $parent.removeUserFromSubscription">
-                                <td><span data-bind="text: DisplayName"></span></td>
+                                <td><span data-bind="text: Email ? DisplayName + ' (' + Email + ')' : DisplayName"></span></td>
                                 <td><a class="btnRemove">@Dnn.LocalizeString("btnRemove")</a></td>
                             </tr>
                         </tbody>
@@ -253,8 +253,12 @@
                         </select>
                     </div>
                     <div class="dnnFormItem">
-                        <label for="tmEditRepeatTime">@Dnn.LocalizeString("SubscriptionRepeatTime")</label>
-                        <input type="time" id="tmEditRepeatTime" data-bind="value: repeatTime">
+                        <label for="cboEditRepeatHour">@Dnn.LocalizeString("SubscriptionRepeatTime")</label>
+                        <div class="repeatTimeSelectors">
+                            <select id="cboEditRepeatHour" data-bind="options: repeatHourOptions, value: repeatHour"></select>
+                            <select id="cboEditRepeatMinute" data-bind="options: repeatMinuteOptions, value: repeatMinute"></select>
+                            <select id="cboEditRepeatAmPm" data-bind="options: repeatAmPmOptions, value: repeatAmPm"></select>
+                        </div>
                         <div data-bind="validationMessage: repeatTime" class="not-valid"></div>
                     </div>
                     <div class="dnnFormItem">
@@ -300,6 +304,27 @@
                     <div data-bind="visible: addedPages().length === 0" class="norows">
                         <span>@Dnn.LocalizeString("SubscriptionNoPages")</span>
                     </div> 
+                    <!-- My changes -->
+                    <div class="subscription-mychanges">
+                        <div class="subscription-mychanges-header">@Dnn.LocalizeString("SubscriptionMyChanges")</div>
+                        <p class="subscription-mychanges-description">@Dnn.LocalizeString("SubscriptionMyChangesDescription")</p>
+                        <div class="dnnFormItem">
+                            <label class="inline" for="chkEditIncludeMyChanges">@Dnn.LocalizeString("SubscriptionMyChangesInclude")</label>
+                            <input type="checkbox" id="chkEditIncludeMyChanges" data-bind="checked: includeMyChanges" />
+                        </div>
+                        <div class="subscription-mychanges-state" data-bind="visible: myChangesUpdatedOn()">
+                            <span>@Dnn.LocalizeString("SubscriptionMyChangesStateAsOf")</span>
+                            <span data-bind="text: myChangesStateText"></span>
+                        </div>
+                        <div class="subscription-mychanges-state" data-bind="visible: !myChangesUpdatedOn()">
+                            <span>@Dnn.LocalizeString("SubscriptionMyChangesNoState")</span>
+                        </div>
+                        <div class="subscription-mychanges-actions">
+                            <a class="mychanges-link" data-bind="click: $root.previewMyChanges, css: { disabled: !myChangesState() }">@Dnn.LocalizeString("SubscriptionMyChangesPreview")</a>
+                            <span class="mychanges-sep">|</span>
+                            <a class="mychanges-link" data-bind="click: $root.updateMyChanges">@Dnn.LocalizeString("SubscriptionMyChangesUpdate")</a>
+                        </div>
+                    </div>
                     <div class="dnnFormItem">
                         <label class="inline" for="chkEditEnable">@Dnn.LocalizeString("SubscriptionEnabled")</label>
                         <input type="checkbox" id="chkEditEnable" data-bind="checked: enabled" />

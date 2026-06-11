@@ -165,4 +165,21 @@
 	<b>Version 1.5.1</b>
 	<p>maintenance: upgrade Microsoft.PowerBI.Api from 4.22.0 to 5.1.0</p>
 	<p>maintenance: migrate to Azure.Core based response model and TokenAccessLevel enum</p>
+
+	<b>Version 1.5.2</b>
+	<p>feat: subscriptions can now store user report state (filters, drill, spotlight) and apply it to exported PDFs via a new "My Changes" option.</p>
+	<p>feat: added "Run Now" action on subscriptions to trigger an immediate report delivery with status feedback.</p>
+	<p>feat: subscription repeat time UI now uses hour/minute/AM-PM dropdowns instead of a free-text field.</p>
+	<p>feat: report pages are retrieved and shown in a dropdown when configuring subscription page selection.</p>
+	<p>feat: user dropdowns in subscription management now display the email address alongside the display name.</p>
+	<p>feat: dashboards can now be embedded without report-specific toolbar features.</p>
+	<p>fix: permission validation for subscription recipients is enforced both at save time and at send time; users/roles without view access are skipped.</p>
+	<p>fix: superuser role is now correctly handled in SubscriptionController user retrieval.</p>
+	<p>fix: SettingsController Index returns a non-null model to prevent NullReferenceException on the settings view.</p>
+	<p>fix: added assembly binding redirect for Azure.Core (0.0.0.0–1.44.1.0 → 1.44.1.0) via XmlMerge to resolve TypeLoadException on sites with an older host-level Azure.Core.</p>
+	<p>fix: improved workspace selection logic and selected option handling in content view settings.</p>
+	<p>fix: added accessible titles to workspace and dashboard links.</p>
+	<p>maintenance: refactored PowerBIClient initialization, role handling, and report export logic for improved clarity.</p>
+	<p>maintenance: enhanced error handling and logging for dataset and subscription email delivery.</p>
+	<p>maintenance: added subscription localization keys for German and Spanish.</p>
 </div>

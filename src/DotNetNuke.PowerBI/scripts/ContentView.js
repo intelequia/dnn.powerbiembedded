@@ -9,7 +9,37 @@
         }
     }
 
-    function SubscriptionModel(p, id, portalId, reportId, groupId, name, startDate, endDate, repeatPeriod, repeatTime, timeZone, emailSubject, message, reportPages, enabled, users, roles, moduleId) {
+    function parseRepeatTime(time) {
+        var hours = 0, minutes = 0;
+        if (time && time.length >= 5) {
+            hours = parseInt(time.substring(0, 2), 10) || 0;
+            minutes = parseInt(time.substring(3, 5), 10) || 0;
+        }
+        var ampm = hours >= 12 ? 'PM' : 'AM';
+        var hour12 = hours % 12;
+        if (hour12 === 0) {
+            hour12 = 12;
+        }
+        var allowedMinutes = [0, 15, 30, 45];
+        var snapped = allowedMinutes.reduce(function (prev, curr) {
+            return Math.abs(curr - minutes) < Math.abs(prev - minutes) ? curr : prev;
+        }, 0);
+        return {
+            hour: ('0' + hour12).slice(-2),
+            minute: ('0' + snapped).slice(-2),
+            ampm: ampm
+        };
+    }
+
+    function composeRepeatTime(hour12, minute, ampm) {
+        var h = parseInt(hour12, 10) % 12;
+        if (ampm === 'PM') {
+            h += 12;
+        }
+        return ('0' + h).slice(-2) + ':' + minute + ':00';
+    }
+
+    function SubscriptionModel(p, id, portalId, reportId, groupId, name, startDate, endDate, repeatPeriod, repeatTime, timeZone, emailSubject, message, reportPages, enabled, users, roles, moduleId, includeMyChanges, myChangesState, myChangesUpdatedOn) {
         var that = this;
         var parent = p;
         this.id = ko.observable(id);
@@ -26,6 +56,17 @@
         this.emailSubject = ko.observable(emailSubject).extend({ required: true });
         this.message = ko.observable(message).extend({ required: true });
         this.enabled = ko.observable(enabled)
+        this.includeMyChanges = ko.observable(includeMyChanges || false);
+        this.myChangesState = ko.observable(myChangesState || '');
+        this.myChangesUpdatedOn = ko.observable(myChangesUpdatedOn || null);
+        this.myChangesStateText = ko.computed(function () {
+            var value = that.myChangesUpdatedOn();
+            if (!value) {
+                return '';
+            }
+            var date = new Date(value);
+            return isNaN(date.getTime()) ? value : date.toLocaleString();
+        });
         this.users = ko.observableArray(users);
         this.roles = ko.observableArray(roles);
         this.reportPages = ko.observableArray(reportPages);
@@ -36,14 +77,17 @@
         this.addedRoles = ko.observableArray(roles.slice());
         this.addedPages = ko.observableArray(reportPages.slice());
         this.repeatTimeFormatted = ko.computed(function () {
-            var time = that.repeatTime();
-            var hours = parseInt(time.substring(0, 2), 10);
-            var minutes = time.substring(3, 5);
+            var time = that.repeatTime() || '';
+            var hours = parseInt(time.substring(0, 2), 10) || 0;
+            var minutes = time.substring(3, 5) || '00';
             var ampm = hours >= 12 ? 'PM' : 'AM';
 
             // Convert hours from 24-hour to 12-hour format 
             if (hours > 12) {
                 hours -= 12;
+            }
+            if (hours === 0) {
+                hours = 12;
             }
 
             // Add leading zero for single-digit hours
@@ -53,6 +97,23 @@
 
             return hours + ':' + minutes + ' ' + ampm;
         });
+
+        // Repeat time split into 3 dropdowns: hour (1-12), minute (00/15/30/45), AM/PM.
+        this.repeatHourOptions = ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12'];
+        this.repeatMinuteOptions = ['00', '15', '30', '45'];
+        this.repeatAmPmOptions = ['AM', 'PM'];
+        var parsedRepeatTime = parseRepeatTime(repeatTime);
+        this.repeatHour = ko.observable(parsedRepeatTime.hour);
+        this.repeatMinute = ko.observable(parsedRepeatTime.minute);
+        this.repeatAmPm = ko.observable(parsedRepeatTime.ampm);
+        this.syncRepeatTime = function () {
+            that.repeatTime(composeRepeatTime(that.repeatHour(), that.repeatMinute(), that.repeatAmPm()));
+        };
+        this.repeatHour.subscribe(this.syncRepeatTime);
+        this.repeatMinute.subscribe(this.syncRepeatTime);
+        this.repeatAmPm.subscribe(this.syncRepeatTime);
+        // Keep repeatTime aligned with the dropdowns from the start.
+        this.syncRepeatTime();
 
         // Error group for editing a subscription.
         this.editSubscriptionErrors = ko.validation.group({
@@ -178,6 +239,10 @@
             that.startDate(startDate);
             that.endDate(endDate);
             that.repeatPeriod(repeatPeriod);
+            var resetTime = parseRepeatTime(repeatTime);
+            that.repeatHour(resetTime.hour);
+            that.repeatMinute(resetTime.minute);
+            that.repeatAmPm(resetTime.ampm);
             that.repeatTime(repeatTime);
             that.timeZone(timeZone);
             that.emailSubject(emailSubject);
@@ -345,6 +410,9 @@
                                 JSON.parse(subscription.Users),
                                 JSON.parse(subscription.Roles),
                                 context.ModuleId,
+                                subscription.IncludeMyChanges,
+                                subscription.MyChangesState,
+                                subscription.MyChangesUpdatedOn,
                             );
                             subscriptions.push(b);
                         });
@@ -696,10 +764,59 @@
                 [],
                 [],
                 context.ModuleId,
+                false,
+                "",
+                null,
             );
             that.subscriptionsArray.push(b);
             b.editSubscription();
         }
+
+        // My changes (subscription bookmark): preview applies the stored state to the live report,
+        // update captures the current report state and stores it for the subscription.
+        this.previewMyChanges = function (subscription) {
+            if (!subscription || !subscription.myChangesState()) {
+                return;
+            }
+            if (that.report && that.report.bookmarksManager) {
+                that.report.bookmarksManager.applyState(subscription.myChangesState());
+            }
+        };
+
+        this.updateMyChanges = function (subscription) {
+            if (!subscription || !that.report || !that.report.bookmarksManager) {
+                return;
+            }
+            that.report.bookmarksManager.capture()
+                .then(function (capturedBookmark) {
+                    subscription.myChangesState(capturedBookmark.state);
+                    subscription.myChangesUpdatedOn(new Date().toISOString());
+                    // Persist immediately only for already-saved subscriptions; new ones store the
+                    // state on save.
+                    if (subscription.id() !== -1) {
+                        let params = {
+                            Id: subscription.id(),
+                            ReportId: subscription.reportId(),
+                            GroupId: subscription.groupId(),
+                            MyChangesState: subscription.myChangesState(),
+                        };
+                        Common.Call("POST", "SaveMyChanges", that.subscriptionsService, params,
+                            function (data) {
+                                if (data.Success && data.UpdatedOn) {
+                                    subscription.myChangesUpdatedOn(data.UpdatedOn);
+                                }
+                            },
+                            function (error) {
+                                console.log(error);
+                            },
+                            function () {
+                            });
+                    }
+                })
+                .catch(function (error) {
+                    console.log(error);
+                });
+        };
 
         this.saveEditedSubscription = function (subscription) {
 
@@ -728,7 +845,9 @@
                     Enabled: subscription.enabled(),
                     Users: serializedUsers,
                     Roles: serializedRoles,
-                };
+                    IncludeMyChanges: subscription.includeMyChanges(),
+                    MyChangesState: subscription.myChangesState(),
+                }; 
                 Common.Call("POST", "EditSubscription", that.subscriptionsService, params,
                     function (data) {
                         if (data.Success) {
@@ -817,6 +936,8 @@
                 Enabled: subscription.enabled(),
                 Users: serializedUsers,
                 Roles: serializedRoles,
+                IncludeMyChanges: subscription.includeMyChanges(),
+                MyChangesState: subscription.myChangesState(),
             };
 
             btn.addClass('disabled');

@@ -118,17 +118,20 @@ namespace DotNetNuke.PowerBI.Controllers
                         }
                         else
                         {
-                            settingsGroupId = pbiSettings.FirstOrDefault(x => !string.IsNullOrEmpty(x.SettingsGroupId)).SettingsGroupId;
+                            settingsGroupId = pbiSettings.FirstOrDefault(x => !string.IsNullOrEmpty(x.SettingsGroupId))?.SettingsGroupId;
                         }
                     }
 
-                    var embedService = new EmbedService(ModuleContext.PortalId, ModuleContext.TabModuleId, settingsGroupId);
-                    var contentItems = embedService.GetContentListAsync(ModuleContext.PortalSettings.UserId).Result;
-                    if (contentItems != null)
+                    if (!string.IsNullOrEmpty(settingsGroupId))
                     {
-                        // Remove other culture contents
-                        contentItems = contentItems.RemoveOtherCultureItems();
-                        ViewBag.ContentItems = contentItems;
+                        var embedService = new EmbedService(ModuleContext.PortalId, ModuleContext.TabModuleId, settingsGroupId);
+                        var contentItems = embedService.GetContentListAsync(ModuleContext.PortalSettings.UserId).Result;
+                        if (contentItems != null)
+                        {
+                            // Remove other culture contents
+                            contentItems = contentItems.RemoveOtherCultureItems();
+                            ViewBag.ContentItems = contentItems;
+                        }
                     }
 
                     var userProperties = new List<string>
@@ -153,7 +156,14 @@ namespace DotNetNuke.PowerBI.Controllers
             catch (Exception ex)
             {
                 Logger.Error(ex);
-                return View();
+                if (ViewBag.Settings == null)
+                {
+                    ViewBag.Settings = new List<Data.Models.PowerBISettings>();
+                }
+                return View(new SettingsModel
+                {
+                    IsContentView = ModuleContext.Configuration.ModuleDefinition.DefinitionName == "PowerBI Embedded Content View"
+                });
             }
         }
 

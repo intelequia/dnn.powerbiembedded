@@ -1,6 +1,8 @@
 ﻿using DotNetNuke.Entities.Users;
 using DotNetNuke.Instrumentation;
 using DotNetNuke.PowerBI.Data;
+using DotNetNuke.PowerBI.Data.Bookmarks;
+using DotNetNuke.PowerBI.Data.Bookmarks.Models;
 using DotNetNuke.PowerBI.Data.Models;
 using DotNetNuke.PowerBI.Data.SharedSettings;
 using DotNetNuke.PowerBI.Data.Subscriptions;
@@ -45,6 +47,8 @@ namespace DotNetNuke.PowerBI.Services
             public string Message { get; set; }
             public string ReportPages { get; set; }
             public bool Enabled { get; set; }
+            public bool IncludeMyChanges { get; set; }
+            public string MyChangesState { get; set; }
             public string Users { get; set; }
             public string Roles { get; set; }
 
@@ -54,6 +58,7 @@ namespace DotNetNuke.PowerBI.Services
         {
             public int UserID { get; set; }
             public string DisplayName { get; set; }
+            public string Email { get; set; }
         }
 
         public class RoleViewModel
@@ -61,6 +66,7 @@ namespace DotNetNuke.PowerBI.Services
             public int RoleID { get; set; }
             public string RoleName { get; set; }
         }
+
         [HttpGet]
         public HttpResponseMessage GetSubscriptions(string workspaceId, string reportId)
         {
@@ -88,7 +94,7 @@ namespace DotNetNuke.PowerBI.Services
                             var user = UserController.Instance.GetUserById(portalId, subscriptionSubscriber.UserId.Value);
                             if (user != null)
                             {
-                                users.Add(new UserViewModel { UserID = user.UserID, DisplayName = user.DisplayName });
+                                users.Add(new UserViewModel { UserID = user.UserID, DisplayName = user.DisplayName, Email = user.Email });
                             }
                         }
                         else if (subscriptionSubscriber.RoleId.HasValue)
@@ -105,6 +111,13 @@ namespace DotNetNuke.PowerBI.Services
                     var rolesArray = serializer.Serialize(roles);
                     subscription.Users = usersArray;
                     subscription.Roles = rolesArray;
+
+                    var myChangesBookmark = BookmarksRepository.Instance.GetBookmarkBySubscription(portalId, subscription.Id);
+                    if (myChangesBookmark != null)
+                    {
+                        subscription.MyChangesState = myChangesBookmark.State;
+                        subscription.MyChangesUpdatedOn = myChangesBookmark.CreatedOn;
+                    }
                 }
                 if (subscriptions != null && subscriptions.Any())
                 {
@@ -124,6 +137,9 @@ namespace DotNetNuke.PowerBI.Services
         {
             try
             {
+                int portalId = ActiveModule.PortalID;
+                bool hasInheritPermissions = SharedSettingsRepository.Instance.GetSettingsByGroupId(subscriptionViewModel.GroupId, portalId).InheritPermissions;
+                string comparison = hasInheritPermissions ? subscriptionViewModel.GroupId : subscriptionViewModel.ReportId;
                 var serializer = new JavaScriptSerializer();
                 Subscription subscription = new Subscription
                 {
@@ -140,9 +156,14 @@ namespace DotNetNuke.PowerBI.Services
                     EmailSubject = subscriptionViewModel.EmailSubject,
                     Message = subscriptionViewModel.Message,
                     ReportPages = subscriptionViewModel.ReportPages,
-                    Enabled = subscriptionViewModel.Enabled
+                    Enabled = subscriptionViewModel.Enabled,
+                    IncludeMyChanges = subscriptionViewModel.IncludeMyChanges
                 };
                 int subscriptionId = SubscriptionsRepository.Instance.AddSubscription(subscription);
+                if (subscriptionId >= 0)
+                {
+                    SaveMyChangesBookmark(portalId, subscriptionId, subscriptionViewModel.ReportId, subscriptionViewModel.MyChangesState);
+                }
                 var usersArray = subscriptionViewModel.Users.Split(',');
                 var rolesArray = subscriptionViewModel.Roles.Split(',');
                 if (subscriptionId >= 0)
@@ -151,7 +172,7 @@ namespace DotNetNuke.PowerBI.Services
                     {
                         foreach (string user in usersArray)
                         {
-                            if (int.TryParse(user, out int userId))
+                            if (int.TryParse(user, out int userId) && SubscriberUserHasPermission(comparison, portalId, userId))
                             {
                                 SubscriptionsSubscribersRepository.Instance.AddSubscriptionSubscriber(new SubscriptionSubscriber
                                 {
@@ -166,7 +187,7 @@ namespace DotNetNuke.PowerBI.Services
                     {
                         foreach (string role in rolesArray)
                         {
-                            if (int.TryParse(role, out int roleId))
+                            if (int.TryParse(role, out int roleId) && SubscriberRoleHasPermission(comparison, portalId, roleId))
                             {
                                 SubscriptionsSubscribersRepository.Instance.AddSubscriptionSubscriber(new SubscriptionSubscriber
                                 {
@@ -229,7 +250,9 @@ namespace DotNetNuke.PowerBI.Services
                 subscription.Message = subscriptionViewModel.Message;
                 subscription.ReportPages = subscriptionViewModel.ReportPages;
                 subscription.Enabled = subscriptionViewModel.Enabled;
+                subscription.IncludeMyChanges = subscriptionViewModel.IncludeMyChanges;
                 bool success = SubscriptionsRepository.Instance.EditSubscription(subscription);
+                SaveMyChangesBookmark(portalId, subscription.Id, subscription.ReportId, subscriptionViewModel.MyChangesState);
 
                 var usersArray = subscriptionViewModel.Users.Split(',');
                 var rolesArray = subscriptionViewModel.Roles.Split(',');
@@ -242,7 +265,7 @@ namespace DotNetNuke.PowerBI.Services
                 {
                     foreach (string user in usersArray)
                     {
-                        if (int.TryParse(user, out int userId))
+                        if (int.TryParse(user, out int userId) && SubscriberUserHasPermission(comparison, portalId, userId))
                         {
                             SubscriptionsSubscribersRepository.Instance.AddSubscriptionSubscriber(new SubscriptionSubscriber
                             {
@@ -258,7 +281,7 @@ namespace DotNetNuke.PowerBI.Services
 
                     foreach (string role in rolesArray)
                     {
-                        if (int.TryParse(role, out int roleId))
+                        if (int.TryParse(role, out int roleId) && SubscriberRoleHasPermission(comparison, portalId, roleId))
                         {
                             SubscriptionsSubscribersRepository.Instance.AddSubscriptionSubscriber(new SubscriptionSubscriber
                             {
@@ -337,7 +360,8 @@ namespace DotNetNuke.PowerBI.Services
                     EmailSubject = subscriptionViewModel.EmailSubject,
                     Message = subscriptionViewModel.Message,
                     ReportPages = subscriptionViewModel.ReportPages,
-                    Enabled = subscriptionViewModel.Enabled
+                    Enabled = subscriptionViewModel.Enabled,
+                    IncludeMyChanges = subscriptionViewModel.IncludeMyChanges
                 };
 
                 var subscribers = new List<SubscriptionSubscriber>();
@@ -345,7 +369,7 @@ namespace DotNetNuke.PowerBI.Services
                 {
                     foreach (string user in subscriptionViewModel.Users.Split(','))
                     {
-                        if (int.TryParse(user, out int userId))
+                        if (int.TryParse(user, out int userId) && SubscriberUserHasPermission(comparison, portalId, userId))
                         {
                             subscribers.Add(new SubscriptionSubscriber { SubscriptionId = subscription.Id, UserId = userId });
                         }
@@ -355,7 +379,7 @@ namespace DotNetNuke.PowerBI.Services
                 {
                     foreach (string role in subscriptionViewModel.Roles.Split(','))
                     {
-                        if (int.TryParse(role, out int roleId))
+                        if (int.TryParse(role, out int roleId) && SubscriberRoleHasPermission(comparison, portalId, roleId))
                         {
                             subscribers.Add(new SubscriptionSubscriber { SubscriptionId = subscription.Id, RoleId = roleId });
                         }
@@ -463,6 +487,7 @@ namespace DotNetNuke.PowerBI.Services
                 bool success = SubscriptionsRepository.Instance.DeleteSubscription(subscriptionViewModel.Id);
                 if (success)
                 {
+                    BookmarksRepository.Instance.DeleteBySubscription(subscriptionViewModel.Id);
                     return Request.CreateResponse(HttpStatusCode.OK, new
                     {
                         Success = true,
@@ -482,6 +507,58 @@ namespace DotNetNuke.PowerBI.Services
                     Error = e
                 });
             }
+        }
+
+        [HttpPost]
+        public HttpResponseMessage SaveMyChanges(SubscriptionViewModel subscriptionViewModel)
+        {
+            try
+            {
+                int portalId = ActiveModule.PortalID;
+                bool hasInheritPermissions = SharedSettingsRepository.Instance.GetSettingsByGroupId(subscriptionViewModel.GroupId, portalId).InheritPermissions;
+                string comparison = hasInheritPermissions ? subscriptionViewModel.GroupId : subscriptionViewModel.ReportId;
+                if (!UserHasPermission(comparison))
+                {
+                    return Request.CreateResponse(HttpStatusCode.Unauthorized, new { Success = false });
+                }
+
+                // The subscription must already exist to link the bookmark; new subscriptions
+                // persist their captured state on save instead.
+                if (subscriptionViewModel.Id <= 0)
+                {
+                    return Request.CreateResponse(HttpStatusCode.OK, new { Success = false, Error = "NotSaved" });
+                }
+
+                SaveMyChangesBookmark(portalId, subscriptionViewModel.Id, subscriptionViewModel.ReportId, subscriptionViewModel.MyChangesState);
+                var bookmark = BookmarksRepository.Instance.GetBookmarkBySubscription(portalId, subscriptionViewModel.Id);
+                return Request.CreateResponse(HttpStatusCode.OK, new
+                {
+                    Success = true,
+                    UpdatedOn = bookmark?.CreatedOn,
+                });
+            }
+            catch (Exception e)
+            {
+                return Request.CreateResponse(HttpStatusCode.InternalServerError, new { Success = false, Error = e });
+            }
+        }
+
+        private static void SaveMyChangesBookmark(int portalId, int subscriptionId, string reportId, string state)
+        {
+            if (string.IsNullOrEmpty(state))
+            {
+                return;
+            }
+
+            BookmarksRepository.Instance.SaveOrUpdateSubscriptionBookmark(new Bookmark
+            {
+                PortalId = portalId,
+                SubscriptionId = subscriptionId,
+                ReportId = reportId,
+                Name = $"subscription_{subscriptionId}",
+                DisplayName = "My changes",
+                State = state,
+            });
         }
 
         [HttpGet]
@@ -508,6 +585,12 @@ namespace DotNetNuke.PowerBI.Services
                     RoleName = "Administrators",
                     RoleID = administrators.RoleID
                 });
+
+                objectPermissions.Add(new ObjectPermission
+                {
+                    RoleName = "Superusers",
+                    RoleID = -2
+                });
                 List<UserViewModel> users = new List<UserViewModel>();
                 foreach (ObjectPermission permission in objectPermissions)
                 {
@@ -523,14 +606,30 @@ namespace DotNetNuke.PowerBI.Services
                                 users.Add(new UserViewModel
                                 {
                                     UserID = addingUser.UserID,
-                                    DisplayName = addingUser.DisplayName
+                                    DisplayName = addingUser.DisplayName,
+                                    Email = addingUser.Email
                                 });
                             }
                         }
                     }
                     else if (permission.RoleID != null)
                     {
-                        List<UserInfo> roleUsers = RoleController.Instance.GetUsersByRole(portalId, permission.RoleName).ToList();
+
+                        List<UserInfo> roleUsers = null;
+                        if (permission.RoleID == -2)
+                        {
+                            var superUserArrayList = UserController.GetUsers(includeDeleted: false, superUsersOnly: true, portalId: -1);
+                            var superUserList = new List<UserInfo>();
+                            foreach (UserInfo user in superUserArrayList)
+                            {
+                                superUserList.Add(user);
+                            }
+                            roleUsers = superUserList;
+                        }
+                        else
+                        {
+                            roleUsers = RoleController.Instance.GetUsersByRole(portalId, permission.RoleName).ToList();
+                        }
                         foreach (UserInfo user in roleUsers)
                         {
                             if ((user.DisplayName.ToLower().Contains(searchName.ToLower()))
@@ -541,7 +640,8 @@ namespace DotNetNuke.PowerBI.Services
                                     users.Add(new UserViewModel
                                     {
                                         UserID = user.UserID,
-                                        DisplayName = user.DisplayName
+                                        DisplayName = user.DisplayName,
+                                        Email = user.Email
                                     });
                                 }
                             }
@@ -647,7 +747,25 @@ namespace DotNetNuke.PowerBI.Services
         private bool UserHasPermission(string workspaceOrReport)
         {
             UserInfo currentUser = UserController.Instance.GetCurrentUserInfo();
-            return PowerBIListViewExtensions.UserHasPermissionsToWorkspace(workspaceOrReport, currentUser, 2);
+            return PowerBIListViewExtensions.UserHasPermissionsToWorkspace(workspaceOrReport, currentUser, 1);
+        }
+
+        private bool SubscriberUserHasPermission(string workspaceOrReport, int portalId, int userId)
+        {
+            UserInfo user = UserController.GetUserById(portalId, userId);
+            return user != null && PowerBIListViewExtensions.UserHasPermissionsToWorkspace(workspaceOrReport, user, 1);
+        }
+
+        private bool SubscriberRoleHasPermission(string workspaceOrReport, int portalId, int roleId)
+        {
+            RoleInfo administrators = RoleController.Instance.GetRoleByName(portalId, "Administrators");
+            if (administrators != null && administrators.RoleID == roleId)
+            {
+                return true;
+            }
+            return ObjectPermissionsRepository.Instance.GetObjectPermissions(workspaceOrReport, portalId)
+                .Any(permission => permission.PermissionID == 1 && permission.AllowAccess
+                    && permission.RoleID.HasValue && permission.RoleID.Value == roleId);
         }
 
         private string WorkspaceOrReport(string workspaceId, string reportId)

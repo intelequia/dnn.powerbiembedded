@@ -9,7 +9,7 @@
     that is mostly human readable. The generation and parsing of the 
     various data types are done through the TypeConverter classes 
     associated with the data types.
-    
+     
     Example:
     
     ... ado.net/XML headers & schema ...
@@ -122,5 +122,29 @@
   </data>
   <data name="ErrorTitle.Text" xml:space="preserve">
     <value>Error</value>
+  </data>
+  <data name="Subscribe.Text" xml:space="preserve">
+    <value>Abonnieren</value>
+  </data>
+  <data name="SubscriptionMyChanges.Text" xml:space="preserve">
+    <value>Meine Änderungen</value>
+  </data>
+  <data name="SubscriptionMyChangesDescription.Text" xml:space="preserve">
+    <value>Schließt alle Änderungen am Bericht ein, z. B. angewendete Filter, Drilldowns, Spotlights und mehr.</value>
+  </data>
+  <data name="SubscriptionMyChangesInclude.Text" xml:space="preserve">
+    <value>Meine Änderungen einschließen</value>
+  </data>
+  <data name="SubscriptionMyChangesStateAsOf.Text" xml:space="preserve">
+    <value>Stand vom</value>
+  </data>
+  <data name="SubscriptionMyChangesNoState.Text" xml:space="preserve">
+    <value>Noch kein gespeicherter Status.</value>
+  </data>
+  <data name="SubscriptionMyChangesPreview.Text" xml:space="preserve">
+    <value>Vorschau</value>
+  </data>
+  <data name="SubscriptionMyChangesUpdate.Text" xml:space="preserve">
+    <value>Aktualisieren</value>
   </data>
 </root>

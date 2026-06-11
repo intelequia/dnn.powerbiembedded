@@ -10,5 +10,8 @@ namespace DotNetNuke.PowerBI.Data.Bookmarks
         List<Bookmark> GetBookmarksByUser(int portalId, string reportId, int userId);
         int SaveBookmark(Bookmark bookmark);
         bool DeleteBookmark(int bookmarkId);
+        Bookmark GetBookmarkBySubscription(int portalId, int subscriptionId);
+        int SaveOrUpdateSubscriptionBookmark(Bookmark bookmark);
+        bool DeleteBySubscription(int subscriptionId);
     }
 }

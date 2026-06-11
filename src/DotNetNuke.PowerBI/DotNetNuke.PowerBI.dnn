@@ -1,6 +1,6 @@
 <dotnetnuke type="Package" version="5.0">
   <packages>
-    <package name="PowerBIEmbeddedList" type="Module" version="01.05.01">
+    <package name="PowerBIEmbeddedList" type="Module" version="01.05.02">
       <friendlyName>PowerBI Embedded Content List</friendlyName>
       <description>A set of modules to embed PowerBI Embedded dashboards and reports into a DNN Platform installation.</description>
       <iconFile>~/DesktopModules/MVC/PowerBIEmbedded/images/msfabric.png</iconFile>
@@ -56,6 +56,11 @@
 				<path>Providers\DataProviders\SqlDataProvider</path>
 				<name>01.02.00.SqlDataProvider</name>
 				<version>01.02.00</version>
+			</script>
+			<script type="Install">
+				<path>Providers\DataProviders\SqlDataProvider</path>
+				<name>01.05.02.SqlDataProvider</name>
+				<version>01.05.02</version>
 			</script>
 			<script type="UnInstall">
                 <path>Providers\DataProviders\SqlDataProvider</path>
@@ -182,9 +187,40 @@
 
           </assemblies>
         </component>
+        <component type="Config">
+          <config>
+            <configFile>web.config</configFile>
+            <install>
+              <configuration>
+                <nodes>
+                  <node path="/configuration/runtime/asmbnd:assemblyBinding" action="update"
+                        targetpath="/configuration/runtime/asmbnd:assemblyBinding/asmbnd:dependentAssembly[asmbnd:assemblyIdentity/@name='Azure.Core']"
+                        collision="overwrite"
+                        nameSpace="urn:schemas-microsoft-com:asm.v1"
+                        nameSpacePrefix="asmbnd">
+                    <dependentAssembly xmlns="urn:schemas-microsoft-com:asm.v1">
+                      <assemblyIdentity name="Azure.Core" publicKeyToken="92742159e12e44c8" culture="neutral" />
+                      <bindingRedirect oldVersion="0.0.0.0-1.44.1.0" newVersion="1.44.1.0" />
+                    </dependentAssembly>
+                  </node>
+                </nodes>
+              </configuration>
+            </install>
+            <uninstall>
+              <configuration>
+                <nodes>
+                  <node path="/configuration/runtime/asmbnd:assemblyBinding/asmbnd:dependentAssembly[asmbnd:assemblyIdentity/@name='Azure.Core']"
+                        action="remove"
+                        nameSpace="urn:schemas-microsoft-com:asm.v1"
+                        nameSpacePrefix="asmbnd" />
+                </nodes>
+              </configuration>
+            </uninstall>
+          </config>
+        </component>
       </components>
     </package>
-    <package name="PowerBIEmbeddedContent" type="Module" version="01.05.01">
+    <package name="PowerBIEmbeddedContent" type="Module" version="01.05.02">
       <friendlyName>PowerBI Embedded Content View</friendlyName>
       <description>A set of modules to embed PowerBI Embedded dashboards and reports into a DNN Platform installation.</description>
       <iconFile>~/DesktopModules/MVC/PowerBIEmbedded/images/msfabric.png</iconFile>
@@ -239,7 +275,7 @@
         </component>
       </components>
     </package>
-    <package name="PowerBIEmbeddedCalendar" type="Module" version="01.05.01">
+    <package name="PowerBIEmbeddedCalendar" type="Module" version="01.05.02">
       <friendlyName>PowerBI Embedded Calendar View</friendlyName>
       <description>A set of modules to embed PowerBI Embedded dashboards and reports into a DNN Platform installation.</description>
       <iconFile>~/DesktopModules/MVC/PowerBIEmbedded/images/msfabric.png</iconFile>
