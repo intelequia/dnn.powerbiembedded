@@ -8,13 +8,13 @@
     ClientResourceManager.RegisterScript(Dnn.DnnPage, "https://npmcdn.com/es6-promise@3.2.1", 20);
     ClientResourceManager.RegisterScript(Dnn.DnnPage, "~/DesktopModules/MVC/PowerBIEmbedded/scripts/ContentView.js", 25);
     ClientResourceManager.RegisterStyleSheet(Dnn.DnnPage, "~/DesktopModules/MVC/PowerBIEmbedded/Css/module.css", 10, "DnnPageHeaderProvider");
-}
+} 
 <div class="pbi-overlay"></div>
 <div id="powerbiContentView_@Dnn.ActiveModule.ModuleID" class="powerbiContentView">
     @if (Model == null || string.IsNullOrEmpty(Model.Id))
     {
         if (!string.IsNullOrEmpty(ViewBag.BackgroundImageUrl))
-        {
+        { 
             <img src="@Url.Content(ViewBag.BackgroundImageUrl)" />
         }
     }
@@ -253,8 +253,12 @@
                         </select>
                     </div>
                     <div class="dnnFormItem">
-                        <label for="tmEditRepeatTime">@Dnn.LocalizeString("SubscriptionRepeatTime")</label>
-                        <input type="time" id="tmEditRepeatTime" data-bind="value: repeatTime">
+                        <label for="cboEditRepeatHour">@Dnn.LocalizeString("SubscriptionRepeatTime")</label>
+                        <div class="repeatTimeSelectors">
+                            <select id="cboEditRepeatHour" data-bind="options: repeatHourOptions, value: repeatHour"></select>
+                            <select id="cboEditRepeatMinute" data-bind="options: repeatMinuteOptions, value: repeatMinute"></select>
+                            <select id="cboEditRepeatAmPm" data-bind="options: repeatAmPmOptions, value: repeatAmPm"></select>
+                        </div>
                         <div data-bind="validationMessage: repeatTime" class="not-valid"></div>
                     </div>
                     <div class="dnnFormItem">

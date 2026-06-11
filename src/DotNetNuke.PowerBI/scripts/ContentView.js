@@ -9,6 +9,36 @@
         }
     }
 
+    function parseRepeatTime(time) {
+        var hours = 0, minutes = 0;
+        if (time && time.length >= 5) {
+            hours = parseInt(time.substring(0, 2), 10) || 0;
+            minutes = parseInt(time.substring(3, 5), 10) || 0;
+        }
+        var ampm = hours >= 12 ? 'PM' : 'AM';
+        var hour12 = hours % 12;
+        if (hour12 === 0) {
+            hour12 = 12;
+        }
+        var allowedMinutes = [0, 15, 30, 45];
+        var snapped = allowedMinutes.reduce(function (prev, curr) {
+            return Math.abs(curr - minutes) < Math.abs(prev - minutes) ? curr : prev;
+        }, 0);
+        return {
+            hour: ('0' + hour12).slice(-2),
+            minute: ('0' + snapped).slice(-2),
+            ampm: ampm
+        };
+    }
+
+    function composeRepeatTime(hour12, minute, ampm) {
+        var h = parseInt(hour12, 10) % 12;
+        if (ampm === 'PM') {
+            h += 12;
+        }
+        return ('0' + h).slice(-2) + ':' + minute + ':00';
+    }
+
     function SubscriptionModel(p, id, portalId, reportId, groupId, name, startDate, endDate, repeatPeriod, repeatTime, timeZone, emailSubject, message, reportPages, enabled, users, roles, moduleId) {
         var that = this;
         var parent = p;
@@ -36,14 +66,17 @@
         this.addedRoles = ko.observableArray(roles.slice());
         this.addedPages = ko.observableArray(reportPages.slice());
         this.repeatTimeFormatted = ko.computed(function () {
-            var time = that.repeatTime();
-            var hours = parseInt(time.substring(0, 2), 10);
-            var minutes = time.substring(3, 5);
+            var time = that.repeatTime() || '';
+            var hours = parseInt(time.substring(0, 2), 10) || 0;
+            var minutes = time.substring(3, 5) || '00';
             var ampm = hours >= 12 ? 'PM' : 'AM';
 
             // Convert hours from 24-hour to 12-hour format 
             if (hours > 12) {
                 hours -= 12;
+            }
+            if (hours === 0) {
+                hours = 12;
             }
 
             // Add leading zero for single-digit hours
@@ -53,6 +86,23 @@
 
             return hours + ':' + minutes + ' ' + ampm;
         });
+
+        // Repeat time split into 3 dropdowns: hour (1-12), minute (00/15/30/45), AM/PM.
+        this.repeatHourOptions = ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12'];
+        this.repeatMinuteOptions = ['00', '15', '30', '45'];
+        this.repeatAmPmOptions = ['AM', 'PM'];
+        var parsedRepeatTime = parseRepeatTime(repeatTime);
+        this.repeatHour = ko.observable(parsedRepeatTime.hour);
+        this.repeatMinute = ko.observable(parsedRepeatTime.minute);
+        this.repeatAmPm = ko.observable(parsedRepeatTime.ampm);
+        this.syncRepeatTime = function () {
+            that.repeatTime(composeRepeatTime(that.repeatHour(), that.repeatMinute(), that.repeatAmPm()));
+        };
+        this.repeatHour.subscribe(this.syncRepeatTime);
+        this.repeatMinute.subscribe(this.syncRepeatTime);
+        this.repeatAmPm.subscribe(this.syncRepeatTime);
+        // Keep repeatTime aligned with the dropdowns from the start.
+        this.syncRepeatTime();
 
         // Error group for editing a subscription.
         this.editSubscriptionErrors = ko.validation.group({
@@ -178,6 +228,10 @@
             that.startDate(startDate);
             that.endDate(endDate);
             that.repeatPeriod(repeatPeriod);
+            var resetTime = parseRepeatTime(repeatTime);
+            that.repeatHour(resetTime.hour);
+            that.repeatMinute(resetTime.minute);
+            that.repeatAmPm(resetTime.ampm);
             that.repeatTime(repeatTime);
             that.timeZone(timeZone);
             that.emailSubject(emailSubject);
@@ -728,7 +782,7 @@
                     Enabled: subscription.enabled(),
                     Users: serializedUsers,
                     Roles: serializedRoles,
-                };
+                }; 
                 Common.Call("POST", "EditSubscription", that.subscriptionsService, params,
                     function (data) {
                         if (data.Success) {

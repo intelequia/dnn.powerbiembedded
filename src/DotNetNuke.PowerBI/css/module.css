@@ -11,7 +11,7 @@
 #dnn_Side_Menu .powerbiListView {
     padding: 0px 20px 0px 25px;
 }
- 
+  
     #dnn_Side_Menu .powerbiListView li {
         list-style: none;
     }
@@ -742,6 +742,16 @@
         width: 100%;
         margin-bottom: 5px;
     }
+
+    .lateral-tab .dnnFormItem .repeatTimeSelectors {
+        display: flex;
+        gap: 8px;
+    }
+
+        .lateral-tab .dnnFormItem .repeatTimeSelectors select {
+            flex: 1 1 0;
+            width: auto;
+        }
 
         .lateral-tab .dnnFormItem input[type="checkbox"] {
             height: auto;
