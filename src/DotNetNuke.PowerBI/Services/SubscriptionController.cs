@@ -125,6 +125,9 @@ namespace DotNetNuke.PowerBI.Services
         {
             try
             {
+                int portalId = ActiveModule.PortalID;
+                bool hasInheritPermissions = SharedSettingsRepository.Instance.GetSettingsByGroupId(subscriptionViewModel.GroupId, portalId).InheritPermissions;
+                string comparison = hasInheritPermissions ? subscriptionViewModel.GroupId : subscriptionViewModel.ReportId;
                 var serializer = new JavaScriptSerializer();
                 Subscription subscription = new Subscription
                 {
@@ -152,7 +155,7 @@ namespace DotNetNuke.PowerBI.Services
                     {
                         foreach (string user in usersArray)
                         {
-                            if (int.TryParse(user, out int userId))
+                            if (int.TryParse(user, out int userId) && SubscriberUserHasPermission(comparison, portalId, userId))
                             {
                                 SubscriptionsSubscribersRepository.Instance.AddSubscriptionSubscriber(new SubscriptionSubscriber
                                 {
@@ -167,7 +170,7 @@ namespace DotNetNuke.PowerBI.Services
                     {
                         foreach (string role in rolesArray)
                         {
-                            if (int.TryParse(role, out int roleId))
+                            if (int.TryParse(role, out int roleId) && SubscriberRoleHasPermission(comparison, portalId, roleId))
                             {
                                 SubscriptionsSubscribersRepository.Instance.AddSubscriptionSubscriber(new SubscriptionSubscriber
                                 {
@@ -243,7 +246,7 @@ namespace DotNetNuke.PowerBI.Services
                 {
                     foreach (string user in usersArray)
                     {
-                        if (int.TryParse(user, out int userId))
+                        if (int.TryParse(user, out int userId) && SubscriberUserHasPermission(comparison, portalId, userId))
                         {
                             SubscriptionsSubscribersRepository.Instance.AddSubscriptionSubscriber(new SubscriptionSubscriber
                             {
@@ -259,7 +262,7 @@ namespace DotNetNuke.PowerBI.Services
 
                     foreach (string role in rolesArray)
                     {
-                        if (int.TryParse(role, out int roleId))
+                        if (int.TryParse(role, out int roleId) && SubscriberRoleHasPermission(comparison, portalId, roleId))
                         {
                             SubscriptionsSubscribersRepository.Instance.AddSubscriptionSubscriber(new SubscriptionSubscriber
                             {
@@ -346,7 +349,7 @@ namespace DotNetNuke.PowerBI.Services
                 {
                     foreach (string user in subscriptionViewModel.Users.Split(','))
                     {
-                        if (int.TryParse(user, out int userId))
+                        if (int.TryParse(user, out int userId) && SubscriberUserHasPermission(comparison, portalId, userId))
                         {
                             subscribers.Add(new SubscriptionSubscriber { SubscriptionId = subscription.Id, UserId = userId });
                         }
@@ -356,7 +359,7 @@ namespace DotNetNuke.PowerBI.Services
                 {
                     foreach (string role in subscriptionViewModel.Roles.Split(','))
                     {
-                        if (int.TryParse(role, out int roleId))
+                        if (int.TryParse(role, out int roleId) && SubscriberRoleHasPermission(comparison, portalId, roleId))
                         {
                             subscribers.Add(new SubscriptionSubscriber { SubscriptionId = subscription.Id, RoleId = roleId });
                         }
@@ -670,6 +673,24 @@ namespace DotNetNuke.PowerBI.Services
         {
             UserInfo currentUser = UserController.Instance.GetCurrentUserInfo();
             return PowerBIListViewExtensions.UserHasPermissionsToWorkspace(workspaceOrReport, currentUser, 1);
+        }
+
+        private bool SubscriberUserHasPermission(string workspaceOrReport, int portalId, int userId)
+        {
+            UserInfo user = UserController.GetUserById(portalId, userId);
+            return user != null && PowerBIListViewExtensions.UserHasPermissionsToWorkspace(workspaceOrReport, user, 1);
+        }
+
+        private bool SubscriberRoleHasPermission(string workspaceOrReport, int portalId, int roleId)
+        {
+            RoleInfo administrators = RoleController.Instance.GetRoleByName(portalId, "Administrators");
+            if (administrators != null && administrators.RoleID == roleId)
+            {
+                return true;
+            }
+            return ObjectPermissionsRepository.Instance.GetObjectPermissions(workspaceOrReport, portalId)
+                .Any(permission => permission.PermissionID == 1 && permission.AllowAccess
+                    && permission.RoleID.HasValue && permission.RoleID.Value == roleId);
         }
 
         private string WorkspaceOrReport(string workspaceId, string reportId)
