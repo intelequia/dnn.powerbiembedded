@@ -1,0 +1,25 @@
+IF (EXISTS(SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'PBI_Bookmarks'))
+   AND (COL_LENGTH('{databaseOwner}[{objectQualifier}PBI_Bookmarks]', 'SubscriptionId') IS NULL)
+BEGIN
+    ALTER TABLE {databaseOwner}[{objectQualifier}PBI_Bookmarks] ADD [SubscriptionId] [int] NULL
+END
+GO
+
+IF (EXISTS(SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'PBI_Subscriptions'))
+   AND (COL_LENGTH('{databaseOwner}[{objectQualifier}PBI_Subscriptions]', 'IncludeMyChanges') IS NULL)
+BEGIN
+    ALTER TABLE {databaseOwner}[{objectQualifier}PBI_Subscriptions] ADD [IncludeMyChanges] [bit] NOT NULL CONSTRAINT [DF_{objectQualifier}PBI_Subscriptions_IncludeMyChanges] DEFAULT(0)
+END
+GO
+
+IF EXISTS (
+    SELECT 1
+    FROM sys.columns c
+    INNER JOIN sys.types t ON c.user_type_id = t.user_type_id
+    WHERE c.object_id = OBJECT_ID('{databaseOwner}[{objectQualifier}PBI_Bookmarks]')
+      AND c.name = 'CreatedOn'
+      AND t.name = 'date')
+BEGIN
+    ALTER TABLE {databaseOwner}[{objectQualifier}PBI_Bookmarks] ALTER COLUMN [CreatedOn] [datetime] NOT NULL
+END
+GO

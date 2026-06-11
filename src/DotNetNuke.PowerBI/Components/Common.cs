@@ -288,7 +288,8 @@ namespace DotNetNuke.PowerBI.Components
             string reportPages,
             string rolesString,
             string username,
-            string locale = "en-us")
+            string locale = "en-us",
+            string bookmarkState = null)
         {
             try
             {
@@ -313,7 +314,7 @@ namespace DotNetNuke.PowerBI.Components
                 int retryAttempt = 1;
                 do
                 {
-                    var exportId = await PostExportRequest(reportId, accessToken, setting, format, rolesString, username, filteredPages, urlFilter, locale);
+                    var exportId = await PostExportRequest(reportId, accessToken, setting, format, rolesString, username, filteredPages, urlFilter, locale, bookmarkState);
                     var pollResponse = await PollExportRequest(reportId, exportId, pollingtimeOutInMinutes, cancellationToken, accessToken, setting);
                     export = pollResponse?.Value;
                     if (export == null)
@@ -366,7 +367,8 @@ namespace DotNetNuke.PowerBI.Components
     string username,
     IList<Page> pageNames = null, /* Get the page names from the GetPages REST API */
     string urlFilter = null,
-    string locale = "en-us")
+    string locale = "en-us",
+    string bookmarkState = null)
         {
             try
             {
@@ -418,6 +420,13 @@ namespace DotNetNuke.PowerBI.Components
                 if (!string.IsNullOrEmpty(urlFilter))
                 {
                     powerBIReportExportConfiguration.ReportLevelFilters.Add(new ExportFilter { Filter = urlFilter });
+                }
+
+                // Apply the saved "My changes" state (filters, drilling, spotlight, ...) captured
+                // by the user from the embedded report so the exported file mirrors it.
+                if (!string.IsNullOrEmpty(bookmarkState))
+                {
+                    powerBIReportExportConfiguration.DefaultBookmark = new PageBookmark { State = bookmarkState };
                 }
 
                 // Let's check if RLS is required

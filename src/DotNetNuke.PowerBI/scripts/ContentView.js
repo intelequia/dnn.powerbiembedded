@@ -39,7 +39,7 @@
         return ('0' + h).slice(-2) + ':' + minute + ':00';
     }
 
-    function SubscriptionModel(p, id, portalId, reportId, groupId, name, startDate, endDate, repeatPeriod, repeatTime, timeZone, emailSubject, message, reportPages, enabled, users, roles, moduleId) {
+    function SubscriptionModel(p, id, portalId, reportId, groupId, name, startDate, endDate, repeatPeriod, repeatTime, timeZone, emailSubject, message, reportPages, enabled, users, roles, moduleId, includeMyChanges, myChangesState, myChangesUpdatedOn) {
         var that = this;
         var parent = p;
         this.id = ko.observable(id);
@@ -56,6 +56,17 @@
         this.emailSubject = ko.observable(emailSubject).extend({ required: true });
         this.message = ko.observable(message).extend({ required: true });
         this.enabled = ko.observable(enabled)
+        this.includeMyChanges = ko.observable(includeMyChanges || false);
+        this.myChangesState = ko.observable(myChangesState || '');
+        this.myChangesUpdatedOn = ko.observable(myChangesUpdatedOn || null);
+        this.myChangesStateText = ko.computed(function () {
+            var value = that.myChangesUpdatedOn();
+            if (!value) {
+                return '';
+            }
+            var date = new Date(value);
+            return isNaN(date.getTime()) ? value : date.toLocaleString();
+        });
         this.users = ko.observableArray(users);
         this.roles = ko.observableArray(roles);
         this.reportPages = ko.observableArray(reportPages);
@@ -399,6 +410,9 @@
                                 JSON.parse(subscription.Users),
                                 JSON.parse(subscription.Roles),
                                 context.ModuleId,
+                                subscription.IncludeMyChanges,
+                                subscription.MyChangesState,
+                                subscription.MyChangesUpdatedOn,
                             );
                             subscriptions.push(b);
                         });
@@ -750,10 +764,59 @@
                 [],
                 [],
                 context.ModuleId,
+                false,
+                "",
+                null,
             );
             that.subscriptionsArray.push(b);
             b.editSubscription();
         }
+
+        // My changes (subscription bookmark): preview applies the stored state to the live report,
+        // update captures the current report state and stores it for the subscription.
+        this.previewMyChanges = function (subscription) {
+            if (!subscription || !subscription.myChangesState()) {
+                return;
+            }
+            if (that.report && that.report.bookmarksManager) {
+                that.report.bookmarksManager.applyState(subscription.myChangesState());
+            }
+        };
+
+        this.updateMyChanges = function (subscription) {
+            if (!subscription || !that.report || !that.report.bookmarksManager) {
+                return;
+            }
+            that.report.bookmarksManager.capture()
+                .then(function (capturedBookmark) {
+                    subscription.myChangesState(capturedBookmark.state);
+                    subscription.myChangesUpdatedOn(new Date().toISOString());
+                    // Persist immediately only for already-saved subscriptions; new ones store the
+                    // state on save.
+                    if (subscription.id() !== -1) {
+                        let params = {
+                            Id: subscription.id(),
+                            ReportId: subscription.reportId(),
+                            GroupId: subscription.groupId(),
+                            MyChangesState: subscription.myChangesState(),
+                        };
+                        Common.Call("POST", "SaveMyChanges", that.subscriptionsService, params,
+                            function (data) {
+                                if (data.Success && data.UpdatedOn) {
+                                    subscription.myChangesUpdatedOn(data.UpdatedOn);
+                                }
+                            },
+                            function (error) {
+                                console.log(error);
+                            },
+                            function () {
+                            });
+                    }
+                })
+                .catch(function (error) {
+                    console.log(error);
+                });
+        };
 
         this.saveEditedSubscription = function (subscription) {
 
@@ -782,6 +845,8 @@
                     Enabled: subscription.enabled(),
                     Users: serializedUsers,
                     Roles: serializedRoles,
+                    IncludeMyChanges: subscription.includeMyChanges(),
+                    MyChangesState: subscription.myChangesState(),
                 }; 
                 Common.Call("POST", "EditSubscription", that.subscriptionsService, params,
                     function (data) {
@@ -871,6 +936,8 @@
                 Enabled: subscription.enabled(),
                 Users: serializedUsers,
                 Roles: serializedRoles,
+                IncludeMyChanges: subscription.includeMyChanges(),
+                MyChangesState: subscription.myChangesState(),
             };
 
             btn.addClass('disabled');

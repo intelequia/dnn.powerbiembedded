@@ -1,6 +1,8 @@
 ﻿using DotNetNuke.Entities.Users;
 using DotNetNuke.Instrumentation;
 using DotNetNuke.PowerBI.Data;
+using DotNetNuke.PowerBI.Data.Bookmarks;
+using DotNetNuke.PowerBI.Data.Bookmarks.Models;
 using DotNetNuke.PowerBI.Data.Models;
 using DotNetNuke.PowerBI.Data.SharedSettings;
 using DotNetNuke.PowerBI.Data.Subscriptions;
@@ -45,6 +47,8 @@ namespace DotNetNuke.PowerBI.Services
             public string Message { get; set; }
             public string ReportPages { get; set; }
             public bool Enabled { get; set; }
+            public bool IncludeMyChanges { get; set; }
+            public string MyChangesState { get; set; }
             public string Users { get; set; }
             public string Roles { get; set; }
 
@@ -107,6 +111,13 @@ namespace DotNetNuke.PowerBI.Services
                     var rolesArray = serializer.Serialize(roles);
                     subscription.Users = usersArray;
                     subscription.Roles = rolesArray;
+
+                    var myChangesBookmark = BookmarksRepository.Instance.GetBookmarkBySubscription(portalId, subscription.Id);
+                    if (myChangesBookmark != null)
+                    {
+                        subscription.MyChangesState = myChangesBookmark.State;
+                        subscription.MyChangesUpdatedOn = myChangesBookmark.CreatedOn;
+                    }
                 }
                 if (subscriptions != null && subscriptions.Any())
                 {
@@ -145,9 +156,14 @@ namespace DotNetNuke.PowerBI.Services
                     EmailSubject = subscriptionViewModel.EmailSubject,
                     Message = subscriptionViewModel.Message,
                     ReportPages = subscriptionViewModel.ReportPages,
-                    Enabled = subscriptionViewModel.Enabled
+                    Enabled = subscriptionViewModel.Enabled,
+                    IncludeMyChanges = subscriptionViewModel.IncludeMyChanges
                 };
                 int subscriptionId = SubscriptionsRepository.Instance.AddSubscription(subscription);
+                if (subscriptionId >= 0)
+                {
+                    SaveMyChangesBookmark(portalId, subscriptionId, subscriptionViewModel.ReportId, subscriptionViewModel.MyChangesState);
+                }
                 var usersArray = subscriptionViewModel.Users.Split(',');
                 var rolesArray = subscriptionViewModel.Roles.Split(',');
                 if (subscriptionId >= 0)
@@ -234,7 +250,9 @@ namespace DotNetNuke.PowerBI.Services
                 subscription.Message = subscriptionViewModel.Message;
                 subscription.ReportPages = subscriptionViewModel.ReportPages;
                 subscription.Enabled = subscriptionViewModel.Enabled;
+                subscription.IncludeMyChanges = subscriptionViewModel.IncludeMyChanges;
                 bool success = SubscriptionsRepository.Instance.EditSubscription(subscription);
+                SaveMyChangesBookmark(portalId, subscription.Id, subscription.ReportId, subscriptionViewModel.MyChangesState);
 
                 var usersArray = subscriptionViewModel.Users.Split(',');
                 var rolesArray = subscriptionViewModel.Roles.Split(',');
@@ -342,7 +360,8 @@ namespace DotNetNuke.PowerBI.Services
                     EmailSubject = subscriptionViewModel.EmailSubject,
                     Message = subscriptionViewModel.Message,
                     ReportPages = subscriptionViewModel.ReportPages,
-                    Enabled = subscriptionViewModel.Enabled
+                    Enabled = subscriptionViewModel.Enabled,
+                    IncludeMyChanges = subscriptionViewModel.IncludeMyChanges
                 };
 
                 var subscribers = new List<SubscriptionSubscriber>();
@@ -468,6 +487,7 @@ namespace DotNetNuke.PowerBI.Services
                 bool success = SubscriptionsRepository.Instance.DeleteSubscription(subscriptionViewModel.Id);
                 if (success)
                 {
+                    BookmarksRepository.Instance.DeleteBySubscription(subscriptionViewModel.Id);
                     return Request.CreateResponse(HttpStatusCode.OK, new
                     {
                         Success = true,
@@ -487,6 +507,58 @@ namespace DotNetNuke.PowerBI.Services
                     Error = e
                 });
             }
+        }
+
+        [HttpPost]
+        public HttpResponseMessage SaveMyChanges(SubscriptionViewModel subscriptionViewModel)
+        {
+            try
+            {
+                int portalId = ActiveModule.PortalID;
+                bool hasInheritPermissions = SharedSettingsRepository.Instance.GetSettingsByGroupId(subscriptionViewModel.GroupId, portalId).InheritPermissions;
+                string comparison = hasInheritPermissions ? subscriptionViewModel.GroupId : subscriptionViewModel.ReportId;
+                if (!UserHasPermission(comparison))
+                {
+                    return Request.CreateResponse(HttpStatusCode.Unauthorized, new { Success = false });
+                }
+
+                // The subscription must already exist to link the bookmark; new subscriptions
+                // persist their captured state on save instead.
+                if (subscriptionViewModel.Id <= 0)
+                {
+                    return Request.CreateResponse(HttpStatusCode.OK, new { Success = false, Error = "NotSaved" });
+                }
+
+                SaveMyChangesBookmark(portalId, subscriptionViewModel.Id, subscriptionViewModel.ReportId, subscriptionViewModel.MyChangesState);
+                var bookmark = BookmarksRepository.Instance.GetBookmarkBySubscription(portalId, subscriptionViewModel.Id);
+                return Request.CreateResponse(HttpStatusCode.OK, new
+                {
+                    Success = true,
+                    UpdatedOn = bookmark?.CreatedOn,
+                });
+            }
+            catch (Exception e)
+            {
+                return Request.CreateResponse(HttpStatusCode.InternalServerError, new { Success = false, Error = e });
+            }
+        }
+
+        private static void SaveMyChangesBookmark(int portalId, int subscriptionId, string reportId, string state)
+        {
+            if (string.IsNullOrEmpty(state))
+            {
+                return;
+            }
+
+            BookmarksRepository.Instance.SaveOrUpdateSubscriptionBookmark(new Bookmark
+            {
+                PortalId = portalId,
+                SubscriptionId = subscriptionId,
+                ReportId = reportId,
+                Name = $"subscription_{subscriptionId}",
+                DisplayName = "My changes",
+                State = state,
+            });
         }
 
         [HttpGet]

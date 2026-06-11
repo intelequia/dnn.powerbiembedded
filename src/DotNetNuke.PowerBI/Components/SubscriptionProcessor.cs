@@ -3,6 +3,7 @@ using DotNetNuke.Entities.Portals;
 using DotNetNuke.Entities.Users;
 using DotNetNuke.Instrumentation;
 using DotNetNuke.PowerBI.Data;
+using DotNetNuke.PowerBI.Data.Bookmarks;
 using DotNetNuke.PowerBI.Data.Models;
 using DotNetNuke.PowerBI.Data.Subscriptions;
 using DotNetNuke.PowerBI.Data.Subscriptions.Models;
@@ -158,7 +159,13 @@ namespace DotNetNuke.PowerBI.Components
             var rolesString = string.Join(",", roleList);
             const string reportName = "[[ReportName]]";
 
-            var attachment = await _common.ExportPowerBIReport(Guid.Parse(subscription.ReportId), accessToken, setting, subscription.ReportPages, rolesString, username, portalSettings.DefaultLanguage.ToLower());
+            string bookmarkState = null;
+            if (subscription.IncludeMyChanges)
+            {
+                bookmarkState = BookmarksRepository.Instance.GetBookmarkBySubscription(subscription.PortalId, subscription.Id)?.State;
+            }
+
+            var attachment = await _common.ExportPowerBIReport(Guid.Parse(subscription.ReportId), accessToken, setting, subscription.ReportPages, rolesString, username, portalSettings.DefaultLanguage.ToLower(), bookmarkState);
 
             if (attachment == null)
             {

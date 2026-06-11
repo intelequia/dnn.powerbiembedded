@@ -183,6 +183,27 @@
   <data name="SubscriptionEnabled.Text" xml:space="preserve">
     <value>Enabled</value>
   </data>
+  <data name="SubscriptionMyChanges.Text" xml:space="preserve">
+    <value>My changes</value>
+  </data>
+  <data name="SubscriptionMyChangesDescription.Text" xml:space="preserve">
+    <value>Include any changes to the report, such as applied filters, drilling, spotlights and more.</value>
+  </data>
+  <data name="SubscriptionMyChangesInclude.Text" xml:space="preserve">
+    <value>Include my changes</value>
+  </data>
+  <data name="SubscriptionMyChangesStateAsOf.Text" xml:space="preserve">
+    <value>State as of</value>
+  </data>
+  <data name="SubscriptionMyChangesNoState.Text" xml:space="preserve">
+    <value>No saved state yet.</value>
+  </data>
+  <data name="SubscriptionMyChangesPreview.Text" xml:space="preserve">
+    <value>Preview</value>
+  </data>
+  <data name="SubscriptionMyChangesUpdate.Text" xml:space="preserve">
+    <value>Update</value>
+  </data>
   <data name="SubscriptionEndDate.Text" xml:space="preserve">
     <value>End Date *</value>
   </data>

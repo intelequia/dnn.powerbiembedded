@@ -29,6 +29,7 @@ namespace DotNetNuke.PowerBI.Data.Subscriptions.Models
         public string Message { get; set; }
         public string ReportPages { get; set; }
         public bool Enabled { get; set; }
+        public bool IncludeMyChanges { get; set; }
         public DateTime CreatedOn { get; set; }
         public int CreatedBy { get; set; }
         public DateTime? LastProcessedOn { get; set; }
@@ -38,5 +39,11 @@ namespace DotNetNuke.PowerBI.Data.Subscriptions.Models
 
         [IgnoreColumn]
         public string Roles { get; set; }
+
+        [IgnoreColumn]
+        public string MyChangesState { get; set; }
+
+        [IgnoreColumn]
+        public DateTime? MyChangesUpdatedOn { get; set; }
     }
 }

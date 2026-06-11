@@ -304,6 +304,27 @@
                     <div data-bind="visible: addedPages().length === 0" class="norows">
                         <span>@Dnn.LocalizeString("SubscriptionNoPages")</span>
                     </div> 
+                    <!-- My changes -->
+                    <div class="subscription-mychanges">
+                        <div class="subscription-mychanges-header">@Dnn.LocalizeString("SubscriptionMyChanges")</div>
+                        <p class="subscription-mychanges-description">@Dnn.LocalizeString("SubscriptionMyChangesDescription")</p>
+                        <div class="dnnFormItem">
+                            <label class="inline" for="chkEditIncludeMyChanges">@Dnn.LocalizeString("SubscriptionMyChangesInclude")</label>
+                            <input type="checkbox" id="chkEditIncludeMyChanges" data-bind="checked: includeMyChanges" />
+                        </div>
+                        <div class="subscription-mychanges-state" data-bind="visible: myChangesUpdatedOn()">
+                            <span>@Dnn.LocalizeString("SubscriptionMyChangesStateAsOf")</span>
+                            <span data-bind="text: myChangesStateText"></span>
+                        </div>
+                        <div class="subscription-mychanges-state" data-bind="visible: !myChangesUpdatedOn()">
+                            <span>@Dnn.LocalizeString("SubscriptionMyChangesNoState")</span>
+                        </div>
+                        <div class="subscription-mychanges-actions">
+                            <a class="mychanges-link" data-bind="click: $root.previewMyChanges, css: { disabled: !myChangesState() }">@Dnn.LocalizeString("SubscriptionMyChangesPreview")</a>
+                            <span class="mychanges-sep">|</span>
+                            <a class="mychanges-link" data-bind="click: $root.updateMyChanges">@Dnn.LocalizeString("SubscriptionMyChangesUpdate")</a>
+                        </div>
+                    </div>
                     <div class="dnnFormItem">
                         <label class="inline" for="chkEditEnable">@Dnn.LocalizeString("SubscriptionEnabled")</label>
                         <input type="checkbox" id="chkEditEnable" data-bind="checked: enabled" />
