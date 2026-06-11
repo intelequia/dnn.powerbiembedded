@@ -71,11 +71,11 @@
         </div>
     }
 
-    @if (ViewBag.ShowSubscription && ViewBag.CanEdit)
+    @if (ViewBag.ShowSubscription)
     {
         <a href="#" class="subscription" data-bind="click: openLateralTab">
             <div class="subscribeImg"></div>
-            <span>@Dnn.LocalizeString("Subscriptions")</span>
+            <span>@Dnn.LocalizeString("Subscribe")</span>
         </a>
     }
     @if (ViewBag.CanExport)
@@ -135,7 +135,7 @@
                 </div>
             </div>
         </div>
-        if (ViewBag.ShowSubscription && ViewBag.CanEdit)
+        if (ViewBag.ShowSubscription)
         {
 <div class="lateral-tab">
     <div class="close-panel">

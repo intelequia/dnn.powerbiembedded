@@ -648,7 +648,7 @@ namespace DotNetNuke.PowerBI.Services
         private bool UserHasPermission(string workspaceOrReport)
         {
             UserInfo currentUser = UserController.Instance.GetCurrentUserInfo();
-            return PowerBIListViewExtensions.UserHasPermissionsToWorkspace(workspaceOrReport, currentUser, 2);
+            return PowerBIListViewExtensions.UserHasPermissionsToWorkspace(workspaceOrReport, currentUser, 1);
         }
 
         private string WorkspaceOrReport(string workspaceId, string reportId)

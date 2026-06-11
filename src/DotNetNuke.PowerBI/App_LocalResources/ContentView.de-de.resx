@@ -123,4 +123,7 @@
   <data name="ErrorTitle.Text" xml:space="preserve">
     <value>Error</value>
   </data>
+  <data name="Subscribe.Text" xml:space="preserve">
+    <value>Abonnieren</value>
+  </data>
 </root>

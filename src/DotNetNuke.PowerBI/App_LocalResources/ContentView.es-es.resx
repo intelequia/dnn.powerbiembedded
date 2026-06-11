@@ -222,6 +222,9 @@
   <data name="Subscriptions.Text" xml:space="preserve">
     <value>Suscripciones</value>
   </data>
+  <data name="Subscribe.Text" xml:space="preserve">
+    <value>Suscribirse</value>
+  </data>
   <data name="SubscriptionSave.Text" xml:space="preserve">
     <value>Guardar</value>
   </data>
