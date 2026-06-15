@@ -297,11 +297,22 @@ namespace DotNetNuke.PowerBI.Components
                 int pollingtimeOutInMinutes = 5;
                 FileFormat format = FileFormat.PDF;
                 Pages pageNames = await GetReportPages(reportId, accessToken, setting);
-                string[] pages = reportPages.Split(',');
-                IList<Page> filteredPages = pageNames.Value.ToList();
+                string[] pages = (reportPages ?? string.Empty).Split(',');
+                IList<Page> allPages = pageNames.Value.ToList();
+                IList<Page> filteredPages = allPages;
                 if (reportPages != "All" && reportPages != "")
                 {
-                    filteredPages = filteredPages.Where(page => pages.Contains(page.Name)).ToList();
+                    filteredPages = allPages.Where(page => pages.Contains(page.Name)).ToList();
+
+                    // The subscription stored specific page names that no longer match any page
+                    // in the report (pages were renamed, deleted or recreated -> the internal
+                    // 'Name' changed). Sending an export request with an empty Pages collection
+                    // makes Power BI reject it with 400 InvalidRequest, so fall back to all pages.
+                    if (filteredPages.Count == 0)
+                    {
+                        Logger.Warn($"Subscription export for report '{reportId}' requested pages '{reportPages}' but none exist in the report anymore. Falling back to all pages.");
+                        filteredPages = allPages;
+                    }
                 }
 
                 CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
