@@ -154,7 +154,12 @@ namespace DotNetNuke.PowerBI.Components
         private async Task SendEmailAsync(PowerBISettings setting, string accessToken, Subscription subscription, UserInfo userInfo, string subject, string htmlBody, PortalSettings portalSettings)
         {
             var username = _common.GetUsernameProperty(subscription.ModuleId, userInfo);
-            var roles = RoleController.Instance.GetUserRoles(UserController.Instance.GetUserByDisplayname(subscription.PortalId, userInfo.DisplayName), true);
+            // Resolve the recipient's roles directly from the UserInfo already loaded by id
+            // (see UserController.GetUserById above). The previous lookup by display name was
+            // unreliable: display names aren't unique and GetUserByDisplayname could return null,
+            // leaving an empty role list. When the dataset has IsEffectiveIdentityRolesRequired=true
+            // Power BI rejects an EffectiveIdentity with no roles with "400 InvalidRequest".
+            var roles = RoleController.Instance.GetUserRoles(userInfo, true);
             var roleList = roles.Select(role => role.RoleName).ToList();
             var rolesString = string.Join(",", roleList);
             const string reportName = "[[ReportName]]";

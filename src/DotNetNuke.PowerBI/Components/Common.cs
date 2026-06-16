@@ -454,6 +454,17 @@ namespace DotNetNuke.PowerBI.Components
                             rls.Roles.Add(role);
                         }
                     }
+
+                    // When the dataset enforces RLS roles, Power BI rejects an identity that has no
+                    // role with a generic "400 InvalidRequest". Fail early with an actionable message
+                    // instead so the cause (user has no applicable RLS role) is obvious in the logs.
+                    if (dataset.IsEffectiveIdentityRolesRequired.GetValueOrDefault(false) && rls.Roles.Count == 0)
+                    {
+                        throw new ApplicationException(
+                            $"The dataset '{report.DatasetId}' requires RLS roles but no role could be resolved for user '{username}'. " +
+                            "Check the user's roles and the 'RLS.RoleGroupName' appSetting filter.");
+                    }
+
                     powerBIReportExportConfiguration.Identities.Add(rls);
                 }
 
@@ -462,12 +473,47 @@ namespace DotNetNuke.PowerBI.Components
                     PowerBIReportConfiguration = powerBIReportExportConfiguration,
                 };
 
+                // Diagnostic: log exactly what is being sent so a generic "400 InvalidRequest" from
+                // Power BI can be traced to the offending part (pages, RLS identity/roles, bookmark).
+                // JSON serialization also exposes any remaining invisible characters as \uXXXX escapes.
+                try
+                {
+                    var identity = powerBIReportExportConfiguration.Identities?.FirstOrDefault();
+                    var diag = new
+                    {
+                        WorkspaceId = setting.WorkspaceId,
+                        ReportId = reportId.ToString(),
+                        DatasetId = report.DatasetId,
+                        Format = format.ToString(),
+                        Pages = powerBIReportExportConfiguration.Pages?.Select(p => p.PageName).ToList(),
+                        HasBookmark = powerBIReportExportConfiguration.DefaultBookmark != null,
+                        ReportLevelFilters = powerBIReportExportConfiguration.ReportLevelFilters?.Select(f => f.Filter).ToList(),
+                        IsEffectiveIdentityRequired = dataset?.IsEffectiveIdentityRequired,
+                        IsEffectiveIdentityRolesRequired = dataset?.IsEffectiveIdentityRolesRequired,
+                        Identity = identity == null ? null : new
+                        {
+                            identity.Username,
+                            Datasets = identity.Datasets?.ToList(),
+                            Roles = identity.Roles?.ToList(),
+                            RolesCount = identity.Roles?.Count ?? 0
+                        }
+                    };
+                    Logger.Info($"PowerBI export request for report '{reportId}': {Newtonsoft.Json.JsonConvert.SerializeObject(diag)}");
+                }
+                catch (Exception logEx)
+                {
+                    Logger.Warn("Failed to serialize PowerBI export request for diagnostics.", logEx);
+                }
+
                 // The 'Client' object is an instance of the Power BI .NET SDK                
                 var export = (await client.Reports.ExportToFileInGroupAsync(Guid.Parse(setting.WorkspaceId), reportId, exportRequest).ConfigureAwait(false)).Value;
                 return export.Id;
             }
             catch (Exception e)
             {
+                // Log the full exception (including the Power BI response content/headers and request id)
+                // because the wrappers above only keep e.Message and the underlying detail is lost.
+                Logger.Error($"Post Export Error for report '{reportId}'.", e);
                 throw new ApplicationException($"Post Export Error: {e.Message}");
             }
         }
