@@ -10,8 +10,10 @@
     ClientResourceManager.RegisterStyleSheet(Dnn.DnnPage, "~/DesktopModules/MVC/PowerBIEmbedded/css/module.css", 10, "DnnPageHeaderProvider");
     ClientResourceManager.RegisterScript(Dnn.DnnPage, "~/DesktopModules/MVC/PowerBIEmbedded/scripts/powerbi.min.js", 20);
     ClientResourceManager.RegisterScript(Dnn.DnnPage, "https://npmcdn.com/es6-promise@3.2.1", 18);
-    ClientResourceManager.RegisterScript(Dnn.DnnPage, "https://code.jquery.com/jquery-1.11.2.min.js", 19);
-    ClientResourceManager.RegisterScript(Dnn.DnnPage, "https://code.jquery.com/ui/1.11.2/jquery-ui.min.js", 19);
+    // NOTE: jQuery is already provided by DNN/the active skin. Re-loading jQuery (and jQuery UI)
+    // from a CDN here overrides the page's jQuery instance and breaks Bootstrap 5 based skins
+    // such  as Tabler (their plugins, e.g. popover/dropdowns, get detached). FullCalendar 3.9 works
+    // fine with the jQuery already present on the page.
     ClientResourceManager.RegisterScript(Dnn.DnnPage, "https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.21.0/moment.min.js", 20);
     ClientResourceManager.RegisterScript(Dnn.DnnPage, "https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/3.9.0/fullcalendar.min.js", 21);
     ClientResourceManager.RegisterScript(Dnn.DnnPage, "https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/3.9.0/locale-all.js", 22);
@@ -167,13 +169,17 @@
                 //// uncomment this line to hide the all-day slot
                 allDaySlot: false,
                 eventRender: function (eventObj, $el) {
-                    $el.popover({
-                        title: eventObj.title,
-                        content: eventObj.description.replace('\n', '\n\r'),
-                        trigger: 'hover',
-                        placement: 'top',
-                        container: 'body'
-                    });
+                    // Use a native tooltip instead of Bootstrap's popover. The popover API differs
+                    // between Bootstrap versions (Tabler ships Bootstrap 5) and is not guaranteed to
+                    // be available on the page's jQuery, which previously threw inside eventRender and
+                    // aborted the calendar rendering.
+                    var tooltip = eventObj.title || '';
+                    if (eventObj.description) {
+                        tooltip += (tooltip ? '\n' : '') + eventObj.description;
+                    }
+                    if (tooltip) {
+                        $el.attr('title', tooltip);
+                    }
                 }
             });
             //$("#calendar").fullCalendar('renderEvents', events, true);

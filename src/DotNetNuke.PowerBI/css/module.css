@@ -582,6 +582,41 @@
     display: none;
 }
 
+/* FullCalendar 3.x compatibility with Bootstrap 5 based skins (e.g. Tabler).
+   Bootstrap's reboot forces `box-sizing: border-box` and table resets globally,
+   which break FullCalendar 3's pixel-precise grid (misaligned columns / time axis).
+   Scope the legacy content-box model back onto the calendar only. */
+.powerbiCalendarView .fc,
+.powerbiCalendarView .fc *,
+.powerbiCalendarView .fc *::before,
+.powerbiCalendarView .fc *::after {
+    box-sizing: content-box;
+}
+
+.powerbiCalendarView .fc table {
+    width: 100%;
+    margin: 0;
+    border-collapse: collapse;
+    border-spacing: 0;
+    background: none;
+    font-size: 1em;
+}
+
+.powerbiCalendarView .fc table,
+.powerbiCalendarView .fc th,
+.powerbiCalendarView .fc td {
+    border-color: #ddd;
+}
+
+.powerbiCalendarView .fc th {
+    font-weight: 600;
+    text-align: center;
+}
+
+.powerbiCalendarView .fc-event {
+    cursor: default;
+}
+
 .drop {
     margin: 15px;
     max-width: 10%;
@@ -921,7 +956,7 @@
 .norows {
     padding: 10px;
 } 
-
+ 
 .runNowFeedback {
     display: inline-block;
     margin-left: 10px;
