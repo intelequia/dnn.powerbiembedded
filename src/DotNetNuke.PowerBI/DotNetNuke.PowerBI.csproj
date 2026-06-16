@@ -251,6 +251,7 @@
     <Compile Include="Components\RouteMapper.cs" />
     <Compile Include="Components\SubscriptionProcessor.cs" />
     <Compile Include="Controllers\CalendarViewController.cs" />
+    <Compile Include="Services\CalendarController.cs" />
     <Compile Include="Services\ExportsController.cs" />
     <Compile Include="Controllers\ContentViewController.cs" />
     <Compile Include="Controllers\ListViewController.cs" />
