@@ -896,95 +896,21 @@ namespace DotNetNuke.PowerBI.Services
             return name;
         }
 
-        // Power BI Embedded limits: max 50 roles per EffectiveIdentity, max 50 chars per role name.
-        // See https://learn.microsoft.com/rest/api/power-bi/embed-token/generate-token#effectiveidentity
-        private const int MaxRolesPerIdentity = 50;
-        private const int MaxRoleNameLength = 50;
-
         /// <summary>
         /// Filters and appends DNN roles to an <see cref="EffectiveIdentity"/> honoring the Power BI
-        /// limits (max 50 roles, max 50 chars per role name). If the appSetting "RLS.RoleGroupName"
-        /// is defined, only roles that belong to that DNN role group are included.
+        /// limits (max 50 roles, max 50 chars per role name) and the optional "RLS.RoleGroupName"
+        /// appSetting filter. The actual resolution lives in <see cref="Components.Common.ResolveEffectiveRoles"/>
+        /// so the render (embed) and subscription (export) paths behave identically.
         /// </summary>
         private void AppendEffectiveRoles(EffectiveIdentity rls, string roles)
         {
             if (rls == null || string.IsNullOrWhiteSpace(roles))
                 return;
 
-            var roleList = roles.Split(',')
-                .Select(r => r?.Trim())
-                .Where(r => !string.IsNullOrEmpty(r))
-                .Distinct(StringComparer.OrdinalIgnoreCase)
-                .ToList();
-
-            // Optional filter by role group configured in web.config
-            var roleGroupName = ConfigurationManager.AppSettings["RLS.RoleGroupName"];
-            if (!string.IsNullOrWhiteSpace(roleGroupName))
-            {
-                try
-                {
-                    var allowedRoles = GetRoleNamesInRoleGroup(roleGroupName);
-                    if (allowedRoles != null)
-                    {
-                        roleList = roleList
-                            .Where(r => allowedRoles.Contains(r, StringComparer.OrdinalIgnoreCase))
-                            .ToList();
-                    }
-                }
-                catch (Exception ex)
-                {
-                    Logger.Warn($"Error filtering roles by role group '{roleGroupName}'. Falling back to all roles.", ex);
-                }
-            }
-
-            // Warn (but don't fail) on roles whose name exceeds the Power BI limit; skip them.
-            var oversizedRoles = roleList.Where(r => r.Length > MaxRoleNameLength).ToList();
-            if (oversizedRoles.Count > 0)
-            {
-                Logger.Warn($"Power BI RLS: {oversizedRoles.Count} role(s) exceed the {MaxRoleNameLength}-character limit and will be skipped: {string.Join(", ", oversizedRoles)}");
-                roleList = roleList.Where(r => r.Length <= MaxRoleNameLength).ToList();
-            }
-
-            // Warn (but don't fail) when the effective identity would exceed Power BI's limit; truncate.
-            if (roleList.Count > MaxRolesPerIdentity)
-            {
-                Logger.Warn($"Power BI RLS: user has {roleList.Count} effective roles which exceeds the Power BI limit of {MaxRolesPerIdentity}. Only the first {MaxRolesPerIdentity} roles will be sent. Consider configuring the 'RLS.RoleGroupName' appSetting to filter roles by group.");
-                roleList = roleList.Take(MaxRolesPerIdentity).ToList();
-            }
-
-            foreach (var role in roleList)
+            foreach (var role in Components.Common.ResolveEffectiveRoles(roles, Settings.PortalId))
             {
                 rls.Roles.Add(role);
             }
-        }
-
-        /// <summary>
-        /// Returns the names of the DNN roles that belong to the role group with the given name in
-        /// the current portal, or null if the role group cannot be resolved.
-        /// </summary>
-        private List<string> GetRoleNamesInRoleGroup(string roleGroupName)
-        {
-            var cacheKey = $"PBI_{Settings.PortalId}_RoleGroupRoles_{roleGroupName}";
-            var cached = CachingProvider.Instance().GetItem(cacheKey) as List<string>;
-            if (cached != null)
-                return cached;
-
-            var groups = RoleController.GetRoleGroups(Settings.PortalId).Cast<RoleGroupInfo>().ToList();
-            var group = groups.FirstOrDefault(g => string.Equals(g.RoleGroupName, roleGroupName, StringComparison.OrdinalIgnoreCase));
-            if (group == null)
-            {
-                Logger.Warn($"Power BI RLS: role group '{roleGroupName}' configured in 'RLS.RoleGroupName' was not found in portal {Settings.PortalId}.");
-                return null;
-            }
-
-            var allRoles = RoleController.Instance.GetRoles(Settings.PortalId);
-            var names = allRoles
-                .Where(r => r.RoleGroupID == group.RoleGroupID)
-                .Select(r => r.RoleName)
-                .ToList();
-
-            CachingProvider.Instance().Insert(cacheKey, names, null, DateTime.Now.AddMinutes(5), TimeSpan.Zero);
-            return names;
         }
 
         private async Task<Guid?> GetReportDatasetWorkspaceIdAsync(Guid reportWorkspaceId, Guid reportId)
