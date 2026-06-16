@@ -621,7 +621,7 @@ namespace DotNetNuke.PowerBI.Components
                 return new List<string>();
 
             var roleList = roles.Split(',')
-                .Select(r => r?.Trim())
+                .Select(SanitizeRoleName)
                 .Where(r => !string.IsNullOrEmpty(r))
                 .Distinct(StringComparer.OrdinalIgnoreCase)
                 .ToList();
@@ -686,11 +686,34 @@ namespace DotNetNuke.PowerBI.Components
             var allRoles = RoleController.Instance.GetRoles(portalId);
             var names = allRoles
                 .Where(r => r.RoleGroupID == group.RoleGroupID)
-                .Select(r => r.RoleName)
+                .Select(r => SanitizeRoleName(r.RoleName))
+                .Where(r => !string.IsNullOrEmpty(r))
                 .ToList();
 
             CachingProvider.Instance().Insert(cacheKey, names, null, DateTime.Now.AddMinutes(5), TimeSpan.Zero);
             return names;
+        }
+
+        /// <summary>
+        /// Cleans a role name so Power BI accepts it inside an EffectiveIdentity. DNN role names can
+        /// carry invisible Unicode control/format characters (e.g. U+200E LEFT-TO-RIGHT MARK, zero-width
+        /// space/joiner, BOM) pasted from other systems. Power BI rejects the whole export/embed
+        /// request with "400 InvalidRequest" when such characters are present in a role, so they are
+        /// stripped here before the role is sent.
+        /// </summary>
+        private static string SanitizeRoleName(string role)
+        {
+            if (string.IsNullOrEmpty(role))
+                return null;
+
+            // Remove Unicode control (Cc) and format (Cf) characters such as LRM/RLM, zero-width
+            // space/joiner and BOM, then trim leftover surrounding whitespace.
+            var cleaned = Regex.Replace(role, @"[\p{Cc}\p{Cf}]", string.Empty).Trim();
+            if (!string.Equals(cleaned, role.Trim(), StringComparison.Ordinal))
+            {
+                Logger.Warn($"Power BI RLS: role name '{cleaned}' contained invisible/control characters that were removed before sending it to Power BI.");
+            }
+            return cleaned;
         }
 
         #endregion
