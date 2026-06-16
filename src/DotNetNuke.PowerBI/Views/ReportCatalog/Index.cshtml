@@ -1,0 +1,96 @@
+@inherits DotNetNuke.Web.Mvc.Framework.DnnWebViewPage<DotNetNuke.PowerBI.Models.ReportCatalogView>
+@using System.Linq
+@using DotNetNuke.Web.Client.ClientResourceManagement
+@{
+    ClientResourceManager.RegisterStyleSheet(Dnn.DnnPage, "~/DesktopModules/MVC/PowerBIEmbedded/Css/module.css", 10, "DnnPageHeaderProvider");
+    ClientResourceManager.RegisterScript(Dnn.DnnPage, "~/DesktopModules/MVC/PowerBIEmbedded/scripts/ReportCatalog.js", 25);
+
+    var defaultIcon = Url.Content("~/DesktopModules/MVC/PowerBIEmbedded/images/report-generic.svg");
+    var colorByCategory = Model != null
+        ? Model.Categories.ToDictionary(c => c.Name, c => c.Color, System.StringComparer.OrdinalIgnoreCase)
+        : new System.Collections.Generic.Dictionary<string, string>();
+}
+
+<div class="pbi-catalog">
+    @if (Model == null)
+    {
+        <p class="pbi-catalog-error">@Dnn.LocalizeString("Error")</p>
+    }
+    else if (Model.Items.Count == 0)
+    {
+        <div class="pbi-catalog-empty">
+            <p>@Dnn.LocalizeString("Empty")</p>
+        </div>
+    }
+    else
+    {
+        <div class="pbi-catalog-toolbar">
+            <div class="pbi-cat-filter" role="group" aria-label="Categories">
+                <button type="button" class="pbi-cat-btn active" data-cat="all">@Dnn.LocalizeString("All")</button>
+                @foreach (var category in Model.Categories)
+                {
+                    <button type="button" class="pbi-cat-btn" data-cat="@category.Name" style="--pbi-color:@category.Color">@category.Name</button>
+                }
+            </div>
+            <div class="pbi-search">
+                <span class="pbi-search-icon" aria-hidden="true"></span>
+                <input type="text" class="pbi-search-input" id="pbiCatalogSearch"
+                       placeholder="@Dnn.LocalizeString("SearchPlaceholder")" autocomplete="off" />
+            </div>
+        </div>
+
+        <div class="pbi-report-grid" id="pbiCatalogGrid">
+            @foreach (var item in Model.Items)
+            {
+                var categoryKey = "|" + string.Join("|", item.Categories.Select(c => c.ToLowerInvariant())) + "|";
+                var maskUrl = item.IconUrl == null ? defaultIcon : (item.IconIsSvg ? item.IconUrl : null);
+                var iconClass = maskUrl != null ? "pbi-report-icon is-svg" : "pbi-report-icon";
+                var iconStyle = maskUrl != null ? "--pbi-color:" + item.Color + ";--pbi-mask:url('" + maskUrl + "')" : "--pbi-color:" + item.Color;
+                <a href="@item.Url" class="pbi-report-card"
+                   data-title="@item.Title.ToLowerInvariant()"
+                   data-desc="@item.Description.ToLowerInvariant()"
+                   data-categories="@categoryKey"
+                   style="--pbi-color:@item.Color">
+                    <span class="@iconClass" style="@iconStyle">
+                        @if (item.IconUrl != null && !item.IconIsSvg)
+                        {
+                            <img class="pbi-report-img" src="@item.IconUrl" alt="" />
+                        }
+                    </span>
+                    <div class="pbi-report-body">
+                        <div class="pbi-report-head">
+                            <span class="pbi-report-title">@item.Title</span>
+                            @if (item.PrimaryCategory != null)
+                            {
+                                <span class="pbi-badge" style="--pbi-color:@item.Color">@item.PrimaryCategory</span>
+                            }
+                        </div>
+                        @if (!string.IsNullOrWhiteSpace(item.Description))
+                        {
+                            <div class="pbi-report-desc">@item.Description</div>
+                        }
+                        @if (item.Categories.Count > 1)
+                        {
+                            <div class="pbi-report-cats">
+                                @foreach (var category in item.Categories.Skip(1))
+                                {
+                                    var catColor = colorByCategory.ContainsKey(category) ? colorByCategory[category] : item.Color;
+                                    <span class="pbi-badge" style="--pbi-color:@catColor">@category</span>
+                                }
+                            </div>
+                        }
+                        <div class="pbi-report-views">
+                            <span class="pbi-eye" aria-hidden="true"></span>
+                            <span class="pbi-views-count">@item.Views.ToString("N0")</span> @Dnn.LocalizeString("Views")
+                        </div>
+                    </div>
+                </a>
+            }
+        </div>
+
+        <div class="pbi-catalog-noresults" id="pbiCatalogNoResults" style="display:none;">
+            <p class="pbi-noresults-title">@Dnn.LocalizeString("NoResults")</p>
+            <p class="pbi-noresults-subtitle">@Dnn.LocalizeString("NoResultsSubtitle")</p>
+        </div>
+    }
+</div>

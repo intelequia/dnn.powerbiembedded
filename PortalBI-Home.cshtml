@@ -1,0 +1,512 @@
+@*
+    ============================================================================
+    Portal BI - Home Page
+    For use inside the DNN Platform "Razor Host" module (.cshtml).
+    Drop this module into the main ContentPane of the skin.
+    No navigation menus are rendered here (the skin owns the chrome).
+    Design system: Tabler (https://tabler.io) plus ApexCharts.
+    Language: English.
+
+    IMPORTANT - DNN Razor and the at-sign:
+    The DNN Razor parser is extremely strict with the at-sign character. It
+    rejects it even in escaped form and even inside HTML comments, style and
+    script blocks. To avoid ANY parser error, this page keeps NO literal
+    at-sign in the markup:
+       - The Tabler / ApexCharts CDN tags and ALL custom CSS (including CSS
+         at-rules) are injected at runtime from JavaScript, building the
+         at-sign with String.fromCharCode(64).
+       - Only genuine Razor expressions (currentYear, serverTimeUtc) keep it.
+    ============================================================================
+*@
+@{
+    var currentYear = DateTime.Now.Year;
+    var serverTimeUtc = DateTime.UtcNow.ToString("o");
+}
+
+<!-- Tabler CSS, the icon webfont and all custom styles are injected by the
+     loader at the bottom of this file, so that no literal at-sign appears in
+     the markup (DNN's Razor parser rejects it). -->
+
+<div id="portalbi-home" data-bs-theme="light">
+    <div class="container-xl py-3">
+
+        <!-- ============================ HERO ============================ -->
+        <div class="pbi-hero pbi-fade-in mb-4">
+            <div class="row align-items-center">
+                <div class="col-lg-8">
+                    <div class="d-flex align-items-center mb-2">
+                        <span class="pbi-pulse-dot"></span>
+                        <span class="text-white-50 small text-uppercase" style="letter-spacing:1.5px;">Live data platform</span>
+                    </div>
+                    <h1 class="display-6 fw-bold mb-2" id="pbiGreeting">Welcome to Portal BI</h1>
+                    <p class="fs-4 text-white-50 mb-0">
+                        Your single window to every dashboard, report and dataset across the organization.
+                    </p>
+                </div>
+                <div class="col-lg-4 text-lg-end mt-3 mt-lg-0">
+                    <div class="pbi-clock fs-1 fw-semibold" id="pbiClock">--:--:--</div>
+                    <div class="text-white-50" id="pbiDate">Loading date...</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============================ KPI CARDS ============================ -->
+        <div class="row row-deck row-cards mb-2">
+            <div class="col-sm-6 col-lg-3">
+                <div class="card pbi-kpi-card pbi-fade-in">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center mb-2">
+                            <span class="pbi-report-icon bg-primary-lt text-primary me-2"><i class="ti ti-report-analytics"></i></span>
+                            <div class="text-secondary">Published reports</div>
+                        </div>
+                        <div class="pbi-kpi-value text-primary" data-count="128">0</div>
+                        <div class="text-secondary small mt-1"><i class="ti ti-trending-up text-green"></i> +6 this month</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-6 col-lg-3">
+                <div class="card pbi-kpi-card pbi-fade-in">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center mb-2">
+                            <span class="pbi-report-icon bg-green-lt text-green me-2"><i class="ti ti-users-group"></i></span>
+                            <div class="text-secondary">Active users (24h)</div>
+                        </div>
+                        <div class="pbi-kpi-value text-green" data-count="342">0</div>
+                        <div class="text-secondary small mt-1"><i class="ti ti-trending-up text-green"></i> +12% vs. yesterday</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-6 col-lg-3">
+                <div class="card pbi-kpi-card pbi-fade-in">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center mb-2">
+                            <span class="pbi-report-icon bg-azure-lt text-azure me-2"><i class="ti ti-database"></i></span>
+                            <div class="text-secondary">Datasets</div>
+                        </div>
+                        <div class="pbi-kpi-value text-azure" data-count="57">0</div>
+                        <div class="text-secondary small mt-1"><i class="ti ti-refresh text-azure"></i> 49 auto-refreshed</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-6 col-lg-3">
+                <div class="card pbi-kpi-card pbi-fade-in">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center mb-2">
+                            <span class="pbi-report-icon bg-orange-lt text-orange me-2"><i class="ti ti-clock-hour-4"></i></span>
+                            <div class="text-secondary">Last refresh</div>
+                        </div>
+                        <div class="pbi-kpi-value text-orange" id="pbiLastRefresh">--</div>
+                        <div class="text-secondary small mt-1"><span class="pbi-pulse-dot"></span> All sources healthy</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============================ USAGE CHART ============================ -->
+        <div class="row row-cards mb-2">
+            <div class="col-lg-8">
+                <div class="card pbi-fade-in">
+                    <div class="card-header d-flex align-items-center justify-content-between">
+                        <h3 class="card-title mb-0"><i class="ti ti-chart-area-line text-primary me-1"></i> Report views - last 14 days</h3>
+                        <div class="btn-group btn-group-sm" role="group" id="pbiRangeButtons">
+                            <button type="button" class="btn active" data-range="14">14d</button>
+                            <button type="button" class="btn" data-range="7">7d</button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div id="pbiUsageChart" style="height: 280px;"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-4">
+                <div class="card pbi-fade-in h-100">
+                    <div class="card-header">
+                        <h3 class="card-title mb-0"><i class="ti ti-flame text-orange me-1"></i> Most viewed</h3>
+                    </div>
+                    <div class="card-body">
+                        <div id="pbiTopList" class="divide-y">
+                            <!-- populated by JS -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============================ REPORT CATALOG ============================ -->
+        <div class="card pbi-fade-in mb-3">
+            <div class="card-header d-flex flex-wrap align-items-center justify-content-between gap-2">
+                <h3 class="card-title mb-0"><i class="ti ti-layout-grid text-primary me-1"></i> Report catalog</h3>
+                <div class="d-flex align-items-center gap-2 flex-wrap">
+                    <div class="btn-group btn-group-sm" role="group" id="pbiCategoryFilter">
+                        <button type="button" class="btn active" data-cat="all">All</button>
+                        <button type="button" class="btn" data-cat="Finance">Finance</button>
+                        <button type="button" class="btn" data-cat="Sales">Sales</button>
+                        <button type="button" class="btn" data-cat="Operations">Operations</button>
+                        <button type="button" class="btn" data-cat="HR">HR</button>
+                    </div>
+                    <div class="input-icon">
+                        <span class="input-icon-addon"><i class="ti ti-search"></i></span>
+                        <input type="text" id="pbiSearch" class="form-control form-control-sm" placeholder="Search reports..." autocomplete="off" style="min-width: 200px;">
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="row row-cards g-3" id="pbiReportGrid">
+                    <!-- populated by JS -->
+                </div>
+                <div id="pbiNoResults" class="empty py-4 d-none">
+                    <div class="empty-icon"><i class="ti ti-mood-empty" style="font-size:2rem;"></i></div>
+                    <p class="empty-title">No reports match your search</p>
+                    <p class="empty-subtitle text-secondary">Try a different keyword or category.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============================ FOOTER ============================ -->
+        <div class="d-flex flex-wrap align-items-center justify-content-between text-secondary small pt-2 pb-3">
+            <div>
+                <i class="ti ti-shield-check text-green me-1"></i>
+                Portal BI &copy; @currentYear - Powered by Microsoft Power BI &amp; Azure
+            </div>
+            <div class="d-flex align-items-center gap-3">
+                <span><i class="ti ti-server-bolt me-1"></i>Server time (UTC): <span id="pbiServerTime">@serverTimeUtc</span></span>
+                <button class="btn btn-sm btn-ghost-secondary" id="pbiThemeToggle" type="button">
+                    <i class="ti ti-moon me-1"></i><span>Dark mode</span>
+                </button>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<!-- All assets (Tabler CSS/JS, the icon webfont, ApexCharts) and the custom
+     styles are injected by the loader below. The at-sign required by scoped npm
+     package names and by CSS at-rules is built with String.fromCharCode(64),
+     so this .cshtml stays completely free of literal at-signs in its markup. -->
+<script>
+(function () {
+    "use strict";
+
+    // -------------------------------------------------------------------
+    // 0) Asset loader (no literal at-sign in the source)
+    // -------------------------------------------------------------------
+    var AT = String.fromCharCode(64); // the at-sign character
+    var CDN = "https://cdn.jsdelivr.net/npm/";
+
+    function pbiAddCss(href) {
+        var l = document.createElement("link");
+        l.rel = "stylesheet";
+        l.href = href;
+        document.head.appendChild(l);
+    }
+    function pbiAddScript(src) {
+        var s = document.createElement("script");
+        s.src = src;
+        s.async = false;
+        document.head.appendChild(s);
+    }
+
+    // Tabler core + Tabler icon webfont (scoped names need the at-sign).
+    //pbiAddCss(CDN + AT + "tabler/core/dist/css/tabler.min.css");
+    //pbiAddCss(CDN + AT + "tabler/icons-webfont/dist/tabler-icons.min.css");
+
+    // Custom styles. CSS at-rules (keyframes, media) are built with AT.
+    var pbiCss = "" +
+        "#portalbi-home{--pbi-radius:16px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;}" +
+        "#portalbi-home .pbi-hero{position:relative;overflow:hidden;border-radius:var(--pbi-radius);background:linear-gradient(135deg,#4263eb 0%,#7048e8 55%,#ae3ec9 100%);color:#fff;padding:2.5rem 2rem;box-shadow:0 18px 45px -20px rgba(66,99,235,.65);}" +
+        "#portalbi-home .pbi-hero::after{content:'';position:absolute;top:-60%;right:-10%;width:480px;height:480px;background:radial-gradient(circle,rgba(255,255,255,.18) 0%,rgba(255,255,255,0) 70%);pointer-events:none;}" +
+        "#portalbi-home .pbi-hero .pbi-clock{font-variant-numeric:tabular-nums;letter-spacing:1px;}" +
+        "#portalbi-home .pbi-kpi-card{border-radius:var(--pbi-radius);border:none;transition:transform .2s ease,box-shadow .2s ease;}" +
+        "#portalbi-home .pbi-kpi-card:hover{transform:translateY(-4px);box-shadow:0 16px 35px -22px rgba(0,0,0,.45);}" +
+        "#portalbi-home .pbi-kpi-value{font-size:2rem;font-weight:700;line-height:1.1;font-variant-numeric:tabular-nums;}" +
+        "#portalbi-home .pbi-report-card{border-radius:var(--pbi-radius);border:1px solid var(--tblr-border-color);transition:transform .18s ease,box-shadow .18s ease,border-color .18s ease;height:100%;}" +
+        "#portalbi-home .pbi-report-card:hover{transform:translateY(-4px);box-shadow:0 18px 38px -24px rgba(0,0,0,.55);border-color:var(--tblr-primary);}" +
+        "#portalbi-home .pbi-report-icon{width:48px;height:48px;display:inline-flex;align-items:center;justify-content:center;border-radius:12px;font-size:24px;}" +
+        "#portalbi-home .pbi-fade-in{opacity:0;transform:translateY(12px);animation:pbiFadeIn .5s ease forwards;}" +
+        AT + "keyframes pbiFadeIn{to{opacity:1;transform:translateY(0);}}" +
+        "#portalbi-home .pbi-pulse-dot{display:inline-block;width:9px;height:9px;border-radius:50%;background:#2fb344;box-shadow:0 0 0 rgba(47,179,68,.6);animation:pbiPulse 1.8s infinite;margin-right:.35rem;}" +
+        AT + "keyframes pbiPulse{0%{box-shadow:0 0 0 0 rgba(47,179,68,.55);}70%{box-shadow:0 0 0 8px rgba(47,179,68,0);}100%{box-shadow:0 0 0 0 rgba(47,179,68,0);}}" +
+        AT + "media (max-width:768px){#portalbi-home .pbi-hero{padding:1.75rem 1.25rem;}#portalbi-home .pbi-kpi-value{font-size:1.6rem;}}";
+    var pbiStyle = document.createElement("style");
+    pbiStyle.textContent = pbiCss;
+    document.head.appendChild(pbiStyle);
+
+    // Libraries (ApexCharts is required; Tabler JS adds optional interactions).
+    pbiAddScript(CDN + "apexcharts/dist/apexcharts.min.js");
+    pbiAddScript(CDN + AT + "tabler/core/dist/js/tabler.min.js");
+
+    // Run after the DOM for this module is ready.
+    function ready(fn) {
+        if (document.readyState !== "loading") { fn(); }
+        else { document.addEventListener("DOMContentLoaded", fn); }
+    }
+
+    // -------------------------------------------------------------------
+    // Sample data (replace with a server feed / Power BI REST API later)
+    // -------------------------------------------------------------------
+    var REPORTS = [
+        { title: "Executive Overview",      category: "Finance",    icon: "ti-chart-pie",         color: "primary", desc: "Company-wide KPIs and financial health.", views: 1820 },
+        { title: "P&L Statement",           category: "Finance",    icon: "ti-receipt-2",         color: "primary", desc: "Profit and loss by business unit.",       views: 940  },
+        { title: "Sales Performance",       category: "Sales",      icon: "ti-trending-up",       color: "green",   desc: "Pipeline, win rate and quota attainment.", views: 2110 },
+        { title: "Regional Sales Map",      category: "Sales",      icon: "ti-map-2",             color: "green",   desc: "Revenue distribution by territory.",       views: 760  },
+        { title: "Inventory & Supply",      category: "Operations", icon: "ti-package",           color: "azure",   desc: "Stock levels, lead times and reorders.",   views: 530  },
+        { title: "Production Throughput",   category: "Operations", icon: "ti-settings-automation", color: "azure", desc: "OEE and plant efficiency metrics.",        views: 410  },
+        { title: "Headcount & Attrition",   category: "HR",         icon: "ti-users",             color: "orange",  desc: "Workforce trends and turnover analysis.",  views: 690  },
+        { title: "Recruitment Funnel",      category: "HR",         icon: "ti-user-plus",         color: "orange",  desc: "Candidate pipeline and time-to-hire.",     views: 320  },
+        { title: "Marketing Campaigns",     category: "Sales",      icon: "ti-speakerphone",      color: "green",   desc: "Channel ROI and lead generation.",         views: 880  },
+        { title: "Cash Flow Forecast",      category: "Finance",    icon: "ti-cash-banknote",     color: "primary", desc: "12-month liquidity projection.",           views: 600  },
+        { title: "Logistics Tracker",       category: "Operations", icon: "ti-truck-delivery",    color: "azure",   desc: "Shipment status and on-time delivery.",    views: 450  },
+        { title: "Customer Satisfaction",   category: "Sales",      icon: "ti-mood-smile",        color: "green",   desc: "NPS, CSAT and feedback trends.",           views: 720  }
+    ];
+
+    // -------------------------------------------------------------------
+    // 1) Live clock + time-based greeting
+    // -------------------------------------------------------------------
+    function pad(n) { return (n < 10 ? "0" : "") + n; }
+
+    function updateClock() {
+        var now = new Date();
+        var clock = document.getElementById("pbiClock");
+        var dateEl = document.getElementById("pbiDate");
+        if (clock) {
+            clock.textContent = pad(now.getHours()) + ":" + pad(now.getMinutes()) + ":" + pad(now.getSeconds());
+        }
+        if (dateEl) {
+            dateEl.textContent = now.toLocaleDateString("en-US", {
+                weekday: "long", year: "numeric", month: "long", day: "numeric"
+            });
+        }
+    }
+
+    function setGreeting() {
+        var h = new Date().getHours();
+        var part = "evening";
+        if (h < 12) { part = "morning"; }
+        else if (h < 18) { part = "afternoon"; }
+        var el = document.getElementById("pbiGreeting");
+        if (el) { el.textContent = "Good " + part + ", welcome to Portal BI"; }
+    }
+
+    // -------------------------------------------------------------------
+    // 2) Animated KPI counters
+    // -------------------------------------------------------------------
+    function animateCounters() {
+        var els = document.querySelectorAll("#portalbi-home [data-count]");
+        els.forEach(function (el) {
+            var target = parseInt(el.getAttribute("data-count"), 10) || 0;
+            var duration = 1200;
+            var start = null;
+            function step(ts) {
+                if (!start) { start = ts; }
+                var progress = Math.min((ts - start) / duration, 1);
+                // ease-out cubic
+                var eased = 1 - Math.pow(1 - progress, 3);
+                el.textContent = Math.floor(eased * target).toLocaleString("en-US");
+                if (progress < 1) { requestAnimationFrame(step); }
+                else { el.textContent = target.toLocaleString("en-US"); }
+            }
+            requestAnimationFrame(step);
+        });
+
+        // "Last refresh" relative time
+        var refreshEl = document.getElementById("pbiLastRefresh");
+        if (refreshEl) {
+            var mins = 7;
+            refreshEl.textContent = mins + "m";
+        }
+    }
+
+    // -------------------------------------------------------------------
+    // 3) Report catalog (render + search + category filter)
+    // -------------------------------------------------------------------
+    var activeCategory = "all";
+
+    function renderReports() {
+        var grid = document.getElementById("pbiReportGrid");
+        var search = (document.getElementById("pbiSearch").value || "").toLowerCase().trim();
+        var noResults = document.getElementById("pbiNoResults");
+        if (!grid) { return; }
+
+        var filtered = REPORTS.filter(function (r) {
+            var matchCat = (activeCategory === "all") || (r.category === activeCategory);
+            var matchText = !search ||
+                r.title.toLowerCase().indexOf(search) !== -1 ||
+                r.desc.toLowerCase().indexOf(search) !== -1 ||
+                r.category.toLowerCase().indexOf(search) !== -1;
+            return matchCat && matchText;
+        });
+
+        grid.innerHTML = "";
+        filtered.forEach(function (r) {
+            var col = document.createElement("div");
+            col.className = "col-md-6 col-xl-4";
+            col.innerHTML =
+                '<a href="javascript:void(0)" class="card pbi-report-card text-reset text-decoration-none">' +
+                  '<div class="card-body">' +
+                    '<div class="d-flex align-items-start">' +
+                      '<span class="pbi-report-icon bg-' + r.color + '-lt text-' + r.color + ' me-3"><i class="ti ' + r.icon + '"></i></span>' +
+                      '<div class="flex-fill">' +
+                        '<div class="d-flex align-items-center justify-content-between">' +
+                          '<div class="fw-bold">' + r.title + '</div>' +
+                          '<span class="badge bg-' + r.color + '-lt text-' + r.color + '">' + r.category + '</span>' +
+                        '</div>' +
+                        '<div class="text-secondary small mt-1">' + r.desc + '</div>' +
+                        '<div class="text-secondary small mt-2"><i class="ti ti-eye me-1"></i>' + r.views.toLocaleString("en-US") + ' views</div>' +
+                      '</div>' +
+                    '</div>' +
+                  '</div>' +
+                '</a>';
+            grid.appendChild(col);
+        });
+
+        if (noResults) {
+            noResults.classList.toggle("d-none", filtered.length !== 0);
+        }
+    }
+
+    function wireCatalogControls() {
+        var searchInput = document.getElementById("pbiSearch");
+        if (searchInput) {
+            searchInput.addEventListener("input", renderReports);
+        }
+        var catWrap = document.getElementById("pbiCategoryFilter");
+        if (catWrap) {
+            catWrap.addEventListener("click", function (e) {
+                var btn = e.target.closest("button[data-cat]");
+                if (!btn) { return; }
+                activeCategory = btn.getAttribute("data-cat");
+                catWrap.querySelectorAll("button").forEach(function (b) { b.classList.remove("active"); });
+                btn.classList.add("active");
+                renderReports();
+            });
+        }
+    }
+
+    // -------------------------------------------------------------------
+    // 4) "Most viewed" side list
+    // -------------------------------------------------------------------
+    function renderTopList() {
+        var wrap = document.getElementById("pbiTopList");
+        if (!wrap) { return; }
+        var top = REPORTS.slice().sort(function (a, b) { return b.views - a.views; }).slice(0, 5);
+        var max = top[0].views;
+        wrap.innerHTML = "";
+        top.forEach(function (r, i) {
+            var pct = Math.round((r.views / max) * 100);
+            var row = document.createElement("div");
+            row.className = "py-2";
+            row.innerHTML =
+                '<div class="d-flex align-items-center mb-1">' +
+                  '<span class="badge bg-' + r.color + '-lt text-' + r.color + ' me-2">' + (i + 1) + '</span>' +
+                  '<span class="flex-fill text-truncate">' + r.title + '</span>' +
+                  '<span class="text-secondary small">' + r.views.toLocaleString("en-US") + '</span>' +
+                '</div>' +
+                '<div class="progress progress-sm"><div class="progress-bar bg-' + r.color + '" style="width:' + pct + '%"></div></div>';
+            wrap.appendChild(row);
+        });
+    }
+
+    // -------------------------------------------------------------------
+    // 5) Usage chart (ApexCharts)
+    // -------------------------------------------------------------------
+    var usageChart = null;
+
+    function buildSeries(days) {
+        var data = [];
+        var categories = [];
+        var today = new Date();
+        var base = 220;
+        for (var i = days - 1; i >= 0; i--) {
+            var d = new Date(today);
+            d.setDate(today.getDate() - i);
+            categories.push(d.toLocaleDateString("en-US", { month: "short", day: "numeric" }));
+            // weekend dip + gentle upward trend + noise
+            var weekend = (d.getDay() === 0 || d.getDay() === 6) ? 0.55 : 1;
+            var trend = (days - i) * 4;
+            var noise = Math.round((Math.random() - 0.5) * 60);
+            data.push(Math.max(40, Math.round((base + trend + noise) * weekend)));
+        }
+        return { data: data, categories: categories };
+    }
+
+    function renderChart(days) {
+        if (typeof ApexCharts === "undefined") { return; }
+        var el = document.getElementById("pbiUsageChart");
+        if (!el) { return; }
+        var s = buildSeries(days);
+        var options = {
+            chart: { type: "area", height: 280, fontFamily: "inherit", toolbar: { show: false }, animations: { enabled: true, easing: "easeinout", speed: 600 } },
+            series: [{ name: "Views", data: s.data }],
+            xaxis: { categories: s.categories, tooltip: { enabled: false }, axisBorder: { show: false } },
+            yaxis: { labels: { formatter: function (v) { return Math.round(v); } } },
+            colors: ["#4263eb"],
+            fill: { type: "gradient", gradient: { shadeIntensity: 1, opacityFrom: 0.45, opacityTo: 0.05, stops: [0, 90, 100] } },
+            stroke: { curve: "smooth", width: 3 },
+            dataLabels: { enabled: false },
+            grid: { strokeDashArray: 4, borderColor: "rgba(98,105,118,.16)" },
+            tooltip: { theme: document.querySelector("#portalbi-home").getAttribute("data-bs-theme") }
+        };
+        if (usageChart) {
+            usageChart.updateOptions(options);
+        } else {
+            usageChart = new ApexCharts(el, options);
+            usageChart.render();
+        }
+    }
+
+    function wireChartButtons() {
+        var wrap = document.getElementById("pbiRangeButtons");
+        if (!wrap) { return; }
+        wrap.addEventListener("click", function (e) {
+            var btn = e.target.closest("button[data-range]");
+            if (!btn) { return; }
+            wrap.querySelectorAll("button").forEach(function (b) { b.classList.remove("active"); });
+            btn.classList.add("active");
+            renderChart(parseInt(btn.getAttribute("data-range"), 10));
+        });
+    }
+
+    // -------------------------------------------------------------------
+    // 6) Light / dark theme toggle (scoped to the module wrapper)
+    // -------------------------------------------------------------------
+    function wireThemeToggle() {
+        var btn = document.getElementById("pbiThemeToggle");
+        var root = document.getElementById("portalbi-home");
+        if (!btn || !root) { return; }
+        btn.addEventListener("click", function () {
+            var dark = root.getAttribute("data-bs-theme") === "dark";
+            root.setAttribute("data-bs-theme", dark ? "light" : "dark");
+            btn.querySelector("span").textContent = dark ? "Dark mode" : "Light mode";
+            btn.querySelector("i").className = dark ? "ti ti-moon me-1" : "ti ti-sun me-1";
+            if (usageChart) {
+                usageChart.updateOptions({ tooltip: { theme: dark ? "light" : "dark" } });
+            }
+        });
+    }
+
+    // -------------------------------------------------------------------
+    // Init
+    // -------------------------------------------------------------------
+    ready(function () {
+        setGreeting();
+        updateClock();
+        setInterval(updateClock, 1000);
+        animateCounters();
+        renderReports();
+        wireCatalogControls();
+        renderTopList();
+        wireChartButtons();
+        wireThemeToggle();
+
+        // ApexCharts may load slightly after the DOM; retry until available.
+        var attempts = 0;
+        (function waitForApex() {
+            if (typeof ApexCharts !== "undefined") {
+                renderChart(14);
+            } else if (attempts++ < 40) {
+                setTimeout(waitForApex, 100);
+            }
+        })();
+    });
+})();
+</script>

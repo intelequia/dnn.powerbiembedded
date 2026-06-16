@@ -254,6 +254,7 @@
     <Compile Include="Services\ExportsController.cs" />
     <Compile Include="Controllers\ContentViewController.cs" />
     <Compile Include="Controllers\ListViewController.cs" />
+    <Compile Include="Controllers\ReportCatalogController.cs" />
     <Compile Include="Controllers\SettingsController.cs" />
     <Compile Include="Data\Bookmarks\BookmarksRepository.cs" />
     <Compile Include="Data\Bookmarks\IBookmarksRepository.cs" />
@@ -276,6 +277,7 @@
     <Compile Include="Models\PowerBICalendarView.cs" />
     <Compile Include="Models\PowerBIListView.cs" />
     <Compile Include="Models\PowerBIListViewExtensions.cs" />
+    <Compile Include="Models\ReportCatalogView.cs" />
     <Compile Include="Models\TileEmbedConfig.cs" />
     <Compile Include="Models\Workspace.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -364,6 +366,11 @@
     <Content Include="Views\Settings\Index.cshtml" />
     <Content Include="Views\ListView\Index.cshtml" />
     <Content Include="Views\ContentView\Index.cshtml" />
+    <Content Include="Views\ReportCatalog\Index.cshtml" />
+    <Content Include="scripts\ReportCatalog.js" />
+    <Content Include="images\report-generic.svg" />
+    <Content Include="images\search.svg" />
+    <Content Include="images\eye.svg" />
     <Content Include="Providers\DataProviders\SqlDataProvider\01.00.02.SqlDataProvider" />
     <Content Include="Providers\DataProviders\SqlDataProvider\01.00.04.SqlDataProvider" />
     <Content Include="Providers\DataProviders\SqlDataProvider\01.00.06.SqlDataProvider" />
@@ -384,6 +391,17 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="App_LocalResources\ContentView.resx">
+      <SubType>Designer</SubType>
+    </Content>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="App_LocalResources\ReportCatalog.resx">
+      <SubType>Designer</SubType>
+    </Content>
+    <Content Include="App_LocalResources\ReportCatalog.es-es.resx">
+      <SubType>Designer</SubType>
+    </Content>
+    <Content Include="App_LocalResources\ReportCatalog.de-de.resx">
       <SubType>Designer</SubType>
     </Content>
   </ItemGroup>
