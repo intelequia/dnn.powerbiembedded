@@ -310,7 +310,9 @@
     <Content Include="images\success.svg" />
     <Content Include="scripts\powerbi.js" />
     <Content Include="scripts\powerbi.js.map" />
-    <None Include="Views\emailtemplate.cshtml" />
+    <None Include="Views\Emails\emailtemplate.cshtml" />
+    <None Include="Views\Emails\es\emailtemplate.cshtml" />
+    <None Include="Views\Emails\de\emailtemplate.cshtml" />
     <Content Include="images\addbookmark.png" />
     <Content Include="images\addsubscription.png" />
     <Content Include="images\bookmark.png" />

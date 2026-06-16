@@ -68,7 +68,6 @@ namespace DotNetNuke.PowerBI.Components
                 return;
             }
 
-            var htmlBody = CreateEmailBody(subscription);
             var subject = subscription.EmailSubject;
 
             // Resolve the permission object (workspace when inheriting, otherwise the report) and
@@ -93,11 +92,11 @@ namespace DotNetNuke.PowerBI.Components
                         Note($"Skipped subscriber '{userInfo?.Email ?? subscriptionSubscriber.UserId.ToString()}' for '{subscription.Name}': no permission to the report.");
                         continue;
                     }
-                    await SendEmailAsync(setting, accessToken, subscription, userInfo, subject, htmlBody, portalSettings);
+                    await SendEmailAsync(setting, accessToken, subscription, userInfo, subject, portalSettings);
                 }
                 else
                 {
-                    await ProcessRoleSubscribersAsync(setting, accessToken, subscription, portalSettings, subscriptionSubscriber, userIds, subject, htmlBody, objectPermissions);
+                    await ProcessRoleSubscribersAsync(setting, accessToken, subscription, portalSettings, subscriptionSubscriber, userIds, subject, objectPermissions);
                 }
             }
 
@@ -134,14 +133,12 @@ namespace DotNetNuke.PowerBI.Components
                  (subscription.RepeatPeriod.Equals(monthly) && totalDays >= 30));
         }
 
-        private string CreateEmailBody(Subscription subscription)
+        private string CreateEmailBody(Subscription subscription, string locale)
         {
             const string subscriptionName = "[[SubscriptionName]]";
             const string emailBody = "[[EmailBody]]";
             const string reportDate = "[[ReportDate]]";
-            var templatePath = HostingEnvironment.MapPath("~\\DesktopModules\\MVC\\PowerBiEmbedded\\Views\\emailtemplate.cshtml");
-            if (!string.IsNullOrEmpty(ConfigurationManager.AppSettings["PowerBI.Export.EmailTemplatePath"]))
-                templatePath = ConfigurationManager.AppSettings["PowerBI.Export.EmailTemplatePath"];
+            var templatePath = ResolveEmailTemplatePath(locale);
 
             var htmlBody = File.ReadAllText(templatePath);
             htmlBody = htmlBody.Replace(subscriptionName, subscription.Name);
@@ -151,8 +148,57 @@ namespace DotNetNuke.PowerBI.Components
             return htmlBody;
         }
 
-        private async Task SendEmailAsync(PowerBISettings setting, string accessToken, Subscription subscription, UserInfo userInfo, string subject, string htmlBody, PortalSettings portalSettings)
+        /// <summary>
+        /// Resolves the email template path for the recipient's language. Templates live under
+        /// <c>Views\Emails</c>: the English default sits at the root and every other language has a
+        /// subfolder named after its two-letter code (e.g. <c>es</c>, <c>de</c>). When no template
+        /// exists for the recipient's language the English default is used.
+        /// </summary>
+        /// <param name="locale">The recipient's locale (e.g. <c>es-ES</c>); may be null or empty.</param>
+        private string ResolveEmailTemplatePath(string locale)
         {
+            // Explicit override always wins (backward compatibility).
+            var overridePath = ConfigurationManager.AppSettings["PowerBI.Export.EmailTemplatePath"];
+            if (!string.IsNullOrEmpty(overridePath))
+                return overridePath;
+
+            const string templateFileName = "emailtemplate.cshtml";
+            var emailsRoot = HostingEnvironment.MapPath("~\\DesktopModules\\MVC\\PowerBiEmbedded\\Views\\Emails");
+            var defaultPath = Path.Combine(emailsRoot, templateFileName);
+
+            if (!string.IsNullOrEmpty(locale))
+            {
+                var language = locale.Split('-')[0].Trim().ToLowerInvariant();
+                if (!string.IsNullOrEmpty(language))
+                {
+                    var localizedPath = Path.Combine(emailsRoot, language, templateFileName);
+                    if (File.Exists(localizedPath))
+                        return localizedPath;
+                }
+            }
+
+            return defaultPath;
+        }
+
+        /// <summary>
+        /// Determines the locale to use for a recipient, preferring the user's profile preferred
+        /// locale and falling back to the portal default language.
+        /// </summary>
+        private static string GetRecipientLocale(UserInfo userInfo, PortalSettings portalSettings)
+        {
+            var preferredLocale = userInfo?.Profile?.PreferredLocale;
+            if (!string.IsNullOrEmpty(preferredLocale))
+                return preferredLocale;
+
+            return portalSettings?.DefaultLanguage;
+        }
+
+        private async Task SendEmailAsync(PowerBISettings setting, string accessToken, Subscription subscription, UserInfo userInfo, string subject, PortalSettings portalSettings)
+        {
+            // Build the email body in the recipient's language (falls back to English when no
+            // localized template exists). The body is recipient-specific because the report name
+            // token is replaced with the export result below.
+            var htmlBody = CreateEmailBody(subscription, GetRecipientLocale(userInfo, portalSettings));
             var username = _common.GetUsernameProperty(subscription.ModuleId, userInfo);
             // Resolve the recipient's roles directly from the UserInfo already loaded by id
             // (see UserController.GetUserById above). The previous lookup by display name was
@@ -230,7 +276,6 @@ namespace DotNetNuke.PowerBI.Components
             SubscriptionSubscriber subscriptionSubscriber,
             IEnumerable<int> userIds,
             string subject,
-            string htmlBody,
             IList<ObjectPermission> objectPermissions)
         {
             var roleController = new RoleController();
@@ -252,7 +297,7 @@ namespace DotNetNuke.PowerBI.Components
 
                 if (Mail.IsValidEmailAddress(user.Email, subscription.PortalId))
                 {
-                    await SendEmailAsync(setting, accessToken, subscription, user, subject, htmlBody, portalSettings);
+                    await SendEmailAsync(setting, accessToken, subscription, user, subject, portalSettings);
                 }
             }
         }
