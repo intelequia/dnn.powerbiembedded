@@ -18,7 +18,53 @@
     ClientResourceManager.RegisterScript(Dnn.DnnPage, "https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/3.9.0/fullcalendar.min.js", 21);
     ClientResourceManager.RegisterScript(Dnn.DnnPage, "https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/3.9.0/locale-all.js", 22);
 
-
+    // Emit the DNN Services Framework client variables (sf_siteRoot / sf_tabId) for this page.
+    // A DNN MVC module's controller + view render during the page Render phase, which is AFTER
+    // the page's PreRender RegisterAjaxScript step where DNN normally emits these variables, and
+    // AFTER the __dnnVariable hidden field has already been serialized into the markup (the field
+    // sits earlier in the control tree than this module's pane). As a result
+    // ServicesFramework.RequestAjaxScriptSupport() (from the controller) is too late, and even
+    // this server-side RegisterClientVariable call does not make it into the rendered field for
+    // non-superusers. The DNN PersonaBar reads dnn.getVar('sf_siteRoot') WITHOUT a default, so a
+    // missing value produces requests to ".../undefinedAPI/personaBar/..." (404) and breaks the
+    // admin sidebar. We still call RegisterClientVariable (correct/harmless when it does land) but
+    // the reliable fix is the client-side dnn.setVar fallback emitted right after this block.
+    var sfSiteRoot = DotNetNuke.Framework.ServicesFramework.GetServiceFrameworkRoot();
+    var sfTabId = Dnn.ActiveModule.TabID.ToString(System.Globalization.CultureInfo.InvariantCulture);
+    if (!string.IsNullOrEmpty(sfSiteRoot))
+    {
+        DotNetNuke.UI.Utilities.ClientAPI.RegisterClientVariable(Dnn.DnnPage, "sf_siteRoot", sfSiteRoot, true);
+        DotNetNuke.UI.Utilities.ClientAPI.RegisterClientVariable(Dnn.DnnPage, "sf_tabId", sfTabId, true);
+    }
+}
+@if (!string.IsNullOrEmpty(sfSiteRoot))
+{
+    // Client-side guarantee: write sf_siteRoot/sf_tabId into the in-memory dnn variable store
+    // (the same object window.parent.dnn.getVar reads from the PersonaBar). dnn.setVar updates
+    // dnn.vars[key] immediately, so any later getVar('sf_siteRoot') resolves to the real path
+    // instead of undefined. Runs as early as possible; if dnn.js has not loaded yet it retries
+    // briefly until the dnn global is available.
+    <text>
+    <script>
+        (function () {
+            var sfRoot = @Html.Raw(Json.Encode(sfSiteRoot));
+            var sfTab = @Html.Raw(Json.Encode(sfTabId));
+            function applySfVars() {
+                var d = window.dnn;
+                if (!d || typeof d.setVar !== 'function' || typeof d.getVar !== 'function') { return false; }
+                if (sfRoot && d.getVar('sf_siteRoot') == null) { d.setVar('sf_siteRoot', sfRoot); }
+                if (sfTab && d.getVar('sf_tabId') == null) { d.setVar('sf_tabId', sfTab); }
+                return true;
+            }
+            if (!applySfVars()) {
+                var tries = 0;
+                var timer = setInterval(function () {
+                    if (applySfVars() || ++tries > 200) { clearInterval(timer); }
+                }, 50);
+            }
+        })();
+    </script>
+    </text>
 }
  
 <div class="powerbiCalendarView" id="powerbiCalendarView_@Dnn.ActiveModule.ModuleID">
