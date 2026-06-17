@@ -24,7 +24,7 @@
         <div class="dnnFormItem">
             <div class="leftGroup">
                 <label>@Dnn.LocalizeString("StatsAppInsightsApiKeyLabel")</label>
-                @Html.TextBoxFor(m => m.StatsAppInsightsApiKey)
+                @Html.TextBoxFor(m => m.StatsAppInsightsApiKey, new { type = "password", autocomplete = "off" })
                 <div>@Dnn.LocalizeString("StatsAppInsightsApiKeyHelp")</div>
             </div>
         </div>
