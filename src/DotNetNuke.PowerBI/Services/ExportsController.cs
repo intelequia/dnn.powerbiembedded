@@ -124,9 +124,9 @@ namespace DotNetNuke.PowerBI.Services
                 var embedService = new EmbedService(this.PortalSettings.PortalId, this.ActiveModule.TabModuleID, settingsGroupId.ToString());
                 var moduleSettings = ModuleController.Instance.GetTabModule(ActiveModule.TabModuleID).TabModuleSettings;
 
-                bool hasDownloadPermission = HasPermission(embedService.Settings, reportId.ToString(), 3);
+                bool hasExportPermission = HasPermission(embedService.Settings, reportId.ToString(), 4);
                 var permissionsRepo = ObjectPermissionsRepository.Instance;
-                if (!hasDownloadPermission || (!PowerBIListViewExtensions.UserHasPermissionsToWorkspace(embedService.Settings.InheritPermissions ?
+                if (!hasExportPermission || (!PowerBIListViewExtensions.UserHasPermissionsToWorkspace(embedService.Settings.InheritPermissions ?
                     embedService.Settings.SettingsGroupId : reportId.ToString(), UserInfo)))
                 {
                     return Request.CreateResponse(HttpStatusCode.Forbidden, "User doesn't have permissions for this resource");
@@ -262,9 +262,9 @@ namespace DotNetNuke.PowerBI.Services
                 var embedService = new EmbedService(this.PortalSettings.PortalId, this.ActiveModule.TabModuleID, settingsGroupId.ToString());
                 var moduleSettings = ModuleController.Instance.GetTabModule(ActiveModule.TabModuleID).TabModuleSettings;
 
-                bool hasDownloadPermission = HasPermission(embedService.Settings, reportId.ToString(), 3);
+                bool hasExportPermission = HasPermission(embedService.Settings, reportId.ToString(), 4);
                 var permissionsRepo = ObjectPermissionsRepository.Instance;
-                if (!hasDownloadPermission || (!PowerBIListViewExtensions.UserHasPermissionsToWorkspace(embedService.Settings.InheritPermissions ?
+                if (!hasExportPermission || (!PowerBIListViewExtensions.UserHasPermissionsToWorkspace(embedService.Settings.InheritPermissions ?
                     embedService.Settings.SettingsGroupId : reportId.ToString(), UserInfo)))
                 {
                     return Request.CreateResponse(HttpStatusCode.Forbidden, "User doesn't have permissions for this resource");
@@ -330,9 +330,9 @@ namespace DotNetNuke.PowerBI.Services
                 }
 
                 var embedService = new EmbedService(this.PortalSettings.PortalId, this.ActiveModule.TabModuleID, settingsGroupId.ToString());
-                bool hasDownloadPermission = HasPermission(embedService.Settings, reportId.ToString(), 3);
+                bool hasExportPermission = HasPermission(embedService.Settings, reportId.ToString(), 4);
                 var permissionsRepo = ObjectPermissionsRepository.Instance;
-                if (!hasDownloadPermission || (!PowerBIListViewExtensions.UserHasPermissionsToWorkspace(embedService.Settings.InheritPermissions ?
+                if (!hasExportPermission || (!PowerBIListViewExtensions.UserHasPermissionsToWorkspace(embedService.Settings.InheritPermissions ?
                     embedService.Settings.SettingsGroupId : reportId.ToString(), UserInfo)))
                 {
                     return Request.CreateResponse(HttpStatusCode.Forbidden, "User doesn't have permissions for this resource");

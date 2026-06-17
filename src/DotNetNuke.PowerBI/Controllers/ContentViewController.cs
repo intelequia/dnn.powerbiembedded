@@ -125,6 +125,7 @@ namespace DotNetNuke.PowerBI.Controllers
 
                 bool hasEditPermission = HasPermission(embedService.Settings, Request["reportId"] ?? itemId, 2);
                 bool hasDownloadPermission = HasPermission(embedService.Settings, Request["reportId"] ?? itemId, 3);
+                bool hasExportPermission = HasPermission(embedService.Settings, Request["reportId"] ?? itemId, 4);
 
 
                 if (!string.IsNullOrEmpty(Request["dashboardId"]))
@@ -163,7 +164,7 @@ namespace DotNetNuke.PowerBI.Controllers
                 ViewBag.ReportPages = reportPages;
                 ViewBag.CanEdit = hasEditPermission && bool.Parse(GetSetting("PowerBIEmbedded_EditVisible", "false"));
                 ViewBag.CanDownload = hasDownloadPermission && bool.Parse(GetSetting("PowerBIEmbedded_DownloadVisible", "false"));
-                ViewBag.CanExport = hasDownloadPermission && bool.Parse(GetSetting("PowerBIEmbedded_ExportVisible", "false"));
+                ViewBag.CanExport = hasExportPermission && bool.Parse(GetSetting("PowerBIEmbedded_ExportVisible", "false"));
                 ViewBag.Locale = System.Threading.Thread.CurrentThread.CurrentUICulture.Name.Substring(0, 2);
 
                 ViewBag.TimeZones = TimeZoneInfo.GetSystemTimeZones();
