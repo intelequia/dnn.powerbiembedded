@@ -152,12 +152,12 @@
                 '<div class="pbi-stats-list-row">' +
                 '<span class="pbi-stats-list-index" style="background:' + color + '">' + (i + 1) + '</span>' +
                 '<span class="pbi-stats-list-title">' + (item.Title || '') + '</span>' +
+                tagsHtml +
                 '<span class="pbi-stats-list-views">' + views.toLocaleString() + '</span>' +
                 '</div>' +
                 '<div class="pbi-stats-list-progress">' +
                 '<div class="pbi-stats-list-bar" style="width:' + pct + '%;background:' + color + '"></div>' +
                 '</div>' +
-                tagsHtml +
                 '</a>';
             $target.append(html);
         }

@@ -6,17 +6,20 @@
 @using DotNetNuke.Web.Client.ClientResourceManagement
 @using SelectListItem = System.Web.Mvc.SelectListItem
 @{
-    ClientResourceManager.RegisterStyleSheet(Dnn.DnnPage, "https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/3.9.0/fullcalendar.min.css", 10, "DnnPageHeaderProvider");
+    // FullCalendar 3.10.2 (NOT 3.9.0): the DNN/Tabler skin ships jQuery 3.7.1, which breaks
+    // FullCalendar 3.9.0's timed-event horizontal positioning (every event piled into the last
+    // day columns -> only Sat/Sun showed). FullCalendar 3.10.2 is the last v3 release and fixes
+    // the jQuery 3.6+/3.7 coordinate-cache incompatibility, so events render across all 7 days.
+    ClientResourceManager.RegisterStyleSheet(Dnn.DnnPage, "https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/3.10.2/fullcalendar.min.css", 10, "DnnPageHeaderProvider");
     ClientResourceManager.RegisterStyleSheet(Dnn.DnnPage, "~/DesktopModules/MVC/PowerBIEmbedded/css/module.css", 10, "DnnPageHeaderProvider");
     ClientResourceManager.RegisterScript(Dnn.DnnPage, "~/DesktopModules/MVC/PowerBIEmbedded/scripts/powerbi.min.js", 20);
     ClientResourceManager.RegisterScript(Dnn.DnnPage, "https://npmcdn.com/es6-promise@3.2.1", 18);
     // NOTE: jQuery is already provided by DNN/the active skin. Re-loading jQuery (and jQuery UI)
     // from a CDN here overrides the page's jQuery instance and breaks Bootstrap 5 based skins
-    // such  as Tabler (their plugins, e.g. popover/dropdowns, get detached). FullCalendar 3.9 works
-    // fine with the jQuery already present on the page.
+    // such  as Tabler (their plugins, e.g. popover/dropdowns, get detached).
     ClientResourceManager.RegisterScript(Dnn.DnnPage, "https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.21.0/moment.min.js", 20);
-    ClientResourceManager.RegisterScript(Dnn.DnnPage, "https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/3.9.0/fullcalendar.min.js", 21);
-    ClientResourceManager.RegisterScript(Dnn.DnnPage, "https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/3.9.0/locale-all.js", 22);
+    ClientResourceManager.RegisterScript(Dnn.DnnPage, "https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/3.10.2/fullcalendar.min.js", 21);
+    ClientResourceManager.RegisterScript(Dnn.DnnPage, "https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/3.10.2/locale-all.js", 22);
 
     // Emit the DNN Services Framework client variables (sf_siteRoot / sf_tabId) for this page.
     // A DNN MVC module's controller + view render during the page Render phase, which is AFTER
@@ -111,6 +114,8 @@
                 };
                 var pageSize = 10;
                 var errorText = @Html.Raw(Json.Encode(Dnn.LocalizeString("Error"))) || 'An error occurred while loading the calendar.';
+                var detailsText = @Html.Raw(Json.Encode(Dnn.LocalizeString("ShowDetails"))) || 'Show details';
+                var hideDetailsText = @Html.Raw(Json.Encode(Dnn.LocalizeString("HideDetails"))) || 'Hide details';
 
                 var $container = $('#powerbiCalendarView_' + moduleId);
                 var $mode = $container.find('[name="Mode"]');
@@ -180,6 +185,7 @@
                         selectable: false,
                         eventLimit: true,
                         eventLimitText: "More",
+                        slotEventOverlap: false,
                         droppable: false,
                         dragRevertDuration: 0,
                         events: [],
@@ -242,6 +248,20 @@
                     });
                 }
 
+                function statusInfo(status) {
+                    var s = (status || '').toString().toLowerCase();
+                    if (s === 'completed' || s === 'success' || s === 'succeeded') {
+                        return { cls: 'pbi-status--success', icon: 'ti ti-circle-check' };
+                    }
+                    if (s === 'failed' || s === 'error' || s === 'disabled') {
+                        return { cls: 'pbi-status--failed', icon: 'ti ti-alert-circle' };
+                    }
+                    if (s === 'unknown' || s === 'inprogress' || s === 'in progress' || s === 'notstarted') {
+                        return { cls: 'pbi-status--progress', icon: 'ti ti-loader' };
+                    }
+                    return { cls: 'pbi-status--neutral', icon: '' };
+                }
+
                 function renderHistory(data) {
                     var history = (data && (data.history || data.History)) || [];
                     var currentPage = (data && (data.currentPage || data.CurrentPage)) || 1;
@@ -249,15 +269,52 @@
 
                     $historyBody.empty();
                     $.each(history, function (i, h) {
-                        var $tr = $('<tr>');
-                        $tr.append($('<td>').text(h.dataset || h.Dataset || ''));
+                        var status = h.status || h.Status || '';
+                        var errorDetails = h.errorDetails || h.ErrorDetails || '';
+                        var info = statusInfo(status);
+
+                        var $tr = $('<tr>', { 'class': 'pbi-history-row' });
+                        $tr.append($('<td>', { 'class': 'pbi-history-dataset' }).text(h.dataset || h.Dataset || ''));
                         $tr.append($('<td>').text(h.workspace || h.Workspace || ''));
                         $tr.append($('<td>').text(h.capacity || h.Capacity || ''));
-                        $tr.append($('<td>').text(h.startTime || h.StartTime || ''));
-                        $tr.append($('<td>').text(h.endTime || h.EndTime || ''));
+                        $tr.append($('<td>', { 'class': 'pbi-history-time' }).text(h.startTime || h.StartTime || ''));
+                        $tr.append($('<td>', { 'class': 'pbi-history-time' }).text(h.endTime || h.EndTime || ''));
                         $tr.append($('<td>').text(h.refreshType || h.RefreshType || ''));
-                        $tr.append($('<td>').text(h.status || h.Status || ''));
-                        $historyBody.append($tr);
+
+                        var $statusCell = $('<td>', { 'class': 'pbi-history-status-cell' });
+                        var $badge = $('<span>', { 'class': 'pbi-status ' + info.cls });
+                        if (info.icon) {
+                            $badge.append($('<i>', { 'class': info.icon }));
+                        }
+                        $badge.append($('<span>').text(status || '-'));
+                        $statusCell.append($badge);
+
+                        if (errorDetails) {
+                            var $toggle = $('<a>', { 'class': 'pbi-history-error-toggle', href: '#' }).text(detailsText);
+                            $statusCell.append($toggle);
+                            $tr.append($statusCell);
+                            $historyBody.append($tr);
+
+                            var $detailRow = $('<tr>', { 'class': 'pbi-history-detail-row' }).hide();
+                            var $detailCell = $('<td>', { colspan: 7 });
+                            var $detailBox = $('<div>', { 'class': 'pbi-history-error' });
+                            $detailBox.append($('<i>', { 'class': 'ti ti-alert-triangle' }));
+                            $detailBox.append($('<span>').text(errorDetails));
+                            $detailCell.append($detailBox);
+                            $detailRow.append($detailCell);
+                            $historyBody.append($detailRow);
+
+                            $toggle.on('click', function (e) {
+                                e.preventDefault();
+                                var visible = $detailRow.is(':visible');
+                                $detailRow.toggle(!visible);
+                                $toggle.text(visible ? detailsText : hideDetailsText);
+                                $tr.toggleClass('pbi-history-row--expanded', !visible);
+                            });
+                        } else {
+                            $tr.append($statusCell);
+                            $historyBody.append($tr);
+                        }
                     });
 
                     renderPagination(currentPage, totalPages);

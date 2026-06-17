@@ -3,6 +3,7 @@ using DotNetNuke.PowerBI.Data.SharedSettings;
 using DotNetNuke.PowerBI.Models;
 using DotNetNuke.Security;
 using DotNetNuke.Web.Api;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections;
 using System.Linq;
@@ -94,7 +95,8 @@ namespace DotNetNuke.PowerBI.Services
                         startTime = h.StartTime.HasValue ? h.StartTime.Value.ToString("g") : string.Empty,
                         endTime = h.EndTime.HasValue ? h.EndTime.Value.ToString("g") : string.Empty,
                         refreshType = h.RefreshType.HasValue ? h.RefreshType.Value.ToString() : string.Empty,
-                        status = h.Status
+                        status = h.Status,
+                        errorDetails = ExtractRefreshError(h.ServiceExceptionJson)
                     })
                     .ToList();
 
@@ -159,6 +161,47 @@ namespace DotNetNuke.PowerBI.Services
             }
 
             return null;
+        }
+
+        /// <summary>
+        /// Extracts a human readable error message from the Power BI refresh
+        /// ServiceExceptionJson payload (e.g. {"errorCode":"...","errorDescription":"..."}).
+        /// Falls back to the raw payload when it cannot be parsed.
+        /// </summary>
+        private static string ExtractRefreshError(string serviceExceptionJson)
+        {
+            if (string.IsNullOrWhiteSpace(serviceExceptionJson))
+            {
+                return string.Empty;
+            }
+
+            try
+            {
+                var json = JObject.Parse(serviceExceptionJson);
+                var description = (string)json["errorDescription"];
+                var code = (string)json["errorCode"];
+
+                if (!string.IsNullOrWhiteSpace(description) && !string.IsNullOrWhiteSpace(code))
+                {
+                    return $"[{code}] {description}";
+                }
+
+                if (!string.IsNullOrWhiteSpace(description))
+                {
+                    return description;
+                }
+
+                if (!string.IsNullOrWhiteSpace(code))
+                {
+                    return code;
+                }
+            }
+            catch
+            {
+                // Not valid JSON - return the raw payload below.
+            }
+
+            return serviceExceptionJson;
         }
     }
 }
