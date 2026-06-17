@@ -1,8 +1,10 @@
 using DotNetNuke.Common;
 using DotNetNuke.Entities.Tabs;
 using DotNetNuke.Instrumentation;
+using DotNetNuke.PowerBI.Components;
 using DotNetNuke.PowerBI.Models;
 using DotNetNuke.Security.Permissions;
+using DotNetNuke.Services.Cache;
 using DotNetNuke.Services.FileSystem;
 using DotNetNuke.Web.Mvc.Framework.ActionFilters;
 using DotNetNuke.Web.Mvc.Framework.Controllers;
@@ -54,7 +56,6 @@ namespace DotNetNuke.PowerBI.Controllers
             {
                 var portalId = ModuleContext.PortalId;
                 var tabs = TabController.Instance.GetTabsByPortal(portalId).AsList();
-                var random = new Random();
 
                 var items = new List<ReportCatalogItem>();
                 var allCategories = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
@@ -105,7 +106,7 @@ namespace DotNetNuke.PowerBI.Controllers
                         PrimaryCategory = categories.FirstOrDefault(),
                         IconUrl = icon.Url,
                         IconIsSvg = icon.IsSvg,
-                        Views = random.Next(50, 5000), // TODO: replace placeholder with real analytics.
+                        Views = 0,
                     });
                 }
 
@@ -131,6 +132,15 @@ namespace DotNetNuke.PowerBI.Controllers
                         : DefaultColor;
                 }
 
+                // Populate real page views from Application Insights (same query the Stats module
+                // uses for "Most Viewed"). The result is cached for one day, only for the report
+                // pages already filtered above.
+                var viewsByTab = GetReportViews(portalId, items);
+                foreach (var item in items)
+                {
+                    item.Views = viewsByTab.TryGetValue(item.TabId, out var views) ? views : 0;
+                }
+
                 model.Items = items
                     .OrderBy(i => i.Title, StringComparer.OrdinalIgnoreCase)
                     .ToList();
@@ -142,6 +152,62 @@ namespace DotNetNuke.PowerBI.Controllers
                 Logger.Error(ex);
                 return View(model);
             }
+        }
+
+        /// <summary>
+        /// Returns the per-page view counts from Application Insights, keyed by TabId. The result
+        /// is cached for one day. Returns an empty dictionary when Application Insights is not
+        /// configured for this module instance or the query fails.
+        /// </summary>
+        private Dictionary<int, int> GetReportViews(int portalId, List<ReportCatalogItem> items)
+        {
+            var empty = new Dictionary<int, int>();
+
+            try
+            {
+                var appId = GetSetting("PowerBIEmbedded_ReportCatalog_AppInsightsAppId");
+                var apiKey = GetSetting("PowerBIEmbedded_ReportCatalog_AppInsightsApiKey");
+                if (string.IsNullOrWhiteSpace(appId) || string.IsNullOrWhiteSpace(apiKey) || items == null || items.Count == 0)
+                {
+                    return empty;
+                }
+
+                var endpoint = GetSetting("PowerBIEmbedded_ReportCatalog_AppInsightsApiUrl");
+                const string range = "30d";
+
+                var cacheKey = $"PBI_{portalId}_{ModuleContext.ModuleId}_ReportCatalogViews";
+                var cached = CachingProvider.Instance().GetItem(cacheKey) as Dictionary<int, int>;
+                if (cached != null)
+                {
+                    return cached;
+                }
+
+                var pages = items.Select(i => new AppInsightsPageViews.ReportPageRef
+                {
+                    TabId = i.TabId,
+                    Url = i.Url,
+                    Title = i.Title
+                });
+
+                var views = AppInsightsPageViews.GetViewsByTabAsync(appId, apiKey, endpoint, range, pages)
+                    .GetAwaiter().GetResult() ?? empty;
+
+                CachingProvider.Instance().Insert(cacheKey, views, null, DateTime.Now.AddDays(1), TimeSpan.Zero);
+                return views;
+            }
+            catch (Exception ex)
+            {
+                Logger.Warn("Could not load Application Insights page views for the Report Catalog", ex);
+                return empty;
+            }
+        }
+
+        /// <summary>Reads a TabModule setting for the current module instance.</summary>
+        private string GetSetting(string key, string defaultValue = "")
+        {
+            return ModuleContext.Settings.ContainsKey(key)
+                ? (string)ModuleContext.Settings[key]
+                : defaultValue;
         }
 
         /// <summary>Returns the taxonomy term names associated with the page.</summary>

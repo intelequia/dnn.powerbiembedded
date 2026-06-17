@@ -31,6 +31,7 @@ namespace DotNetNuke.PowerBI.Controllers
                 HideVisualizationData = false;
                 IsContentView = false;
                 IsStatsView = false;
+                IsReportCatalogView = false;
                 ToolbarVisible = false;
                 PrintVisible = false;
                 BookmarksVisible = false;
@@ -48,12 +49,14 @@ namespace DotNetNuke.PowerBI.Controllers
                 StatsShowMostViewed = true;
                 StatsLastRefreshUrl = "";
                 StatsMostViewedTopCount = 5;
+                ReportCatalogAppInsightsApiUrl = "https://api.applicationinsights.io/v1/apps/{appId}/query";
             }
             public string SettingsGroupId { get; set; }
             public string ContentItemId { get; set; }
             public string PageName { get; set; }
             public bool IsContentView { get; set; }
             public bool IsStatsView { get; set; }
+            public bool IsReportCatalogView { get; set; }
             public bool FilterPaneVisible { get; set; }
             public bool NavPaneVisible { get; set; }
             public bool ShowSubscription { get; set; }
@@ -87,6 +90,9 @@ namespace DotNetNuke.PowerBI.Controllers
             public bool StatsShowMostViewed { get; set; }
             public string StatsLastRefreshUrl { get; set; }
             public int StatsMostViewedTopCount { get; set; }
+            public string ReportCatalogAppInsightsAppId { get; set; }
+            public string ReportCatalogAppInsightsApiKey { get; set; }
+            public string ReportCatalogAppInsightsApiUrl { get; set; }
         }
         private static readonly ILog Logger = LoggerSource.Instance.GetLogger(typeof(SettingsController));
         // GET: Settings
@@ -106,6 +112,7 @@ namespace DotNetNuke.PowerBI.Controllers
                     PageName = GetSetting("PowerBIEmbedded_PageName"),
                     IsContentView = ModuleContext.Configuration.ModuleDefinition.DefinitionName == "PowerBI Embedded Content View",
                     IsStatsView = ModuleContext.Configuration.ModuleDefinition.DefinitionName == "PowerBI Embedded Stats View",
+                    IsReportCatalogView = ModuleContext.Configuration.ModuleDefinition.DefinitionName == "PowerBI Embedded Report Catalog",
                     FilterPaneVisible = bool.Parse(GetSetting("PowerBIEmbedded_FilterPaneVisible", "True")),
                     ShowSubscription = bool.Parse(GetSetting("PowerBIEmbedded_ShowSubscriptions", "false")),
                     NavPaneVisible = bool.Parse(GetSetting("PowerBIEmbedded_NavPaneVisible", "True")),
@@ -138,7 +145,10 @@ namespace DotNetNuke.PowerBI.Controllers
                     StatsShowReportViews = bool.Parse(GetSetting("PowerBIEmbedded_Stats_ShowReportViews", "True")),
                     StatsShowMostViewed = bool.Parse(GetSetting("PowerBIEmbedded_Stats_ShowMostViewed", "True")),
                     StatsLastRefreshUrl = GetSetting("PowerBIEmbedded_Stats_LastRefreshUrl", ""),
-                    StatsMostViewedTopCount = int.TryParse(GetSetting("PowerBIEmbedded_Stats_MostViewedTopCount", "5"), out var topCount) ? topCount : 5
+                    StatsMostViewedTopCount = int.TryParse(GetSetting("PowerBIEmbedded_Stats_MostViewedTopCount", "5"), out var topCount) ? topCount : 5,
+                    ReportCatalogAppInsightsAppId = GetSetting("PowerBIEmbedded_ReportCatalog_AppInsightsAppId", ""),
+                    ReportCatalogAppInsightsApiKey = GetSetting("PowerBIEmbedded_ReportCatalog_AppInsightsApiKey", ""),
+                    ReportCatalogAppInsightsApiUrl = GetSetting("PowerBIEmbedded_ReportCatalog_AppInsightsApiUrl", "https://api.applicationinsights.io/v1/apps/{appId}/query")
                 };
 
                 if (model.IsContentView)
@@ -193,6 +203,11 @@ namespace DotNetNuke.PowerBI.Controllers
                     return View("StatSettings", model);
                 }
 
+                if (model.IsReportCatalogView)
+                {
+                    return View("ReportCatalogSettings", model);
+                }
+
                 return View(model);
             }
             catch (Exception ex)
@@ -203,14 +218,20 @@ namespace DotNetNuke.PowerBI.Controllers
                     ViewBag.Settings = new List<Data.Models.PowerBISettings>();
                 }
                 var isStatsView = ModuleContext.Configuration.ModuleDefinition.DefinitionName == "PowerBI Embedded Stats View";
+                var isReportCatalogView = ModuleContext.Configuration.ModuleDefinition.DefinitionName == "PowerBI Embedded Report Catalog";
                 var errorModel = new SettingsModel
                 {
                     IsContentView = ModuleContext.Configuration.ModuleDefinition.DefinitionName == "PowerBI Embedded Content View",
-                    IsStatsView = isStatsView
+                    IsStatsView = isStatsView,
+                    IsReportCatalogView = isReportCatalogView
                 };
                 if (isStatsView)
                 {
                     return View("StatSettings", errorModel);
+                }
+                if (isReportCatalogView)
+                {
+                    return View("ReportCatalogSettings", errorModel);
                 }
                 return View(errorModel);
             }
@@ -260,6 +281,9 @@ namespace DotNetNuke.PowerBI.Controllers
                 ModuleController.Instance.UpdateTabModuleSetting(this.ModuleContext.TabModuleId, "PowerBIEmbedded_Stats_ShowMostViewed", settings.StatsShowMostViewed.ToString());
                 ModuleController.Instance.UpdateTabModuleSetting(this.ModuleContext.TabModuleId, "PowerBIEmbedded_Stats_LastRefreshUrl", settings.StatsLastRefreshUrl ?? string.Empty);
                 ModuleController.Instance.UpdateTabModuleSetting(this.ModuleContext.TabModuleId, "PowerBIEmbedded_Stats_MostViewedTopCount", settings.StatsMostViewedTopCount > 0 ? settings.StatsMostViewedTopCount.ToString() : "5");
+                ModuleController.Instance.UpdateTabModuleSetting(this.ModuleContext.TabModuleId, "PowerBIEmbedded_ReportCatalog_AppInsightsAppId", settings.ReportCatalogAppInsightsAppId ?? string.Empty);
+                ModuleController.Instance.UpdateTabModuleSetting(this.ModuleContext.TabModuleId, "PowerBIEmbedded_ReportCatalog_AppInsightsApiKey", settings.ReportCatalogAppInsightsApiKey ?? string.Empty);
+                ModuleController.Instance.UpdateTabModuleSetting(this.ModuleContext.TabModuleId, "PowerBIEmbedded_ReportCatalog_AppInsightsApiUrl", settings.ReportCatalogAppInsightsApiUrl ?? string.Empty);
                 return RedirectToDefaultRoute();
             }
             catch (Exception ex)

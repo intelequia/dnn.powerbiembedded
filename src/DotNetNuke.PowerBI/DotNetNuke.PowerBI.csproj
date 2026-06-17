@@ -245,6 +245,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Components\Common.cs" />
+    <Compile Include="Components\AppInsightsPageViews.cs" />
     <Compile Include="Components\Culture.cs" />
     <Compile Include="Components\FeatureController.cs" />
     <Compile Include="Components\MenuController.cs" />
@@ -368,6 +369,7 @@
     <Content Include="Views\_ViewStart.cshtml" />
     <Content Include="Views\Shared\_Layout.cshtml" />
     <Content Include="Views\Settings\Index.cshtml" />
+    <Content Include="Views\Settings\ReportCatalogSettings.cshtml" />
     <Content Include="Views\Settings\StatSettings.cshtml" />
     <Content Include="Views\ListView\Index.cshtml" />
     <Content Include="Views\ContentView\Index.cshtml" />
