@@ -256,6 +256,7 @@
     <Compile Include="Controllers\ContentViewController.cs" />
     <Compile Include="Controllers\ListViewController.cs" />
     <Compile Include="Controllers\ReportCatalogController.cs" />
+    <Compile Include="Controllers\StatsViewController.cs" />
     <Compile Include="Controllers\SettingsController.cs" />
     <Compile Include="Data\Bookmarks\BookmarksRepository.cs" />
     <Compile Include="Data\Bookmarks\IBookmarksRepository.cs" />
@@ -279,6 +280,7 @@
     <Compile Include="Models\PowerBIListView.cs" />
     <Compile Include="Models\PowerBIListViewExtensions.cs" />
     <Compile Include="Models\ReportCatalogView.cs" />
+    <Compile Include="Models\StatsViewModel.cs" />
     <Compile Include="Models\TileEmbedConfig.cs" />
     <Compile Include="Models\Workspace.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -290,6 +292,7 @@
     <Compile Include="Services\Models\PBIPermissions.cs" />
     <Compile Include="Services\Models\SavePowerBiObjectsPermissionsInput.cs" />
     <Compile Include="Services\PBIEmbeddedController.cs" />
+    <Compile Include="Services\StatsController.cs" />
     <Compile Include="Services\SubscriptionController.cs" />
     <Compile Include="Tasks\SubscribeTask.cs" />
   </ItemGroup>
@@ -365,10 +368,13 @@
     <Content Include="Views\_ViewStart.cshtml" />
     <Content Include="Views\Shared\_Layout.cshtml" />
     <Content Include="Views\Settings\Index.cshtml" />
+    <Content Include="Views\Settings\StatSettings.cshtml" />
     <Content Include="Views\ListView\Index.cshtml" />
     <Content Include="Views\ContentView\Index.cshtml" />
     <Content Include="Views\ReportCatalog\Index.cshtml" />
+    <Content Include="Views\StatsView\Index.cshtml" />
     <Content Include="scripts\ReportCatalog.js" />
+    <Content Include="scripts\StatsView.js" />
     <Content Include="images\report-generic.svg" />
     <Content Include="images\search.svg" />
     <Content Include="images\eye.svg" />
@@ -403,6 +409,15 @@
       <SubType>Designer</SubType>
     </Content>
     <Content Include="App_LocalResources\ReportCatalog.de-de.resx">
+      <SubType>Designer</SubType>
+    </Content>
+    <Content Include="App_LocalResources\StatsView.resx">
+      <SubType>Designer</SubType>
+    </Content>
+    <Content Include="App_LocalResources\StatsView.es-es.resx">
+      <SubType>Designer</SubType>
+    </Content>
+    <Content Include="App_LocalResources\StatsView.de-de.resx">
       <SubType>Designer</SubType>
     </Content>
   </ItemGroup>
@@ -509,6 +524,6 @@
   <Target Name="AfterBuild" DependsOnTargets="PackageModule">
   </Target>
   <PropertyGroup>
-    <PostBuildEvent>IF $(ConfigurationName)==DebugPersonaBar copy $(TargetDir)$(TargetName).* C:\Websites\tmh2-admin.dnndev.me\bin /Y</PostBuildEvent>
+    <PostBuildEvent>IF $(ConfigurationName)==DebugPersonaBar copy $(TargetDir)$(TargetName).* C:\Websites\portalbisimon.dnndev.me\bin /Y</PostBuildEvent>
   </PropertyGroup>
 </Project>

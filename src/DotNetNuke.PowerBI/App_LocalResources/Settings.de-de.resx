@@ -234,4 +234,25 @@
   <data name="lblSettingsGroupName.Text" xml:space="preserve">
     <value>Name der Einstellungen zur Identifizierung des Arbeitsbereichs</value>
   </data>
+  <data name="StatsAppInsightsAppIdLabel.Text" xml:space="preserve">
+    <value>Application Insights App-Id</value>
+  </data>
+  <data name="StatsAppInsightsAppIdHelp.Text" xml:space="preserve">
+    <value>Application-Insights-Anwendungs-ID fuer die Abfrage von Seitenaufruf-Analysen.</value>
+  </data>
+  <data name="StatsAppInsightsApiKeyLabel.Text" xml:space="preserve">
+    <value>Application Insights API-Schluessel</value>
+  </data>
+  <data name="StatsAppInsightsApiKeyHelp.Text" xml:space="preserve">
+    <value>Read-API-Schluessel zum Ausfuehren von Telemetrieabfragen in Application Insights.</value>
+  </data>
+  <data name="StatsAppInsightsApiUrlLabel.Text" xml:space="preserve">
+    <value>Application Insights Query-URL</value>
+  </data>
+  <data name="StatsAppInsightsApiUrlHelp.Text" xml:space="preserve">
+    <value>Query-Endpunkt, z. B.: https://api.applicationinsights.io/v1/apps/{appId}/query</value>
+  </data>
+  <data name="StatsDefaultRangeLabel.Text" xml:space="preserve">
+    <value>Standard-Zeitraum des Diagramms</value>
+  </data>
 </root>

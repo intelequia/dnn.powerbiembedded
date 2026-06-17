@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="Loading.Text" xml:space="preserve"><value>Cargando estadisticas de la plataforma...</value></data>
+  <data name="Error.Text" xml:space="preserve"><value>Error al cargar las estadisticas. Intentalo de nuevo mas tarde.</value></data>
+  <data name="NotAvailable.Text" xml:space="preserve"><value>No disponible</value></data>
+  <data name="PublishedReports.Text" xml:space="preserve"><value>Informes publicados</value></data>
+  <data name="ActiveUsers24h.Text" xml:space="preserve"><value>Usuarios activos (24h)</value></data>
+  <data name="Datasets.Text" xml:space="preserve"><value>Datasets</value></data>
+  <data name="LastRefresh.Text" xml:space="preserve"><value>Ultimo refresh</value></data>
+  <data name="AutoRefreshedTemplate.Text" xml:space="preserve"><value>{0} auto-refrescados en las ultimas 24h</value></data>
+  <data name="RefreshHealthGreen.Text" xml:space="preserve"><value>Todas las actualizaciones estan correctas</value></data>
+  <data name="RefreshHealthYellow.Text" xml:space="preserve"><value>Algunas actualizaciones tuvieron advertencias o errores</value></data>
+  <data name="RefreshHealthRed.Text" xml:space="preserve"><value>No hay estado de refresh o esta fallando</value></data>
+  <data name="ChartTitle.Text" xml:space="preserve"><value>Vistas de informes</value></data>
+  <data name="MostViewedTitle.Text" xml:space="preserve"><value>Mas vistos</value></data>
+  <data name="MostViewedEmpty.Text" xml:space="preserve"><value>No se encontraron vistas de informes para este rango.</value></data>
+  <data name="AppInsightsNotConfigured.Text" xml:space="preserve"><value>Las credenciales de Application Insights no estan configuradas en el modulo.</value></data>
+  <data name="Range24h.Text" xml:space="preserve"><value>24h</value></data>
+  <data name="Range7d.Text" xml:space="preserve"><value>7d</value></data>
+  <data name="Range14d.Text" xml:space="preserve"><value>14d</value></data>
+  <data name="Range30d.Text" xml:space="preserve"><value>30d</value></data>
+  <data name="ReportViews.Text" xml:space="preserve"><value>Vistas de informes</value></data>
+  <data name="MostViewed.Text" xml:space="preserve"><value>Mas vistos</value></data>
+  <data name="AutoRefreshed.Text" xml:space="preserve"><value>auto-refrescados en las ultimas 24h</value></data>
+  <data name="NoData.Text" xml:space="preserve"><value>No hay datos disponibles para este periodo.</value></data>
+  <data name="LastRefreshOk.Text" xml:space="preserve"><value>Todas las actualizaciones estan correctas</value></data>
+  <data name="LastRefreshWarning.Text" xml:space="preserve"><value>Algunas actualizaciones tuvieron advertencias o errores</value></data>
+  <data name="LastRefreshError.Text" xml:space="preserve"><value>No hay estado de refresh o esta fallando</value></data>
+  <data name="LastRefreshNoData.Text" xml:space="preserve"><value>No se encontraron refrescos recientes.</value></data>
+  <data name="NoWorkspaceConfigured.Text" xml:space="preserve"><value>No hay workspaces configurados para este usuario.</value></data>
+  <data name="Views.Text" xml:space="preserve"><value>vistas</value></data>
+</root>

@@ -234,4 +234,25 @@
   <data name="SharedSettings.Text" xml:space="preserve">
     <value>Ajustes compartidos</value>
   </data>
+  <data name="StatsAppInsightsAppIdLabel.Text" xml:space="preserve">
+    <value>App Id de Application Insights</value>
+  </data>
+  <data name="StatsAppInsightsAppIdHelp.Text" xml:space="preserve">
+    <value>Identificador de la aplicacion de Application Insights para consultar analiticas de page views.</value>
+  </data>
+  <data name="StatsAppInsightsApiKeyLabel.Text" xml:space="preserve">
+    <value>API Key de Application Insights</value>
+  </data>
+  <data name="StatsAppInsightsApiKeyHelp.Text" xml:space="preserve">
+    <value>Clave de solo lectura para ejecutar queries de telemetria en Application Insights.</value>
+  </data>
+  <data name="StatsAppInsightsApiUrlLabel.Text" xml:space="preserve">
+    <value>URL de consulta de Application Insights</value>
+  </data>
+  <data name="StatsAppInsightsApiUrlHelp.Text" xml:space="preserve">
+    <value>Endpoint de consulta, por ejemplo: https://api.applicationinsights.io/v1/apps/{appId}/query</value>
+  </data>
+  <data name="StatsDefaultRangeLabel.Text" xml:space="preserve">
+    <value>Rango por defecto de la grafica</value>
+  </data>
 </root>

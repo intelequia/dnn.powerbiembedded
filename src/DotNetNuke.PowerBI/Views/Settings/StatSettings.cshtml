@@ -1,0 +1,129 @@
+@inherits DotNetNuke.Web.Mvc.Framework.DnnWebViewPage<DotNetNuke.PowerBI.Controllers.SettingsController.SettingsModel>
+@using System.Web.Mvc
+@using DotNetNuke.Web.Mvc.Helpers
+@using DotNetNuke.Web.Client.ClientResourceManagement
+@{
+    var pbiModuleVersion = typeof(DotNetNuke.PowerBI.Controllers.SettingsController).Assembly.GetName().Version.ToString();
+    ClientResourceManager.RegisterScript(Dnn.DnnPage, "~/DesktopModules/MVC/PowerBIEmbedded/scripts/module-settings.js?v=" + pbiModuleVersion, 25, "DnnPageHeaderProvider");
+    ClientResourceManager.RegisterStyleSheet(Dnn.DnnPage, "~/DesktopModules/MVC/PowerBIEmbedded/Css/module.css", 9, "DnnPageHeaderProvider");
+}
+@using DotNetNuke.UI.Utilities
+@using DotNetNuke.Common.Utilities
+
+<div id="PowerBISettings" class="dnnForm">
+    <div class="dnnFormExpandContent"><a href="">@Dnn.LocalizeString("ExpandAll")</a></div>
+    <h2 class="dnnFormSectionHead"><a href="#">Stat Settings</a></h2>
+    <fieldset id="StatViewGroupSettings">
+        <div class="dnnFormItem">
+            <div class="leftGroup">
+                <label>@Dnn.LocalizeString("StatsAppInsightsAppIdLabel")</label>
+                @Html.TextBoxFor(m => m.StatsAppInsightsAppId, new { placeholder = "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx" })
+                <div>@Dnn.LocalizeString("StatsAppInsightsAppIdHelp")</div>
+            </div>
+        </div>
+        <div class="dnnFormItem">
+            <div class="leftGroup">
+                <label>@Dnn.LocalizeString("StatsAppInsightsApiKeyLabel")</label>
+                @Html.TextBoxFor(m => m.StatsAppInsightsApiKey)
+                <div>@Dnn.LocalizeString("StatsAppInsightsApiKeyHelp")</div>
+            </div>
+        </div>
+        <div class="dnnFormItem">
+            <div class="leftGroup">
+                <label>@Dnn.LocalizeString("StatsAppInsightsApiUrlLabel")</label>
+                @Html.TextBoxFor(m => m.StatsAppInsightsApiUrl)
+                <div>@Dnn.LocalizeString("StatsAppInsightsApiUrlHelp")</div>
+            </div>
+        </div>
+        <div class="dnnFormItem">
+            <div class="leftGroup">
+                <label>@Dnn.LocalizeString("StatsDefaultRangeLabel")</label>
+                @{
+                    var rangeItems = new List<SelectListItem>
+                    {
+                        new SelectListItem { Text = "30d", Value = "30d" },
+                        new SelectListItem { Text = "14d", Value = "14d" },
+                        new SelectListItem { Text = "7d", Value = "7d" },
+                        new SelectListItem { Text = "24h", Value = "24h" }
+                    };
+                }
+                @Html.DropDownListFor(m => m.StatsDefaultRange, rangeItems)
+            </div>
+        </div>
+    </fieldset>
+
+    <h2 class="dnnFormSectionHead"><a href="#">Visible KPIs &amp; Sections</a></h2>
+    <fieldset id="StatViewVisibilitySettings">
+        <div class="dnnFormItem">
+            <div class="leftGroup">
+                <label>Show Published Reports</label>
+                @Html.CheckBoxFor(m => m.StatsShowPublishedReports)
+            </div>
+        </div>
+        <div class="dnnFormItem">
+            <div class="leftGroup">
+                <label>Show Active Users (24h)</label>
+                @Html.CheckBoxFor(m => m.StatsShowActiveUsers)
+            </div>
+        </div>
+        <div class="dnnFormItem">
+            <div class="leftGroup">
+                <label>Show Datasets</label>
+                @Html.CheckBoxFor(m => m.StatsShowDatasets)
+            </div>
+        </div>
+        <div class="dnnFormItem">
+            <div class="leftGroup">
+                <label>Show Last Refresh</label>
+                @Html.CheckBoxFor(m => m.StatsShowLastRefresh)
+            </div>
+        </div>
+        <div class="dnnFormItem">
+            <div class="leftGroup">
+                <label>Show Report Views chart</label>
+                @Html.CheckBoxFor(m => m.StatsShowReportViews)
+            </div>
+        </div>
+        <div class="dnnFormItem">
+            <div class="leftGroup">
+                <label>Show Most Viewed</label>
+                @Html.CheckBoxFor(m => m.StatsShowMostViewed)
+            </div>
+        </div>
+    </fieldset>
+
+    <h2 class="dnnFormSectionHead"><a href="#">Advanced Settings</a></h2>
+    <fieldset id="StatViewAdvancedSettings">
+        <div class="dnnFormItem">
+            <div class="leftGroup">
+                <label>Last Refresh click URL</label>
+                @Html.TextBoxFor(m => m.StatsLastRefreshUrl, new { placeholder = "/page-name or ?tabid=42" })
+                <div>URL to navigate when clicking the Last Refresh tile. The user must have View permission on that page. Leave blank to disable navigation.</div>
+            </div>
+        </div>
+        <div class="dnnFormItem">
+            <div class="leftGroup">
+                <label>Most Viewed – Top X items</label>
+                @Html.TextBoxFor(m => m.StatsMostViewedTopCount, new { type = "number", min = "1", max = "20" })
+                <div>Number of reports to show in the Most Viewed list. Default: 5.</div>
+            </div>
+        </div>
+    </fieldset>
+
+</div>
+
+<script type="text/javascript">
+
+    jQuery(function ($) {
+        var setupModule = function () {
+            $('#PowerBISettings').dnnPanels();
+            $('#PowerBISettings .dnnFormExpandContent a').dnnExpandAll({
+                targetArea: '#PowerBISettings'
+            });
+        };
+        setupModule();
+        Sys.WebForms.PageRequestManager.getInstance().add_endRequest(function () {
+            setupModule();
+        });
+    });
+</script>

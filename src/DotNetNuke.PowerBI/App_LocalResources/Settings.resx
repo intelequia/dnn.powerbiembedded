@@ -234,4 +234,25 @@
   <data name="SharedSettings.Text" xml:space="preserve">
     <value>Shared Settings</value>
   </data>
+  <data name="StatsAppInsightsAppIdLabel.Text" xml:space="preserve">
+    <value>Application Insights App Id</value>
+  </data>
+  <data name="StatsAppInsightsAppIdHelp.Text" xml:space="preserve">
+    <value>Application Insights application id used to query page view analytics.</value>
+  </data>
+  <data name="StatsAppInsightsApiKeyLabel.Text" xml:space="preserve">
+    <value>Application Insights API Key</value>
+  </data>
+  <data name="StatsAppInsightsApiKeyHelp.Text" xml:space="preserve">
+    <value>Read API key with access to query Application Insights telemetry.</value>
+  </data>
+  <data name="StatsAppInsightsApiUrlLabel.Text" xml:space="preserve">
+    <value>Application Insights Query URL</value>
+  </data>
+  <data name="StatsAppInsightsApiUrlHelp.Text" xml:space="preserve">
+    <value>Query endpoint, for example: https://api.applicationinsights.io/v1/apps/{appId}/query</value>
+  </data>
+  <data name="StatsDefaultRangeLabel.Text" xml:space="preserve">
+    <value>Default chart range</value>
+  </data>
 </root>

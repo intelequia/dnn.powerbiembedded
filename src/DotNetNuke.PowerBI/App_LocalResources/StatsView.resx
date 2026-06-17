@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="Loading.Text" xml:space="preserve">
+    <value>Loading platform statistics...</value>
+  </data>
+  <data name="Error.Text" xml:space="preserve">
+    <value>Error loading statistics. Please, try again later.</value>
+  </data>
+  <data name="NotAvailable.Text" xml:space="preserve">
+    <value>Not available</value>
+  </data>
+  <data name="PublishedReports.Text" xml:space="preserve">
+    <value>Published reports</value>
+  </data>
+  <data name="ActiveUsers24h.Text" xml:space="preserve">
+    <value>Active users (24h)</value>
+  </data>
+  <data name="Datasets.Text" xml:space="preserve">
+    <value>Datasets</value>
+  </data>
+  <data name="LastRefresh.Text" xml:space="preserve">
+    <value>Last refresh</value>
+  </data>
+  <data name="AutoRefreshedTemplate.Text" xml:space="preserve">
+    <value>{0} auto-refreshed in the last 24h</value>
+  </data>
+  <data name="RefreshHealthGreen.Text" xml:space="preserve">
+    <value>All refresh operations are healthy</value>
+  </data>
+  <data name="RefreshHealthYellow.Text" xml:space="preserve">
+    <value>Some refresh operations had warnings or failures</value>
+  </data>
+  <data name="RefreshHealthRed.Text" xml:space="preserve">
+    <value>Refresh status is unavailable or failing</value>
+  </data>
+  <data name="ChartTitle.Text" xml:space="preserve">
+    <value>Report views</value>
+  </data>
+  <data name="MostViewedTitle.Text" xml:space="preserve">
+    <value>Most viewed</value>
+  </data>
+  <data name="MostViewedEmpty.Text" xml:space="preserve">
+    <value>No report views were found for this range.</value>
+  </data>
+  <data name="AppInsightsNotConfigured.Text" xml:space="preserve">
+    <value>Application Insights credentials are not configured in module settings.</value>
+  </data>
+  <data name="Range24h.Text" xml:space="preserve">
+    <value>24h</value>
+  </data>
+  <data name="Range7d.Text" xml:space="preserve">
+    <value>7d</value>
+  </data>
+  <data name="Range14d.Text" xml:space="preserve">
+    <value>14d</value>
+  </data>
+  <data name="Range30d.Text" xml:space="preserve">
+    <value>30d</value>
+  </data>
+  <data name="ReportViews.Text" xml:space="preserve">
+    <value>Report views</value>
+  </data>
+  <data name="MostViewed.Text" xml:space="preserve">
+    <value>Most viewed</value>
+  </data>
+  <data name="AutoRefreshed.Text" xml:space="preserve">
+    <value>auto-refreshed in the last 24h</value>
+  </data>
+  <data name="NoData.Text" xml:space="preserve">
+    <value>No data available for this period.</value>
+  </data>
+  <data name="LastRefreshOk.Text" xml:space="preserve">
+    <value>All refresh operations are healthy</value>
+  </data>
+  <data name="LastRefreshWarning.Text" xml:space="preserve">
+    <value>Some refresh operations had warnings or failures</value>
+  </data>
+  <data name="LastRefreshError.Text" xml:space="preserve">
+    <value>Refresh status is unavailable or failing</value>
+  </data>
+  <data name="LastRefreshNoData.Text" xml:space="preserve">
+    <value>No recent refresh data was found.</value>
+  </data>
+  <data name="NoWorkspaceConfigured.Text" xml:space="preserve">
+    <value>No workspace is configured for this user.</value>
+  </data>
+  <data name="Views.Text" xml:space="preserve">
+    <value>views</value>
+  </data>
+</root>
