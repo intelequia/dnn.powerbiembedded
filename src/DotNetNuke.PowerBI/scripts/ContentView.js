@@ -479,8 +479,8 @@
             settings: {
                 navContentPaneEnabled: context.NavPaneVisible,
                 localeSettings: {
-                    language: context.Locale,
-                    formatLocale: context.Locale
+                    language: context.CurrentLocale.Code ?? context.Locale,
+                    formatLocale: context.CurrentLocale.Code ?? context.Locale
                 },
             },
             pageName: context.PageName
