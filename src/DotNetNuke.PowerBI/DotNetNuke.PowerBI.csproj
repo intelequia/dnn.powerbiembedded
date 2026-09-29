@@ -317,6 +317,7 @@
     <Content Include="images\success.svg" />
     <Content Include="scripts\powerbi.js" />
     <Content Include="scripts\powerbi.js.map" />
+    <Content Include="Providers\DataProviders\SqlDataProvider\01.05.03.SqlDataProvider" />
     <None Include="Views\Emails\emailtemplate.cshtml" />
     <None Include="Views\Emails\es\emailtemplate.cshtml" />
     <None Include="Views\Emails\de\emailtemplate.cshtml" />
@@ -396,7 +397,9 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="App_LocalResources\Settings.resx" />
+    <Content Include="App_LocalResources\Settings.resx">
+      <SubType>Designer</SubType>
+    </Content>
   </ItemGroup>
   <ItemGroup>
     <Content Include="App_LocalResources\ContentView.resx">
@@ -434,10 +437,14 @@
     </Content>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="App_LocalResources\Settings.de-de.resx" />
+    <Content Include="App_LocalResources\Settings.de-de.resx">
+      <SubType>Designer</SubType>
+    </Content>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="App_LocalResources\Settings.es-es.resx" />
+    <Content Include="App_LocalResources\Settings.es-es.resx">
+      <SubType>Designer</SubType>
+    </Content>
   </ItemGroup>
   <ItemGroup>
     <Content Include="App_LocalResources\ContentView.es-es.resx">

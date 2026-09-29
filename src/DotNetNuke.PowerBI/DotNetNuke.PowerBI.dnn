@@ -1,6 +1,6 @@
 <dotnetnuke type="Package" version="5.0">
   <packages>
-    <package name="PowerBIEmbeddedList" type="Module" version="01.05.02">
+    <package name="PowerBIEmbeddedList" type="Module" version="01.05.03">
       <friendlyName>PowerBI Embedded Content List</friendlyName>
       <description>A set of modules to embed PowerBI Embedded dashboards and reports into a DNN Platform installation.</description>
       <iconFile>~/DesktopModules/MVC/PowerBIEmbedded/images/msfabric.png</iconFile>
@@ -62,6 +62,11 @@
 				<name>01.05.02.SqlDataProvider</name>
 				<version>01.05.02</version>
 			</script>
+           <script type="Install">
+                <path>Providers\DataProviders\SqlDataProvider</path>
+                <name>01.05.03.SqlDataProvider</name>
+                <version>01.05.03</version>
+            </script>
 			<script type="UnInstall">
                 <path>Providers\DataProviders\SqlDataProvider</path>
                 <name>Uninstall.SqlDataProvider</name>

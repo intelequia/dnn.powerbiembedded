@@ -1,0 +1,15 @@
+IF (COL_LENGTH('{databaseOwner}[{objectQualifier}PBI_Bookmarks]', 'IsReportState') IS NULL)
+BEGIN
+    ALTER TABLE {databaseOwner}[{objectQualifier}PBI_Bookmarks]
+        ADD [IsReportState] [bit] NOT NULL CONSTRAINT [DF_{objectQualifier}PBI_Bookmarks_IsReportState] DEFAULT(0)
+END
+GO
+
+IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = 'IX_{objectQualifier}PBI_Bookmarks_ReportState'
+    AND object_id = OBJECT_ID('{databaseOwner}[{objectQualifier}PBI_Bookmarks]'))
+BEGIN
+    CREATE UNIQUE INDEX [IX_{objectQualifier}PBI_Bookmarks_ReportState]
+    ON {databaseOwner}[{objectQualifier}PBI_Bookmarks] ([PortalId], [ReportId], [CreatedBy])
+    WHERE [IsReportState] = 1
+END
+GO

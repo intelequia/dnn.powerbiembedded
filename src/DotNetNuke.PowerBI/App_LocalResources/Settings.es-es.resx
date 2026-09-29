@@ -255,4 +255,7 @@
   <data name="StatsDefaultRangeLabel.Text" xml:space="preserve">
     <value>Rango por defecto de la grafica</value>
   </data>
+  <data name="RememberReportState" xml:space="preserve">
+    <value>Recordar estado del informe</value>
+  </data>
 </root>

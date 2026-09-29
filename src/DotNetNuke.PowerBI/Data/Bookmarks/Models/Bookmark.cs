@@ -31,5 +31,6 @@ namespace DotNetNuke.PowerBI.Data.Bookmarks.Models
         public DateTime CreatedOn { get; set; }
         public int CreatedBy { get; set; }
         public int? SubscriptionId { get; set; }
+        public bool IsReportState { get; set; }
     }
 }

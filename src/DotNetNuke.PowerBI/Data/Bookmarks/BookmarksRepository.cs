@@ -10,13 +10,17 @@ namespace DotNetNuke.PowerBI.Data.Bookmarks
 {
     public class BookmarksRepository : ServiceLocator<IBookmarksRepository, BookmarksRepository>, IBookmarksRepository
     {
-        public bool DeleteBookmark(int bookmarkId)
+        public bool DeleteBookmark(int bookmarkId, int portalId, int userId)
         {
             Requires.NotNegative("portalId", bookmarkId);
             using (var ctx = DataContext.Instance())
             {
                 var repo = ctx.GetRepository<Bookmark>();
                 var bookmark = repo.GetById(bookmarkId);
+                if (bookmark == null || bookmark.PortalId != portalId || bookmark.CreatedBy != userId || bookmark.IsReportState || bookmark.SubscriptionId != null)
+                {
+                    return false;
+                }
                 repo.Delete(bookmark);
                 return true;
             }
@@ -28,7 +32,7 @@ namespace DotNetNuke.PowerBI.Data.Bookmarks
             using (var ctx = DataContext.Instance())
             {
                 var repo = ctx.GetRepository<Bookmark>();
-                var bookmarks = repo.Get(currentPortalId).Where(bookmark => bookmark.ReportId == reportId).ToList();
+                var bookmarks = repo.Get(currentPortalId).Where(bookmark => bookmark.ReportId == reportId && !bookmark.IsReportState).ToList();
                 return bookmarks;
             }
         }
@@ -42,8 +46,47 @@ namespace DotNetNuke.PowerBI.Data.Bookmarks
             using (var ctx = DataContext.Instance())
             {
                 var repo = ctx.GetRepository<Bookmark>();
-                var bookmarks = repo.Get(portalId).Where(bookmark => bookmark.CreatedBy == userId && bookmark.ReportId == reportId && bookmark.SubscriptionId == null).ToList();
+                var bookmarks = repo.Get(portalId).Where(bookmark => bookmark.CreatedBy == userId && bookmark.ReportId == reportId && bookmark.SubscriptionId == null && !bookmark.IsReportState).ToList();
                 return bookmarks;
+            }
+        }
+
+        public Bookmark GetReportState(int portalId, string reportId, int userId)
+        {
+            using (var ctx = DataContext.Instance())
+            {
+                return ctx.GetRepository<Bookmark>().Get(portalId)
+                    .FirstOrDefault(bookmark => bookmark.ReportId == reportId && bookmark.CreatedBy == userId && bookmark.IsReportState);
+            }
+        }
+
+        public void SaveReportState(int portalId, string reportId, int userId, string state)
+        {
+            using (var ctx = DataContext.Instance())
+            {
+                var repo = ctx.GetRepository<Bookmark>();
+                var bookmark = repo.Get(portalId)
+                    .FirstOrDefault(b => b.ReportId == reportId && b.CreatedBy == userId && b.IsReportState);
+                if (bookmark == null)
+                {
+                    repo.Insert(new Bookmark
+                    {
+                        PortalId = portalId,
+                        ReportId = reportId,
+                        CreatedBy = userId,
+                        CreatedOn = DateTime.Now,
+                        Name = "ReportState",
+                        DisplayName = "ReportState",
+                        State = state,
+                        IsReportState = true
+                    });
+                }
+                else
+                {
+                    bookmark.State = state;
+                    bookmark.CreatedOn = DateTime.Now;
+                    repo.Update(bookmark);
+                }
             }
         }
 

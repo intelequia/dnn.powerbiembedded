@@ -299,7 +299,7 @@
         this.reportId = ko.observable(reportId);
 
         this.bookmarkClass = ko.computed(function () {
-            return "" + (parent.selectedBookmark() !== null && parent.selectedBookmark().id() === that.id() ? " selected" : "");
+            return "" + (parent.selectedBookmark() && typeof parent.selectedBookmark().id === "function" && parent.selectedBookmark().id() === that.id() ? " selected" : "");
         });
     }
 
@@ -444,7 +444,7 @@
                         });
                         that.bookmarksArray(bookmarks);
                         // Set first bookmark active
-                        if (bookmarks.length > 0) {
+                        if (bookmarks.length > 0 && !that.rememberReportState) {
                             // Apply first bookmark state
                             that.onBookmarkClicked(bookmarks[0]);
                         }
@@ -486,6 +486,10 @@
             pageName: context.PageName
         };
 
+        if (context.RememberReportState && context.ReportState) {
+            this.config.bookmark = { state: context.ReportState };
+        }
+
         if (this.overrideVisualHeaderVisibility) {
             that.config.settings.visualSettings = {
                 visualHeaders: [
@@ -523,6 +527,51 @@
         // Dashboards don't support report-only features (bookmarks, pages, phased render),
         // so embed them with powerbi.embed() and skip that report-specific logic.
         this.isDashboard = context.ContentType === "dashboard";
+        this.rememberReportState = context.RememberReportState && !this.isDashboard;
+        this.reportStateReady = false;
+        this.defaultBookmarkApplied = false;
+        this.reportStateRestored = !!context.ReportState;
+        this.reportStateTimer = null;
+        this.reportStateSaving = false;
+        this.reportStateDirty = false;
+
+        this.saveReportState = function () {
+            if (that.reportStateSaving || !that.reportStateDirty) {
+                return;
+            }
+            that.reportStateDirty = false;
+            that.reportStateSaving = true;
+            that.report.bookmarksManager.capture().then(function (bookmark) {
+                Common.Call("POST", "SaveReportState", that.bookmarksService,
+                    { reportId: context.Id, state: bookmark.state },
+                    function (data) {
+                        if (!data.Success) { console.log("Could not save report state"); }
+                    },
+                    function (error) { console.log(error); },
+                    function () {
+                        that.reportStateSaving = false;
+                        if (that.reportStateDirty) { that.queueReportState(); }
+                    });
+            }).catch(function (error) {
+                that.reportStateSaving = false;
+                console.log(error);
+                if (that.reportStateDirty) { that.queueReportState(); }
+            });
+        };
+
+        this.queueReportState = function () {
+            if (!that.rememberReportState || !that.reportStateReady) { return; }
+            that.reportStateDirty = true;
+            clearTimeout(that.reportStateTimer);
+            that.reportStateTimer = setTimeout(that.saveReportState, 750);
+        };
+
+        this.applyDefaultBookmark = function () {
+            if (that.rememberReportState && that.reportStateReady && !that.reportStateRestored && !that.defaultBookmarkApplied && that.bookmarksArray().length) {
+                that.defaultBookmarkApplied = true;
+                that.onBookmarkClicked(that.bookmarksArray()[0]);
+            }
+        };
 
         // Embed the report and display it within the div container.
         // Reports use phased embedding (load + render); dashboards must use embed() because
@@ -567,6 +616,7 @@
                             : data
                     }
                 });
+
             }
         }
 
@@ -576,6 +626,20 @@
                 that.trackEvent(e, event.detail);
             });
         });
+
+        this.registerReportStateEvents = function () {
+            if (!that.rememberReportState) { return; }
+            ["dataSelected", "pageChanged", "filtersApplied", "visualClicked", "selectionChanged", "bookmarkApplied", "commandTriggered"].forEach(function (eventName) {
+                that.report.on(eventName, that.queueReportState);
+            });
+            that.report.on("rendered", function () {
+                if (!that.reportStateReady) {
+                    that.reportStateReady = true;
+                    that.applyDefaultBookmark();
+                }
+            });
+        };
+        this.registerReportStateEvents();
 
         this.setCustomLayout = function () {
             that.config.settings.layoutType = that.models.LayoutType.Custom;
@@ -602,11 +666,13 @@
                     that.config.settings.layoutType = that.models.LayoutType.MobilePortrait;
                     await powerbi.reset(that.reportContainer);
                     that.report = powerbi.embed(that.reportContainer, that.config);
+                    that.registerReportStateEvents();
                 } else {
                     if (that.config.settings.layoutType != that.models.LayoutType.Custom) {
                         that.setCustomLayout();
                         await powerbi.reset(that.reportContainer);
                         that.report = powerbi.embed(that.reportContainer, that.config);
+                        that.registerReportStateEvents();
                     }
                 }
             }
@@ -629,8 +695,9 @@
                             bookmarks.push(b);
                         });
                         that.bookmarksArray(bookmarks);
+                        that.applyDefaultBookmark();
                         // Set first bookmark active
-                        if (bookmarks.length > 0) {
+                        if (bookmarks.length > 0 && !that.rememberReportState) {
                             // Apply first bookmark state
                             that.onBookmarkClicked(bookmarks[0]);
                         }
@@ -646,8 +713,9 @@
         this.updateBookmarksList = function (bookmarks) {
             // Set bookmarks array to the report's fetched bookmarks
             that.bookmarksArray(bookmarks);
+            that.applyDefaultBookmark();
             // Set first bookmark active
-            if (bookmarks.length > 0) {
+            if (bookmarks.length > 0 && !that.rememberReportState) {
                 that.selectedBookmark(bookmarks[0].name);
 
                 // Apply first bookmark state
@@ -660,7 +728,8 @@
             that.selectedBookmark(element);
 
             // Apply the bookmark state
-            that.report.bookmarksManager.applyState(element.state());
+            var state = typeof element.state === "function" ? element.state() : element.state;
+            that.report.bookmarksManager.applyState(state).then(that.queueReportState);
         }
 
         // Capture new bookmark of the current state and update the bookmarks list

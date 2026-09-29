@@ -35,6 +35,7 @@ namespace DotNetNuke.PowerBI.Controllers
                 ToolbarVisible = false;
                 PrintVisible = false;
                 BookmarksVisible = false;
+                RememberReportState = true;
                 FullScreenVisible = false;
                 ApplicationInsightsEnabled = false;
                 BackgroundImageUrl = "";
@@ -68,6 +69,7 @@ namespace DotNetNuke.PowerBI.Controllers
             public bool PrintVisible { get; set; }
             public bool FullScreenVisible { get; set; }
             public bool BookmarksVisible { get; set; }
+            public bool RememberReportState { get; set; }
             public bool RefreshVisible { get; set; }
             public bool EditVisible { get; set; }
             public bool DownloadVisible { get; set; }
@@ -124,6 +126,7 @@ namespace DotNetNuke.PowerBI.Controllers
                     ToolbarVisible = bool.Parse(GetSetting("PowerBIEmbedded_ToolbarVisible", "False")),
                     PrintVisible = bool.Parse(GetSetting("PowerBIEmbedded_PrintVisible", "False")),
                     BookmarksVisible = bool.Parse(GetSetting("PowerBIEmbedded_BookmarksVisible", "False")),
+                    RememberReportState = bool.Parse(GetSetting("PowerBIEmbedded_RememberReportState", "True")),
                     FullScreenVisible = bool.Parse(GetSetting("PowerBIEmbedded_FullScreenVisible", "False")),
                     UserProperty = GetSetting("PowerBIEmbedded_UserProperty", "Username"),
                     CustomUserProperty = GetSetting("PowerBIEmbedded_CustomUserProperty", ""),
@@ -260,6 +263,7 @@ namespace DotNetNuke.PowerBI.Controllers
                 ModuleController.Instance.UpdateTabModuleSetting(this.ModuleContext.TabModuleId, "PowerBIEmbedded_PrintVisible", settings.PrintVisible.ToString());
                 ModuleController.Instance.UpdateTabModuleSetting(this.ModuleContext.TabModuleId, "PowerBIEmbedded_FullScreenVisible", settings.FullScreenVisible.ToString());
                 ModuleController.Instance.UpdateTabModuleSetting(this.ModuleContext.TabModuleId, "PowerBIEmbedded_BookmarksVisible", settings.BookmarksVisible.ToString());
+                ModuleController.Instance.UpdateTabModuleSetting(this.ModuleContext.TabModuleId, "PowerBIEmbedded_RememberReportState", settings.RememberReportState.ToString());
                 ModuleController.Instance.UpdateTabModuleSetting(this.ModuleContext.TabModuleId, "PowerBIEmbedded_RefreshVisible", settings.RefreshVisible.ToString());
                 ModuleController.Instance.UpdateTabModuleSetting(this.ModuleContext.TabModuleId, "PowerBIEmbedded_EditVisible", settings.EditVisible.ToString());
                 ModuleController.Instance.UpdateTabModuleSetting(this.ModuleContext.TabModuleId, "PowerBIEmbedded_DownloadVisible", settings.DownloadVisible.ToString());

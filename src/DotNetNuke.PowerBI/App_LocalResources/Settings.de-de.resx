@@ -255,4 +255,7 @@
   <data name="StatsDefaultRangeLabel.Text" xml:space="preserve">
     <value>Standard-Zeitraum des Diagramms</value>
   </data>
+  <data name="RememberReportState" xml:space="preserve">
+    <value>Berichtszustand speichern</value>
+  </data>
 </root>

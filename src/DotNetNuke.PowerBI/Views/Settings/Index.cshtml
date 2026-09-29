@@ -18,12 +18,12 @@
             <div class="leftGroup">
                 <label>Workspace</label>
                 @{
-                    List<SelectListItem> listItems = new List<SelectListItem>();
+                    List<System.Web.Mvc.SelectListItem> listItems = new List<System.Web.Mvc.SelectListItem>();
                     if (ViewBag.Settings != null)
                     {
                         foreach (var settingsGroup in ViewBag.Settings)
                         {
-                            listItems.Add(new SelectListItem
+                            listItems.Add(new System.Web.Mvc.SelectListItem
                             {
                                 Text = settingsGroup.SettingsGroupName,
                                 Value = settingsGroup.SettingsGroupId
@@ -42,12 +42,12 @@
                     <div class="leftGroup">
                         <label>Content Item</label>
                         @{
-                            var contentItems = new List<SelectListItem>();
+                            var contentItems = new List<System.Web.Mvc.SelectListItem>();
                             if (ViewBag.ContentItems != null)
                             {
                                 foreach (var contentItem in ViewBag.ContentItems.Dashboards)
                                 {
-                                    contentItems.Add(new SelectListItem
+                                    contentItems.Add(new System.Web.Mvc.SelectListItem
                                     {
                                         Text = "Dashboard - " + contentItem.DisplayName,
                                         Value = "D_" + contentItem.Id
@@ -55,7 +55,7 @@
                                 }
                                 foreach (var contentItem in ViewBag.ContentItems.Reports)
                                 {
-                                    contentItems.Add(new SelectListItem
+                                    contentItems.Add(new System.Web.Mvc.SelectListItem
                                     {
                                         Text = "Reports - " + contentItem.Name,
                                         Value = "R_" + contentItem.Id
@@ -70,10 +70,10 @@
                     <div class="leftGroup">
                         <label>Report Section Name</label>
                         @{
-                            var pageItems = new List<SelectListItem>();
+                            var pageItems = new List<System.Web.Mvc.SelectListItem>();
                             if (!string.IsNullOrEmpty(Model.PageName))
                             {
-                                pageItems.Add(new SelectListItem
+                                pageItems.Add(new System.Web.Mvc.SelectListItem
                                 {
                                     Text = Model.PageName,
                                     Value = Model.PageName,
@@ -160,6 +160,12 @@
                     </div>
                     <div class="dnnFormItem">
                         <div class="leftGroup">
+                            <label>Remember Report State</label>
+                            @Html.CheckBoxFor(m => m.RememberReportState, true)
+                        </div>
+                    </div>
+                    <div class="dnnFormItem">
+                        <div class="leftGroup">
                             <label>Edit Visible (by permissions)</label>
                             @Html.CheckBoxFor(m => m.EditVisible, true)
                         </div>
@@ -218,12 +224,12 @@
                     <div class="leftGroup">
                         <label>User Property Method</label>
                         @{
-                            var userPropertiesItems = new List<SelectListItem>();
+                            var userPropertiesItems = new List<System.Web.Mvc.SelectListItem>();
                             if (ViewBag.UserProperties != null)
                             {
                                 foreach (var userProperty in ViewBag.UserProperties)
                                 {
-                                    userPropertiesItems.Add(new SelectListItem
+                                    userPropertiesItems.Add(new System.Web.Mvc.SelectListItem
                                     {
                                         Text = userProperty,
                                         Value = userProperty
