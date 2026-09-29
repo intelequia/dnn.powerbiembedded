@@ -242,7 +242,6 @@ namespace DotNetNuke.PowerBI.Controllers
 
 
         [HttpPost]
-        [ValidateInput(false)]
         [DotNetNuke.Web.Mvc.Framework.ActionFilters.ValidateAntiForgeryToken]
         public ActionResult Index(SettingsModel settings)
         {
