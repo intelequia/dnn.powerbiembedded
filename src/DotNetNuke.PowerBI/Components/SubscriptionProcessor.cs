@@ -111,26 +111,95 @@ namespace DotNetNuke.PowerBI.Components
 
         public bool IsSubscriptionDue(Subscription subscription)
         {
-            var currentDate = DateTime.Now;
-            var timeSinceLastProcessed = currentDate - (subscription.LastProcessedOn ?? currentDate);
-            const string daily = "Daily";
-            const string weekly = "Weekly";
-            const string monthly = "Monthly";
+            var timeZone = TimeZoneInfo.FindSystemTimeZoneById(subscription.TimeZone);
+            var now = TimeZoneInfo.ConvertTime(DateTime.Now, timeZone);
+            if (now.Date < subscription.StartDate.Date || now.Date > subscription.EndDate.Date ||
+                now.TimeOfDay < subscription.RepeatTime)
+            {
+                return false;
+            }
 
-            // If LastProcessedOn is null, treat it as if it's been a long time since the last processing
-            if (subscription.LastProcessedOn == null)
+            if (subscription.LastProcessedOn.HasValue &&
+                TimeZoneInfo.ConvertTimeBySystemTimeZoneId(subscription.LastProcessedOn.Value, subscription.TimeZone).Date >= now.Date)
+            {
+                return false;
+            }
+
+            if (subscription.RepeatPeriod == "Daily")
             {
                 return true;
             }
 
-            var totalDays = (int)timeSinceLastProcessed.TotalDays;
-            var currentDateTime = TimeZoneInfo.ConvertTimeBySystemTimeZoneId(DateTime.Now, subscription.TimeZone);
-            var repeatDateTime = currentDateTime.Date + subscription.RepeatTime;
+            if (subscription.RepeatPeriod == "Weekly")
+            {
+                if (subscription.WeeklyDays == null)
+                {
+                    return now.DayOfWeek == subscription.StartDate.DayOfWeek;
+                }
+                HashSet<int> days;
+                return TryParseDays(subscription.WeeklyDays, 0, 6, out days) && days.Contains((int)now.DayOfWeek);
+            }
 
-            return (currentDateTime >= repeatDateTime) &&
-                ((subscription.RepeatPeriod.Equals(daily) && totalDays >= 1) ||
-                 (subscription.RepeatPeriod.Equals(weekly) && totalDays >= 7) ||
-                 (subscription.RepeatPeriod.Equals(monthly) && totalDays >= 30));
+            if (subscription.RepeatPeriod == "Monthly")
+            {
+                if (subscription.LastDayOfMonth)
+                {
+                    return now.Day == DateTime.DaysInMonth(now.Year, now.Month);
+                }
+                if (subscription.MonthlyDays == null)
+                {
+                    return now.Day == subscription.StartDate.Day;
+                }
+                HashSet<int> days;
+                return TryParseDays(subscription.MonthlyDays, 1, 31, out days) && days.Contains(now.Day);
+            }
+
+            return false;
+        }
+
+        public static bool IsValidSchedule(string repeatPeriod, string weeklyDays, string monthlyDays, bool lastDayOfMonth)
+        {
+            HashSet<int> days;
+            switch (repeatPeriod)
+            {
+                case "Daily": return true;
+                case "Weekly": return TryParseDays(weeklyDays, 0, 6, out days);
+                case "Monthly": return lastDayOfMonth || TryParseDays(monthlyDays, 1, 31, out days);
+                default: return false;
+            }
+        }
+
+        private static bool TryParseDays(string value, int minimum, int maximum, out HashSet<int> days)
+        {
+            days = new HashSet<int>();
+            if (string.IsNullOrWhiteSpace(value) || value.Length > (maximum == 6 ? 32 : 100))
+            {
+                return false;
+            }
+
+            foreach (var part in value.Split(','))
+            {
+                var range = part.Trim().Split('-');
+                int first, last = 0;
+                if (range.Length > 2 || !int.TryParse(range[0], out first) ||
+                    (range.Length == 2 && !int.TryParse(range[1], out last)))
+                {
+                    return false;
+                }
+                if (range.Length == 1)
+                {
+                    last = first;
+                }
+                if (first < minimum || last > maximum || first > last)
+                {
+                    return false;
+                }
+                for (var day = first; day <= last; day++)
+                {
+                    days.Add(day);
+                }
+            }
+            return days.Count > 0;
         }
 
         private string CreateEmailBody(Subscription subscription, string locale)

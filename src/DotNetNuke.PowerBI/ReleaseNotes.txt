@@ -185,4 +185,7 @@
 
 	<b>Version 1.5.3</b>
 	<p>feat: optionally remember each user's last report state without displaying it in bookmarks.</p>
+
+	<b>Version 1.5.4</b>
+	<p>feat: choose weekdays or month days (including the last day) for scheduled subscriptions.</p>
 </div>

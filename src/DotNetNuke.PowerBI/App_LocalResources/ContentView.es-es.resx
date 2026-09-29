@@ -285,4 +285,17 @@
   <data name="SubscriptionWeekly.Text" xml:space="preserve">
     <value>Semanal</value>
   </data>
+  <data name="SubscriptionWeekdays.Text" xml:space="preserve"><value>Activar</value></data>
+  <data name="SubscriptionSunday.Text" xml:space="preserve"><value>Dom.</value></data>
+  <data name="SubscriptionMonday.Text" xml:space="preserve"><value>Lun.</value></data>
+  <data name="SubscriptionTuesday.Text" xml:space="preserve"><value>Mar.</value></data>
+  <data name="SubscriptionWednesday.Text" xml:space="preserve"><value>Mié.</value></data>
+  <data name="SubscriptionThursday.Text" xml:space="preserve"><value>Jue.</value></data>
+  <data name="SubscriptionFriday.Text" xml:space="preserve"><value>Vie.</value></data>
+  <data name="SubscriptionSaturday.Text" xml:space="preserve"><value>Sáb.</value></data>
+  <data name="SubscriptionWeekdaysRequired.Text" xml:space="preserve"><value>Seleccione al menos un día.</value></data>
+  <data name="SubscriptionMonthDays.Text" xml:space="preserve"><value>Todos los meses el día</value></data>
+  <data name="SubscriptionMonthSpecificDays.Text" xml:space="preserve"><value>Días del mes</value></data>
+  <data name="SubscriptionLastDayOfMonth.Text" xml:space="preserve"><value>Último día del mes</value></data>
+  <data name="SubscriptionMonthDaysInvalid.Text" xml:space="preserve"><value>Introduzca días del 1 al 31 separados por comas (p. ej., 1,27-30).</value></data>
 </root>

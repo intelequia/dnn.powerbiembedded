@@ -262,6 +262,30 @@
                             <option value="Monthly">@Dnn.LocalizeString("SubscriptionMonthly")</option>
                         </select>
                     </div>
+                    <div class="dnnFormItem subscription-schedule" data-bind="visible: repeatPeriod() === 'Weekly'">
+                        <label>@Dnn.LocalizeString("SubscriptionWeekdays")</label>
+                        <div class="subscription-weekdays">
+                            <button type="button" data-bind="click: function () { toggleWeeklyDay('0'); }, css: { selected: weeklyDays.indexOf('0') !== -1 }, attr: { 'aria-pressed': weeklyDays.indexOf('0') !== -1 }">@Dnn.LocalizeString("SubscriptionSunday")</button>
+                            <button type="button" data-bind="click: function () { toggleWeeklyDay('1'); }, css: { selected: weeklyDays.indexOf('1') !== -1 }, attr: { 'aria-pressed': weeklyDays.indexOf('1') !== -1 }">@Dnn.LocalizeString("SubscriptionMonday")</button>
+                            <button type="button" data-bind="click: function () { toggleWeeklyDay('2'); }, css: { selected: weeklyDays.indexOf('2') !== -1 }, attr: { 'aria-pressed': weeklyDays.indexOf('2') !== -1 }">@Dnn.LocalizeString("SubscriptionTuesday")</button>
+                            <button type="button" data-bind="click: function () { toggleWeeklyDay('3'); }, css: { selected: weeklyDays.indexOf('3') !== -1 }, attr: { 'aria-pressed': weeklyDays.indexOf('3') !== -1 }">@Dnn.LocalizeString("SubscriptionWednesday")</button>
+                            <button type="button" data-bind="click: function () { toggleWeeklyDay('4'); }, css: { selected: weeklyDays.indexOf('4') !== -1 }, attr: { 'aria-pressed': weeklyDays.indexOf('4') !== -1 }">@Dnn.LocalizeString("SubscriptionThursday")</button>
+                            <button type="button" data-bind="click: function () { toggleWeeklyDay('5'); }, css: { selected: weeklyDays.indexOf('5') !== -1 }, attr: { 'aria-pressed': weeklyDays.indexOf('5') !== -1 }">@Dnn.LocalizeString("SubscriptionFriday")</button>
+                            <button type="button" data-bind="click: function () { toggleWeeklyDay('6'); }, css: { selected: weeklyDays.indexOf('6') !== -1 }, attr: { 'aria-pressed': weeklyDays.indexOf('6') !== -1 }">@Dnn.LocalizeString("SubscriptionSaturday")</button>
+                        </div>
+                        <span class="subscription-schedule-error" data-bind="visible: scheduleError() === 'Weekly'">@Dnn.LocalizeString("SubscriptionWeekdaysRequired")</span>
+                    </div>
+                    <div class="dnnFormItem subscription-schedule" data-bind="visible: repeatPeriod() === 'Monthly'">
+                        <label>@Dnn.LocalizeString("SubscriptionMonthDays")</label>
+                        <div class="subscription-month-option">
+                            <label><input type="radio" value="days" data-bind="checked: monthlyMode" /> @Dnn.LocalizeString("SubscriptionMonthSpecificDays")</label>
+                            <input type="text" data-bind="value: monthlyDays, valueUpdate: 'input', enable: monthlyMode() === 'days'" placeholder="1,27-30" />
+                        </div>
+                        <div class="subscription-month-option">
+                            <label><input type="radio" value="last" data-bind="checked: monthlyMode" /> @Dnn.LocalizeString("SubscriptionLastDayOfMonth")</label>
+                        </div>
+                        <span class="subscription-schedule-error" data-bind="visible: scheduleError() === 'Monthly'">@Dnn.LocalizeString("SubscriptionMonthDaysInvalid")</span>
+                    </div>
                     <div class="dnnFormItem">
                         <label for="cboEditRepeatHour">@Dnn.LocalizeString("SubscriptionRepeatTime")</label>
                         <div class="repeatTimeSelectors">

@@ -39,7 +39,7 @@
         return ('0' + h).slice(-2) + ':' + minute + ':00';
     }
 
-    function SubscriptionModel(p, id, portalId, reportId, groupId, name, startDate, endDate, repeatPeriod, repeatTime, timeZone, emailSubject, message, reportPages, enabled, users, roles, moduleId, includeMyChanges, myChangesState, myChangesUpdatedOn) {
+    function SubscriptionModel(p, id, portalId, reportId, groupId, name, startDate, endDate, repeatPeriod, repeatTime, timeZone, emailSubject, message, reportPages, enabled, users, roles, moduleId, includeMyChanges, myChangesState, myChangesUpdatedOn, weeklyDays, monthlyDays, lastDayOfMonth) {
         var that = this;
         var parent = p;
         this.id = ko.observable(id);
@@ -51,6 +51,41 @@
         this.startDate = ko.observable(startDate).extend({ required: true });
         this.endDate = ko.observable(endDate).extend({ required: true });
         this.repeatPeriod = ko.observable(repeatPeriod).extend({ required: true });
+        this.weeklyDays = ko.observableArray(weeklyDays === null && id !== -1
+            ? [new Date(startDate).getUTCDay().toString()]
+            : (weeklyDays || '').split(',').filter(Boolean));
+        this.monthlyDays = ko.observable(monthlyDays === null && id !== -1
+            ? new Date(startDate).getUTCDate().toString() : (monthlyDays || ''));
+        this.monthlyMode = ko.observable(lastDayOfMonth || id === -1 ? 'last' : 'days');
+        this.scheduleError = ko.observable('');
+        this.toggleWeeklyDay = function (day) {
+            if (that.weeklyDays.indexOf(day) === -1) {
+                that.weeklyDays.push(day);
+            } else {
+                that.weeklyDays.remove(day);
+            }
+            that.scheduleError('');
+        };
+        this.monthlyMode.subscribe(function () { that.scheduleError(''); });
+        this.monthlyDays.subscribe(function () { that.scheduleError(''); });
+        this.validateSchedule = function () {
+            if (that.repeatPeriod() === 'Weekly' && !that.weeklyDays().length) {
+                that.scheduleError('Weekly');
+                return false;
+            }
+            if (that.repeatPeriod() === 'Monthly' && that.monthlyMode() === 'days') {
+                var parts = (that.monthlyDays() || '').split(',');
+                if (!parts.length || parts.some(function (part) {
+                    var match = /^([1-9]|[12][0-9]|3[01])(?:-([1-9]|[12][0-9]|3[01]))?$/.exec(part.trim());
+                    return !match || (match[2] && Number(match[1]) > Number(match[2]));
+                })) {
+                    that.scheduleError('Monthly');
+                    return false;
+                }
+            }
+            that.scheduleError('');
+            return true;
+        };
         this.repeatTime = ko.observable(repeatTime).extend({ required: true });
         this.timeZone = ko.observable(timeZone).extend({ required: true });
         this.emailSubject = ko.observable(emailSubject).extend({ required: true });
@@ -239,6 +274,10 @@
             that.startDate(startDate);
             that.endDate(endDate);
             that.repeatPeriod(repeatPeriod);
+            that.weeklyDays(weeklyDays === null && id !== -1 ? [new Date(startDate).getUTCDay().toString()] : (weeklyDays || '').split(',').filter(Boolean));
+            that.monthlyDays(monthlyDays === null && id !== -1 ? new Date(startDate).getUTCDate().toString() : (monthlyDays || ''));
+            that.monthlyMode(lastDayOfMonth || id === -1 ? 'last' : 'days');
+            that.scheduleError('');
             var resetTime = parseRepeatTime(repeatTime);
             that.repeatHour(resetTime.hour);
             that.repeatMinute(resetTime.minute);
@@ -413,6 +452,9 @@
                                 subscription.IncludeMyChanges,
                                 subscription.MyChangesState,
                                 subscription.MyChangesUpdatedOn,
+                                subscription.WeeklyDays,
+                                subscription.MonthlyDays,
+                                subscription.LastDayOfMonth,
                             );
                             subscriptions.push(b);
                         });
@@ -836,6 +878,9 @@
                 false,
                 "",
                 null,
+                '',
+                '',
+                true,
             );
             that.subscriptionsArray.push(b);
             b.editSubscription();
@@ -889,6 +934,7 @@
 
         this.saveEditedSubscription = function (subscription) {
 
+            if (!subscription.validateSchedule()) { return; }
             if (subscription.editSubscriptionErrors().length > 0) {
                 subscription.editSubscriptionErrors.showAllMessages(true);
             }
@@ -906,6 +952,9 @@
                     StartDate: subscription.startDate(),
                     EndDate: subscription.endDate(),
                     RepeatPeriod: subscription.repeatPeriod(),
+                WeeklyDays: subscription.weeklyDays().join(','),
+                MonthlyDays: subscription.monthlyDays(),
+                LastDayOfMonth: subscription.monthlyMode() === 'last',
                     RepeatTime: subscription.repeatTime(),
                     TimeZone: subscription.timeZone(),
                     EmailSubject: subscription.emailSubject(),
@@ -997,6 +1046,9 @@
                 StartDate: subscription.startDate(),
                 EndDate: subscription.endDate(),
                 RepeatPeriod: subscription.repeatPeriod(),
+                    WeeklyDays: subscription.weeklyDays().join(','),
+                    MonthlyDays: subscription.monthlyDays(),
+                    LastDayOfMonth: subscription.monthlyMode() === 'last',
                 RepeatTime: subscription.repeatTime(),
                 TimeZone: subscription.timeZone(),
                 EmailSubject: subscription.emailSubject(),

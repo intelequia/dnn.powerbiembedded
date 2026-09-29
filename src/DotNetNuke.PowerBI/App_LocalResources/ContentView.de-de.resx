@@ -147,4 +147,17 @@
   <data name="SubscriptionMyChangesUpdate.Text" xml:space="preserve">
     <value>Aktualisieren</value>
   </data>
+  <data name="SubscriptionWeekdays.Text" xml:space="preserve"><value>Senden am</value></data>
+  <data name="SubscriptionSunday.Text" xml:space="preserve"><value>So.</value></data>
+  <data name="SubscriptionMonday.Text" xml:space="preserve"><value>Mo.</value></data>
+  <data name="SubscriptionTuesday.Text" xml:space="preserve"><value>Di.</value></data>
+  <data name="SubscriptionWednesday.Text" xml:space="preserve"><value>Mi.</value></data>
+  <data name="SubscriptionThursday.Text" xml:space="preserve"><value>Do.</value></data>
+  <data name="SubscriptionFriday.Text" xml:space="preserve"><value>Fr.</value></data>
+  <data name="SubscriptionSaturday.Text" xml:space="preserve"><value>Sa.</value></data>
+  <data name="SubscriptionWeekdaysRequired.Text" xml:space="preserve"><value>Bitte mindestens einen Tag auswählen.</value></data>
+  <data name="SubscriptionMonthDays.Text" xml:space="preserve"><value>Jeden Monat am</value></data>
+  <data name="SubscriptionMonthSpecificDays.Text" xml:space="preserve"><value>Monatstage</value></data>
+  <data name="SubscriptionLastDayOfMonth.Text" xml:space="preserve"><value>Letzter Tag des Monats</value></data>
+  <data name="SubscriptionMonthDaysInvalid.Text" xml:space="preserve"><value>Tage von 1 bis 31 eingeben, durch Kommas getrennt (z. B. 1,27-30).</value></data>
 </root>

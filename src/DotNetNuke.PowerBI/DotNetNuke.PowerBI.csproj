@@ -318,6 +318,7 @@
     <Content Include="scripts\powerbi.js" />
     <Content Include="scripts\powerbi.js.map" />
     <Content Include="Providers\DataProviders\SqlDataProvider\01.05.03.SqlDataProvider" />
+    <Content Include="Providers\DataProviders\SqlDataProvider\01.05.04.SqlDataProvider" />
     <None Include="Views\Emails\emailtemplate.cshtml" />
     <None Include="Views\Emails\es\emailtemplate.cshtml" />
     <None Include="Views\Emails\de\emailtemplate.cshtml" />
