@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="de" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <title>[[SubscriptionName]]</title>
+    <style>
+        html, body {
+            margin: 0 auto !important;
+            padding: 0 !important;
+            height: 100% !important;
+            width: 100% !important;
+        }
+        * { -ms-text-size-adjust: 100%; }
+        table, td {
+            mso-table-lspace: 0pt !important;
+            mso-table-rspace: 0pt !important;
+            border-collapse: collapse;
+        }
+        img { -ms-interpolation-mode: bicubic; border: 0; height: auto; line-height: 100%; outline: none; text-decoration: none; }
+        a { text-decoration: none; }
+        body {
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: #f3f4f6;
+            margin: 0;
+            padding: 0;
+            -webkit-font-smoothing: antialiased;
+        }
+        .email-wrapper { width: 100%; background-color: #f3f4f6; padding: 24px 0; }
+        .email-content {
+            width: 100%;
+            max-width: 640px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+        }
+        .email-header {
+            background: linear-gradient(135deg, #2563eb 0%, #1e3a8a 100%);
+            padding: 32px 40px;
+        }
+        .email-header h1 {
+            margin: 0;
+            color: #ffffff;
+            font-size: 22px;
+            font-weight: 600;
+            line-height: 1.3;
+        }
+        .email-header .eyebrow {
+            margin: 0 0 6px 0;
+            color: #bfdbfe;
+            font-size: 12px;
+            font-weight: 600;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+        .email-body { padding: 32px 40px; color: #374151; font-size: 15px; line-height: 1.6; }
+        .email-body p { margin: 0 0 16px 0; }
+        .report-card {
+            background-color: #f9fafb;
+            border: 1px solid #e5e7eb;
+            border-radius: 10px;
+            padding: 20px 24px;
+            margin: 8px 0 24px 0;
+        }
+        .report-card .meta-row { padding: 4px 0; }
+        .report-card .meta-label {
+            display: inline-block;
+            width: 130px;
+            color: #6b7280;
+            font-size: 13px;
+            font-weight: 600;
+        }
+        .report-card .meta-value { color: #111827; font-size: 14px; font-weight: 500; }
+        .attachment-pill {
+            display: inline-block;
+            background-color: #eff6ff;
+            color: #1d4ed8;
+            border: 1px solid #bfdbfe;
+            border-radius: 999px;
+            padding: 6px 14px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+        .email-footer {
+            padding: 24px 40px;
+            border-top: 1px solid #f0f0f0;
+            color: #9ca3af;
+            font-size: 12px;
+            line-height: 1.5;
+        }
+        @media only screen and (max-width: 600px) {
+            .email-header, .email-body, .email-footer { padding-left: 24px !important; padding-right: 24px !important; }
+            .report-card .meta-label { display: block; width: auto; margin-bottom: 2px; }
+        }
+    </style>
+</head>
+<body width="100%" style="margin: 0; padding: 0 !important; mso-line-height-rule: exactly;">
+    <div class="email-wrapper" style="width: 100%; background-color: #f3f4f6; padding: 24px 0;">
+        <div class="email-content" style="max-width: 640px; margin: 0 auto; background-color: #ffffff; border-radius: 12px;">
+            <div class="email-header" style="background: #1e3a8a; padding: 32px 40px;">
+                <p class="eyebrow" style="margin: 0 0 6px 0; color: #bfdbfe; font-size: 12px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase;">Power BI-Abonnement</p>
+                <h1 style="margin: 0; color: #ffffff; font-size: 22px; font-weight: 600;">[[SubscriptionName]]</h1>
+            </div>
+            <div class="email-body" style="padding: 32px 40px; color: #374151; font-size: 15px; line-height: 1.6;">
+                <p>[[EmailBody]]</p>
+                <div class="report-card" style="background-color: #f9fafb; border: 1px solid #e5e7eb; border-radius: 10px; padding: 20px 24px; margin: 8px 0 24px 0;">
+                    <div class="meta-row" style="padding: 4px 0;">
+                        <span class="meta-label" style="display: inline-block; width: 130px; color: #6b7280; font-size: 13px; font-weight: 600;">Bericht</span>
+                        <span class="meta-value" style="color: #111827; font-size: 14px; font-weight: 500;">[[ReportName]]</span>
+                    </div>
+                    <div class="meta-row" style="padding: 4px 0;">
+                        <span class="meta-label" style="display: inline-block; width: 130px; color: #6b7280; font-size: 13px; font-weight: 600;">Seite</span>
+                        <span class="meta-value" style="color: #111827; font-size: 14px; font-weight: 500;">[[SubscriptionName]]</span>
+                    </div>
+                    <div class="meta-row" style="padding: 4px 0;">
+                        <span class="meta-label" style="display: inline-block; width: 130px; color: #6b7280; font-size: 13px; font-weight: 600;">Erstellt am</span>
+                        <span class="meta-value" style="color: #111827; font-size: 14px; font-weight: 500;">[[ReportDate]]</span>
+                    </div>
+                </div>
+                <p style="margin: 0;"><span class="attachment-pill" style="display: inline-block; background-color: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; border-radius: 999px; padding: 6px 14px; font-size: 13px; font-weight: 600;">&#128206; Der Bericht ist dieser E-Mail beigefügt</span></p>
+            </div>
+            <div class="email-footer" style="padding: 24px 40px; border-top: 1px solid #f0f0f0; color: #9ca3af; font-size: 12px; line-height: 1.5;">
+                Sie erhalten diese E-Mail, weil Sie die Seite '[[SubscriptionName]]' des Berichts '[[ReportName]]' abonniert haben. Die angehängte Datei wurde am [[ReportDate]] erstellt.
+            </div>
+        </div>
+    </div>
+</body>
+</html>

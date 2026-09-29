@@ -169,9 +169,15 @@ namespace DotNetNuke.PowerBI.Services
                 {
                     //Mode = 0 schedule for all workspaces
                     var pbiSettings = SharedSettingsRepository.Instance.GetSettings(Settings.PortalId);
-                    foreach (var s in pbiSettings)
+                    // A workspace can be referenced by more than one settings group. Deduplicate so
+                    // each workspace is processed once; otherwise its datasets, refresh history and
+                    // schedule events would all be added multiple times (duplicated rows/events).
+                    foreach (var workspaceId in pbiSettings
+                        .Select(s => s.WorkspaceId)
+                        .Where(id => !string.IsNullOrEmpty(id))
+                        .Distinct(StringComparer.OrdinalIgnoreCase))
                     {
-                        model.Workspaces.Add(s.WorkspaceId);
+                        model.Workspaces.Add(workspaceId);
                     }
                 }
                 else
@@ -210,10 +216,19 @@ namespace DotNetNuke.PowerBI.Services
                         var color = String.Format("#{0:X6}", random.Next(0x1000000)); // = "#A197B9"
                         colours.Add(color);
 
+                        // The refresh history/schedule APIs only work on model-based datasets.
+                        // Push, streaming and other non-model datasets return HTTP 415
+                        // ("Invalid dataset. This API can only be called on a Model-based dataset"),
+                        // so skip them up-front instead of letting every call throw and spam the log.
+                        if (dataset.IsRefreshable != true)
+                        {
+                            continue;
+                        }
+
                         try
                         {
                             //Get refreshes history
-                            var history = client.Datasets.GetRefreshHistoryInGroupAsync(Guid.Parse(Settings.WorkspaceId), dataset.Id, 100).GetAwaiter().GetResult().Value.Value.ToList();
+                            var history = client.Datasets.GetRefreshHistoryInGroupAsync(Guid.Parse(workspace), dataset.Id, 100).GetAwaiter().GetResult().Value.Value.ToList();
 
                             foreach (var refresh in history)
                             {
@@ -239,66 +254,49 @@ namespace DotNetNuke.PowerBI.Services
                         try
                         {
                             //Get refresh Schedule by dataset and Workspace
-                            var schedule = client.Datasets.GetRefreshScheduleInGroupAsync(Guid.Parse(Settings.WorkspaceId), dataset.Id)
+                            var schedule = client.Datasets.GetRefreshScheduleInGroupAsync(Guid.Parse(workspace), dataset.Id)
                                 .GetAwaiter().GetResult().Value;
-                            var timeRange = new List<Schedule>();
-                            string startHour = schedule.Times[0];
-                            string endHour = schedule.Times[0];
 
-                            //Grouping of consecutive hours
-                            for (int i = 0; i < schedule.Times.Count; i++)
+                            // Skip schedules that are turned off or have no configured times.
+                            if (schedule == null || schedule.Enabled == false || schedule.Times == null || schedule.Times.Count == 0)
                             {
-                                if (schedule.Times[i] != schedule.Times.Last())
+                                continue;
+                            }
+
+                            var times = schedule.Times.Distinct().ToList();
+
+                            // Power BI only returns the specific weekdays that were selected. When a
+                            // schedule has times but no explicit days (e.g. a "daily" configuration)
+                            // treat it as every day of the week so it renders on all columns.
+                            var days = (schedule.Days != null && schedule.Days.Count > 0)
+                                ? schedule.Days.Select(d => (int)d).Distinct().ToList()
+                                : new List<int> { 0, 1, 2, 3, 4, 5, 6 };
+
+                            var scheduleColor = colours[x < colours.Count ? x : 0];
+
+                            // Create one calendar event per (weekday, time). Each refresh is rendered
+                            // as a short 30-minute block at its exact start time, so multiple datasets
+                            // scheduled at the same hour tile next to each other instead of merging.
+                            foreach (var dayOfWeek in days)
+                            {
+                                foreach (var startTime in times)
                                 {
-                                    DateTime hour = DateTime.ParseExact(schedule.Times[i], "HH:mm",
-                                        CultureInfo.InvariantCulture);
-                                    DateTime nextHour = DateTime.ParseExact(schedule.Times[i + 1], "HH:mm",
-                                        CultureInfo.InvariantCulture);
-                                    if (nextHour.Hour == hour.Hour + 1)
+                                    DateTime parsedStart;
+                                    if (!DateTime.TryParseExact(startTime, "HH:mm", CultureInfo.InvariantCulture, DateTimeStyles.None, out parsedStart))
                                     {
                                         continue;
                                     }
-                                    else
-                                    {
-                                        endHour = hour.AddHours(1).ToString("HH:mm");
-                                        timeRange.Add(new Schedule
-                                        {
-                                            start = startHour,
-                                            end = endHour
-                                        });
-                                        startHour = schedule.Times[i + 1];
-                                        endHour = schedule.Times[i + 1];
-                                    }
-                                }
-                                else
-                                {
-                                    endHour = DateTime.ParseExact(schedule.Times[i], "HH:mm",
-                                        CultureInfo.InvariantCulture).AddHours(1).ToString("HH:mm");
-                                    timeRange.Add(new Schedule
-                                    {
-                                        start = startHour,
-                                        end = endHour
-                                    });
-                                }
-                            }
-                            //Create calendar event by each date and hour group
-                            for (var index = 0; index < schedule.Days.Count; index++)
-                            {
-                                var day = schedule.Days[index];
-                                var dayOfWeek = (int)day;
-                                for (var i = 0; i < timeRange.Count; i++)
-                                {
-                                    var time = timeRange[i];
-                                    var id = Guid.NewGuid().ToString("N");
+
+                                    var endTime = parsedStart.AddMinutes(30).ToString("HH:mm");
                                     var item = new CalendarItem
                                     {
-                                        id = id,
-                                        color = colours[x < datasets.Count ? x : 0],
-                                        start = getCalendarDateTime(dayOfWeek, time.start),
-                                        end = getCalendarDateTime(dayOfWeek, time.end),
+                                        id = Guid.NewGuid().ToString("N"),
+                                        color = scheduleColor,
+                                        start = getCalendarDateTime(dayOfWeek, startTime),
+                                        end = getCalendarDateTime(dayOfWeek, endTime),
                                         title = dataset.Name,
                                     };
-                                    item.description = $"Workspace: {group.Name}; Capacity: {capacity.DisplayName}; Dataset: {dataset.Name}; Start: {time.start}";
+                                    item.description = $"Workspace: {group.Name}; Capacity: {capacity.DisplayName}; Dataset: {dataset.Name}; Start: {startTime}";
                                     model.RefreshSchedules.Add(item);
                                 }
                             }
@@ -311,8 +309,15 @@ namespace DotNetNuke.PowerBI.Services
 
                     }
                 }
-                //Order history
-                model.History = model.History.OrderByDescending(dataset => dataset.StartTime).ToList();
+                //Order history. Power BI returns up to 100 refreshes per dataset, so a daily
+                // dataset produces dozens of rows (same dataset/workspace name, only the day/time
+                // differs) that look like duplicates. Keep only the most recent refreshes per
+                // dataset+workspace so the history stays meaningful without flooding.
+                model.History = model.History
+                    .GroupBy(h => new { Dataset = h.Dataset ?? string.Empty, Workspace = h.WorkSpaceName ?? string.Empty })
+                    .SelectMany(g => g.OrderByDescending(h => h.StartTime).Take(10))
+                    .OrderByDescending(dataset => dataset.StartTime)
+                    .ToList();
 
                 CachingProvider.Instance().Insert($"PBI_{Settings.PortalId}_{Settings.SettingsId}_{Thread.CurrentThread.CurrentUICulture.Name}_CalendarDataSet_{mode}", model, null, DateTime.Now.AddMinutes(15), TimeSpan.Zero);
             }
@@ -330,8 +335,13 @@ namespace DotNetNuke.PowerBI.Services
 
         private string getCalendarDateTime(int DayOfWeek, string time)
         {
-            var baseDate = new DateTime(2006, 1, 2);
-            var result = baseDate.AddDays(DayOfWeek);
+            // Power BI's Days enum is Sunday-based (Sunday = 0, Monday = 1, ... Saturday = 6).
+            // The FullCalendar reference week starts on Monday (2006-01-02) and ends on Sunday
+            // (2006-01-08), so Monday-Saturday map to column offsets 0-5 and Sunday maps to the
+            // last column (offset 6). Using the raw enum value here shifted every event one day.
+            var baseDate = new DateTime(2006, 1, 2); // Monday
+            var offset = DayOfWeek == 0 ? 6 : DayOfWeek - 1;
+            var result = baseDate.AddDays(offset);
             result = result.AddHours(int.Parse(time.Substring(0, time.IndexOf(":"))));
             result = result.AddMinutes(int.Parse(time.Substring(time.IndexOf(":") + 1)));
 
@@ -896,95 +906,21 @@ namespace DotNetNuke.PowerBI.Services
             return name;
         }
 
-        // Power BI Embedded limits: max 50 roles per EffectiveIdentity, max 50 chars per role name.
-        // See https://learn.microsoft.com/rest/api/power-bi/embed-token/generate-token#effectiveidentity
-        private const int MaxRolesPerIdentity = 50;
-        private const int MaxRoleNameLength = 50;
-
         /// <summary>
         /// Filters and appends DNN roles to an <see cref="EffectiveIdentity"/> honoring the Power BI
-        /// limits (max 50 roles, max 50 chars per role name). If the appSetting "RLS.RoleGroupName"
-        /// is defined, only roles that belong to that DNN role group are included.
+        /// limits (max 50 roles, max 50 chars per role name) and the optional "RLS.RoleGroupName"
+        /// appSetting filter. The actual resolution lives in <see cref="Components.Common.ResolveEffectiveRoles"/>
+        /// so the render (embed) and subscription (export) paths behave identically.
         /// </summary>
         private void AppendEffectiveRoles(EffectiveIdentity rls, string roles)
         {
             if (rls == null || string.IsNullOrWhiteSpace(roles))
                 return;
 
-            var roleList = roles.Split(',')
-                .Select(r => r?.Trim())
-                .Where(r => !string.IsNullOrEmpty(r))
-                .Distinct(StringComparer.OrdinalIgnoreCase)
-                .ToList();
-
-            // Optional filter by role group configured in web.config
-            var roleGroupName = ConfigurationManager.AppSettings["RLS.RoleGroupName"];
-            if (!string.IsNullOrWhiteSpace(roleGroupName))
-            {
-                try
-                {
-                    var allowedRoles = GetRoleNamesInRoleGroup(roleGroupName);
-                    if (allowedRoles != null)
-                    {
-                        roleList = roleList
-                            .Where(r => allowedRoles.Contains(r, StringComparer.OrdinalIgnoreCase))
-                            .ToList();
-                    }
-                }
-                catch (Exception ex)
-                {
-                    Logger.Warn($"Error filtering roles by role group '{roleGroupName}'. Falling back to all roles.", ex);
-                }
-            }
-
-            // Warn (but don't fail) on roles whose name exceeds the Power BI limit; skip them.
-            var oversizedRoles = roleList.Where(r => r.Length > MaxRoleNameLength).ToList();
-            if (oversizedRoles.Count > 0)
-            {
-                Logger.Warn($"Power BI RLS: {oversizedRoles.Count} role(s) exceed the {MaxRoleNameLength}-character limit and will be skipped: {string.Join(", ", oversizedRoles)}");
-                roleList = roleList.Where(r => r.Length <= MaxRoleNameLength).ToList();
-            }
-
-            // Warn (but don't fail) when the effective identity would exceed Power BI's limit; truncate.
-            if (roleList.Count > MaxRolesPerIdentity)
-            {
-                Logger.Warn($"Power BI RLS: user has {roleList.Count} effective roles which exceeds the Power BI limit of {MaxRolesPerIdentity}. Only the first {MaxRolesPerIdentity} roles will be sent. Consider configuring the 'RLS.RoleGroupName' appSetting to filter roles by group.");
-                roleList = roleList.Take(MaxRolesPerIdentity).ToList();
-            }
-
-            foreach (var role in roleList)
+            foreach (var role in Components.Common.ResolveEffectiveRoles(roles, Settings.PortalId))
             {
                 rls.Roles.Add(role);
             }
-        }
-
-        /// <summary>
-        /// Returns the names of the DNN roles that belong to the role group with the given name in
-        /// the current portal, or null if the role group cannot be resolved.
-        /// </summary>
-        private List<string> GetRoleNamesInRoleGroup(string roleGroupName)
-        {
-            var cacheKey = $"PBI_{Settings.PortalId}_RoleGroupRoles_{roleGroupName}";
-            var cached = CachingProvider.Instance().GetItem(cacheKey) as List<string>;
-            if (cached != null)
-                return cached;
-
-            var groups = RoleController.GetRoleGroups(Settings.PortalId).Cast<RoleGroupInfo>().ToList();
-            var group = groups.FirstOrDefault(g => string.Equals(g.RoleGroupName, roleGroupName, StringComparison.OrdinalIgnoreCase));
-            if (group == null)
-            {
-                Logger.Warn($"Power BI RLS: role group '{roleGroupName}' configured in 'RLS.RoleGroupName' was not found in portal {Settings.PortalId}.");
-                return null;
-            }
-
-            var allRoles = RoleController.Instance.GetRoles(Settings.PortalId);
-            var names = allRoles
-                .Where(r => r.RoleGroupID == group.RoleGroupID)
-                .Select(r => r.RoleName)
-                .ToList();
-
-            CachingProvider.Instance().Insert(cacheKey, names, null, DateTime.Now.AddMinutes(5), TimeSpan.Zero);
-            return names;
         }
 
         private async Task<Guid?> GetReportDatasetWorkspaceIdAsync(Guid reportWorkspaceId, Guid reportId)

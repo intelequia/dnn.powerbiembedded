@@ -6,67 +6,74 @@
 @using DotNetNuke.Web.Client.ClientResourceManagement
 @using SelectListItem = System.Web.Mvc.SelectListItem
 @{
-    ClientResourceManager.RegisterStyleSheet(Dnn.DnnPage, "https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/3.9.0/fullcalendar.min.css", 10, "DnnPageHeaderProvider");
+    // FullCalendar 3.10.2 (NOT 3.9.0): the DNN/Tabler skin ships jQuery 3.7.1, which breaks
+    // FullCalendar 3.9.0's timed-event horizontal positioning (every event piled into the last
+    // day columns -> only Sat/Sun showed). FullCalendar 3.10.2 is the last v3 release and fixes
+    // the jQuery 3.6+/3.7 coordinate-cache incompatibility, so events render across all 7 days.
+    ClientResourceManager.RegisterStyleSheet(Dnn.DnnPage, "https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/3.10.2/fullcalendar.min.css", 10, "DnnPageHeaderProvider");
     ClientResourceManager.RegisterStyleSheet(Dnn.DnnPage, "~/DesktopModules/MVC/PowerBIEmbedded/css/module.css", 10, "DnnPageHeaderProvider");
     ClientResourceManager.RegisterScript(Dnn.DnnPage, "~/DesktopModules/MVC/PowerBIEmbedded/scripts/powerbi.min.js", 20);
     ClientResourceManager.RegisterScript(Dnn.DnnPage, "https://npmcdn.com/es6-promise@3.2.1", 18);
-    ClientResourceManager.RegisterScript(Dnn.DnnPage, "https://code.jquery.com/jquery-1.11.2.min.js", 19);
-    ClientResourceManager.RegisterScript(Dnn.DnnPage, "https://code.jquery.com/ui/1.11.2/jquery-ui.min.js", 19);
+    // NOTE: jQuery is already provided by DNN/the active skin. Re-loading jQuery (and jQuery UI)
+    // from a CDN here overrides the page's jQuery instance and breaks Bootstrap 5 based skins
+    // such  as Tabler (their plugins, e.g. popover/dropdowns, get detached).
     ClientResourceManager.RegisterScript(Dnn.DnnPage, "https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.21.0/moment.min.js", 20);
-    ClientResourceManager.RegisterScript(Dnn.DnnPage, "https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/3.9.0/fullcalendar.min.js", 21);
-    ClientResourceManager.RegisterScript(Dnn.DnnPage, "https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/3.9.0/locale-all.js", 22);
+    ClientResourceManager.RegisterScript(Dnn.DnnPage, "https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/3.10.2/fullcalendar.min.js", 21);
+    ClientResourceManager.RegisterScript(Dnn.DnnPage, "https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/3.10.2/locale-all.js", 22);
 
-
+    // Emit the DNN Services Framework client variables (sf_siteRoot / sf_tabId) for this page.
+    // A DNN MVC module's controller + view render during the page Render phase, which is AFTER
+    // the page's PreRender RegisterAjaxScript step where DNN normally emits these variables, and
+    // AFTER the __dnnVariable hidden field has already been serialized into the markup (the field
+    // sits earlier in the control tree than this module's pane). As a result
+    // ServicesFramework.RequestAjaxScriptSupport() (from the controller) is too late, and even
+    // this server-side RegisterClientVariable call does not make it into the rendered field for
+    // non-superusers. The DNN PersonaBar reads dnn.getVar('sf_siteRoot') WITHOUT a default, so a
+    // missing value produces requests to ".../undefinedAPI/personaBar/..." (404) and breaks the
+    // admin sidebar. We still call RegisterClientVariable (correct/harmless when it does land) but
+    // the reliable fix is the client-side dnn.setVar fallback emitted right after this block.
+    var sfSiteRoot = DotNetNuke.Framework.ServicesFramework.GetServiceFrameworkRoot();
+    var sfTabId = Dnn.ActiveModule.TabID.ToString(System.Globalization.CultureInfo.InvariantCulture);
+    if (!string.IsNullOrEmpty(sfSiteRoot))
+    {
+        DotNetNuke.UI.Utilities.ClientAPI.RegisterClientVariable(Dnn.DnnPage, "sf_siteRoot", sfSiteRoot, true);
+        DotNetNuke.UI.Utilities.ClientAPI.RegisterClientVariable(Dnn.DnnPage, "sf_tabId", sfTabId, true);
+    }
+}
+@if (!string.IsNullOrEmpty(sfSiteRoot))
+{
+    // Client-side guarantee: write sf_siteRoot/sf_tabId into the in-memory dnn variable store
+    // (the same object window.parent.dnn.getVar reads from the PersonaBar). dnn.setVar updates
+    // dnn.vars[key] immediately, so any later getVar('sf_siteRoot') resolves to the real path
+    // instead of undefined. Runs as early as possible; if dnn.js has not loaded yet it retries
+    // briefly until the dnn global is available.
+    <text>
+    <script>
+        (function () {
+            var sfRoot = @Html.Raw(Json.Encode(sfSiteRoot));
+            var sfTab = @Html.Raw(Json.Encode(sfTabId));
+            function applySfVars() {
+                var d = window.dnn;
+                if (!d || typeof d.setVar !== 'function' || typeof d.getVar !== 'function') { return false; }
+                if (sfRoot && d.getVar('sf_siteRoot') == null) { d.setVar('sf_siteRoot', sfRoot); }
+                if (sfTab && d.getVar('sf_tabId') == null) { d.setVar('sf_tabId', sfTab); }
+                return true;
+            }
+            if (!applySfVars()) {
+                var tries = 0;
+                var timer = setInterval(function () {
+                    if (applySfVars() || ++tries > 200) { clearInterval(timer); }
+                }, 50);
+            }
+        })();
+    </script>
+    </text>
 }
  
-<div class="powerbiCalendarView">
-    @Html.DropDownList("Mode", ViewBag.Options as SelectList,new { @class = "form-control drop m-b" })
-    @*@Html.DropDownListFor(m => m.SelectedOption, Model.Options, new { @onchange = "callChangefunc(this.value)" })*@
-    <script>
-        function updateUrlParameter(uri, key, value) {
-            // remove the hash part before operating on the uri
-            var i = uri.indexOf('#');
-            var hash = i === -1 ? ''  : uri.substr(i);
-            uri = i === -1 ? uri : uri.substr(0, i);
+<div class="powerbiCalendarView" id="powerbiCalendarView_@Dnn.ActiveModule.ModuleID">
+    @Html.DropDownList("Mode", ViewBag.Options as SelectList, new { @class = "form-control drop m-b" })
 
-            var re = new RegExp("([?&])" + key + "=.*?(&|$)", "i");
-            var separator = uri.indexOf('?') !== -1 ? "&" : "?";
-            if (uri.match(re)) {
-                uri = uri.replace(re, '$1' + key + "=" + value + '$2');
-            } else {
-                uri = uri + separator + key + "=" + value;
-            }
-            return uri + hash;  // finally append the hash as well
-        }
-
-        //function addOrUpdateUrlParam(name, value) {
-        //    var href = window.location.href;
-        //    var regex = new RegExp("[&\\?]" + name + "=");
-        //    if (regex.test(href)) {
-        //        regex = new RegExp("([&\\?])" + name + "=\\d+");
-        //        window.location.href = href.replace(regex, "$1" + name + "=" + value);
-        //    }
-        //    else {
-        //        if (href.indexOf("?") > -1)
-        //            window.location.href = href + "&" + name + "=" + value;
-        //        else
-        //            window.location.href = href + "?" + name + "=" + value;
-        //    }
-        //}
-        $("#Mode").on("change", function () {
-            var selectedId = $(this).val();
-
-            /**/
-            var url = updateUrlParameter(window.location.href, 'cid', selectedId);
-            window.location.href = url;
-            /**/
-        });
-
-    </script>
-    @if (Model == null)
-    {
-    }
-    else if (!string.IsNullOrEmpty(Model.ErrorMessage))
+    @if (Model != null && !string.IsNullOrEmpty(Model.ErrorMessage))
     {
         <div id="errorWrapper">
             <h2>@Dnn.LocalizeString("ErrorTitle")</h2>
@@ -75,7 +82,8 @@
     }
     else
     {
-        <div id="calendar" class="fc fc-unthemed fc-ltr"></div>
+        <div id="pbiCalendarError_@Dnn.ActiveModule.ModuleID" class="pbi-calendar-error" style="display:none;"></div>
+        <div id="calendar_@Dnn.ActiveModule.ModuleID" class="fc fc-unthemed fc-ltr"></div>
         <div class="history">
             <h1>Refresh history</h1>
             <table class="table table-hover">
@@ -90,115 +98,258 @@
                         <th>Status</th>
                     </tr>
                 </thead>
-                <tbody>
-                    @foreach (var refresh in ViewBag.History as List<RefreshedDataset>)
-                    {
-                    <tr>
-                        <td>@refresh.Dataset</td>
-                        <td>@refresh.WorkSpaceName</td>
-                        <td>@refresh.CapacityName</td>
-                        <td>@refresh.StartTime.Value.ToString("g")</td>
-                        <td>@refresh.EndTime.Value.ToString("g")</td>
-                        <td>@refresh.RefreshType</td>
-                        <td>@refresh.Status</td>
-
-                    </tr>
-                    }
-                </tbody>
+                <tbody id="pbiHistoryBody_@Dnn.ActiveModule.ModuleID"></tbody>
             </table>
             <div class="pages">
-                <ul class="pagination">
-                    @for (var i = 1; i <= Model.TotalPages; i++)
-                    {
-                        <li class="page-item @(i == Model.CurrentPage ? "active" : "")">
-                            <a onclick="changePage(@i)" class="page-link">@i</a>
-                        </li>
-                    }
-                </ul>
+                <ul class="pagination" id="pbiHistoryPagination_@Dnn.ActiveModule.ModuleID"></ul>
             </div>
         </div>
         <script>
+            (function () {
+                var moduleId = parseInt('@Dnn.ActiveModule.ModuleID', 10);
+                var context = {
+                    PortalId: parseInt('@Dnn.ActiveModule.PortalID', 10),
+                    ModuleId: moduleId,
+                    TabId: parseInt('@Dnn.ActiveModule.TabID', 10)
+                };
+                var pageSize = 10;
+                var errorText = @Html.Raw(Json.Encode(Dnn.LocalizeString("Error"))) || 'An error occurred while loading the calendar.';
+                var detailsText = @Html.Raw(Json.Encode(Dnn.LocalizeString("ShowDetails"))) || 'Show details';
+                var hideDetailsText = @Html.Raw(Json.Encode(Dnn.LocalizeString("HideDetails"))) || 'Hide details';
 
+                var $container = $('#powerbiCalendarView_' + moduleId);
+                var $mode = $container.find('[name="Mode"]');
+                var $calendar = $('#calendar_' + moduleId);
+                var $historyBody = $('#pbiHistoryBody_' + moduleId);
+                var $pagination = $('#pbiHistoryPagination_' + moduleId);
+                var $error = $('#pbiCalendarError_' + moduleId);
 
-            var events = @Html.Raw(Json.Encode(Model.RefreshSchedules));
+                var sf = $.ServicesFramework(moduleId);
+                var serviceRoot = sf.getServiceRoot('PowerBI/Services') + 'Calendar/';
+                var currentCid = ($mode.val() || '-1');
 
+                function ajaxHeaders() {
+                    return {
+                        'PortalId': context.PortalId,
+                        'ModuleId': context.ModuleId,
+                        'TabId': context.TabId,
+                        'RequestVerificationToken': sf.getAntiForgeryValue()
+                    };
+                }
 
-            // Calendar
-            $('#calendar').fullCalendar({
-                defaultView: 'agendaWeek',
-                defaultDate: '2006-01-02',
-                firstDay: 1,
-                minTime: '00:00:00',
-                maxTime: '23:59:00',
-                timeFormat: "HH:mm",
-                slotLabelFormat: "HH:mm",
-                editable: false,
-                selectable: false,
-                eventLimit: true, // allow "more" link when too many events
-                eventLimitText: "More", //sets the text for more events
-                droppable: false, // this allows things to be dropped onto the calendar
-                dragRevertDuration: 0,
-                events: events,
-                contentHeight: 'auto',
-                header: {
-                    //left: 'prev,next today',
-                    //center: 'title',
-                    //right: 'agendaDay,agendaTwoDay,agendaWeek,month'
+                function updateUrlParameter(uri, key, value) {
+                    var i = uri.indexOf('#');
+                    var hash = i === -1 ? '' : uri.substr(i);
+                    uri = i === -1 ? uri : uri.substr(0, i);
 
-                },
-                views: {
-                    agendaTwoDay: {
-                        type: 'agenda',
-                        duration: {
-                            days: 1
-                        }
-                        // views that are more than a day will NOT do this behavior by default
-                        // so, we need to explicitly enable it
-                        //groupByResource: true
-
-                        //// uncomment this line to group by day FIRST with resources underneath
-                        //groupByDateAndResource: true
-                    },
-                    agendaWeek: {
-                        titleFormat: 'MMMM',
-                        columnFormat: 'dddd'
+                    var re = new RegExp("([?&])" + key + "=.*?(&|$)", "i");
+                    var separator = uri.indexOf('?') !== -1 ? "&" : "?";
+                    if (uri.match(re)) {
+                        uri = uri.replace(re, '$1' + key + "=" + value + '$2');
+                    } else {
+                        uri = uri + separator + key + "=" + value;
                     }
-                },
-                //// uncomment this line to hide the all-day slot
-                allDaySlot: false,
-                eventRender: function (eventObj, $el) {
-                    $el.popover({
-                        title: eventObj.title,
-                        content: eventObj.description.replace('\n', '\n\r'),
-                        trigger: 'hover',
-                        placement: 'top',
-                        container: 'body'
+                    return uri + hash;
+                }
+
+                // Reflect the current workspace in the address bar WITHOUT reloading the page.
+                function setCidInUrl(cid) {
+                    if (window.history && window.history.replaceState) {
+                        var newUrl = updateUrlParameter(window.location.href, 'cid', cid);
+                        window.history.replaceState(null, '', newUrl);
+                    }
+                }
+
+                function showError() {
+                    if ($error.length) {
+                        $error.text(errorText).show();
+                    }
+                }
+
+                function clearError() {
+                    if ($error.length) {
+                        $error.hide().empty();
+                    }
+                }
+
+                function initCalendar() {
+                    $calendar.fullCalendar({
+                        defaultView: 'agendaWeek',
+                        defaultDate: '2006-01-02',
+                        firstDay: 1,
+                        minTime: '00:00:00',
+                        maxTime: '23:59:00',
+                        timeFormat: "HH:mm",
+                        slotLabelFormat: "HH:mm",
+                        editable: false,
+                        selectable: false,
+                        eventLimit: true,
+                        eventLimitText: "More",
+                        slotEventOverlap: false,
+                        droppable: false,
+                        dragRevertDuration: 0,
+                        events: [],
+                        contentHeight: 'auto',
+                        header: {},
+                        views: {
+                            agendaTwoDay: {
+                                type: 'agenda',
+                                duration: { days: 1 }
+                            },
+                            agendaWeek: {
+                                titleFormat: 'MMMM',
+                                columnFormat: 'dddd'
+                            }
+                        },
+                        allDaySlot: false,
+                        eventRender: function (eventObj, $el) {
+                            var tooltip = eventObj.title || '';
+                            if (eventObj.description) {
+                                tooltip += (tooltip ? '\n' : '') + eventObj.description;
+                            }
+                            if (tooltip) {
+                                $el.attr('title', tooltip);
+                            }
+                        }
                     });
                 }
-            });
-            //$("#calendar").fullCalendar('renderEvents', events, true);
 
-            function changePage(page) {
-                var url = updateUrlParameter(window.location.href, 'page', page);
-                window.location.href = url;
-            }
-
-            function updateUrlParameter(uri, key, value) {
-                // remove the hash part before operating on the uri
-                var i = uri.indexOf('#');
-                var hash = i === -1 ? ''  : uri.substr(i);
-                uri = i === -1 ? uri : uri.substr(0, i);
-
-                var re = new RegExp("([?&])" + key + "=.*?(&|$)", "i");
-                var separator = uri.indexOf('?') !== -1 ? "&" : "?";
-                if (uri.match(re)) {
-                    uri = uri.replace(re, '$1' + key + "=" + value + '$2');
-                } else {
-                    uri = uri + separator + key + "=" + value;
+                function loadSchedule(cid) {
+                    $.ajax({
+                        url: serviceRoot + 'GetSchedule',
+                        type: 'GET',
+                        async: true,
+                        data: { cid: cid },
+                        dataType: 'json',
+                        headers: ajaxHeaders()
+                    }).done(function (data) {
+                        var schedules = (data && (data.schedules || data.Schedules)) || [];
+                        $calendar.fullCalendar('removeEventSources');
+                        $calendar.fullCalendar('addEventSource', schedules);
+                    }).fail(function (xhr) {
+                        if (window.console) { console.error(xhr); }
+                        showError();
+                    });
                 }
-                return uri + hash;  // finally append the hash as well
-            }
 
+                function loadHistory(cid, page) {
+                    $.ajax({
+                        url: serviceRoot + 'GetHistory',
+                        type: 'GET',
+                        async: true,
+                        data: { cid: cid, page: page, pageSize: pageSize },
+                        dataType: 'json',
+                        headers: ajaxHeaders()
+                    }).done(function (data) {
+                        renderHistory(data);
+                    }).fail(function (xhr) {
+                        if (window.console) { console.error(xhr); }
+                        showError();
+                    });
+                }
+
+                function statusInfo(status) {
+                    var s = (status || '').toString().toLowerCase();
+                    if (s === 'completed' || s === 'success' || s === 'succeeded') {
+                        return { cls: 'pbi-status--success', icon: 'ti ti-circle-check' };
+                    }
+                    if (s === 'failed' || s === 'error' || s === 'disabled') {
+                        return { cls: 'pbi-status--failed', icon: 'ti ti-alert-circle' };
+                    }
+                    if (s === 'unknown' || s === 'inprogress' || s === 'in progress' || s === 'notstarted') {
+                        return { cls: 'pbi-status--progress', icon: 'ti ti-loader' };
+                    }
+                    return { cls: 'pbi-status--neutral', icon: '' };
+                }
+
+                function renderHistory(data) {
+                    var history = (data && (data.history || data.History)) || [];
+                    var currentPage = (data && (data.currentPage || data.CurrentPage)) || 1;
+                    var totalPages = (data && (data.totalPages || data.TotalPages)) || 0;
+
+                    $historyBody.empty();
+                    $.each(history, function (i, h) {
+                        var status = h.status || h.Status || '';
+                        var errorDetails = h.errorDetails || h.ErrorDetails || '';
+                        var info = statusInfo(status);
+
+                        var $tr = $('<tr>', { 'class': 'pbi-history-row' });
+                        $tr.append($('<td>', { 'class': 'pbi-history-dataset' }).text(h.dataset || h.Dataset || ''));
+                        $tr.append($('<td>').text(h.workspace || h.Workspace || ''));
+                        $tr.append($('<td>').text(h.capacity || h.Capacity || ''));
+                        $tr.append($('<td>', { 'class': 'pbi-history-time' }).text(h.startTime || h.StartTime || ''));
+                        $tr.append($('<td>', { 'class': 'pbi-history-time' }).text(h.endTime || h.EndTime || ''));
+                        $tr.append($('<td>').text(h.refreshType || h.RefreshType || ''));
+
+                        var $statusCell = $('<td>', { 'class': 'pbi-history-status-cell' });
+                        var $badge = $('<span>', { 'class': 'pbi-status ' + info.cls });
+                        if (info.icon) {
+                            $badge.append($('<i>', { 'class': info.icon }));
+                        }
+                        $badge.append($('<span>').text(status || '-'));
+                        $statusCell.append($badge);
+
+                        if (errorDetails) {
+                            var $toggle = $('<a>', { 'class': 'pbi-history-error-toggle', href: '#' }).text(detailsText);
+                            $statusCell.append($toggle);
+                            $tr.append($statusCell);
+                            $historyBody.append($tr);
+
+                            var $detailRow = $('<tr>', { 'class': 'pbi-history-detail-row' }).hide();
+                            var $detailCell = $('<td>', { colspan: 7 });
+                            var $detailBox = $('<div>', { 'class': 'pbi-history-error' });
+                            $detailBox.append($('<i>', { 'class': 'ti ti-alert-triangle' }));
+                            $detailBox.append($('<span>').text(errorDetails));
+                            $detailCell.append($detailBox);
+                            $detailRow.append($detailCell);
+                            $historyBody.append($detailRow);
+
+                            $toggle.on('click', function (e) {
+                                e.preventDefault();
+                                var visible = $detailRow.is(':visible');
+                                $detailRow.toggle(!visible);
+                                $toggle.text(visible ? detailsText : hideDetailsText);
+                                $tr.toggleClass('pbi-history-row--expanded', !visible);
+                            });
+                        } else {
+                            $tr.append($statusCell);
+                            $historyBody.append($tr);
+                        }
+                    });
+
+                    renderPagination(currentPage, totalPages);
+                }
+
+                function renderPagination(currentPage, totalPages) {
+                    $pagination.empty();
+                    for (var i = 1; i <= totalPages; i++) {
+                        var $li = $('<li>', { 'class': 'page-item' + (i === currentPage ? ' active' : '') });
+                        var $a = $('<a>', { 'class': 'page-link', href: '#', text: i });
+                        (function (targetPage) {
+                            $a.on('click', function (e) {
+                                e.preventDefault();
+                                loadHistory(currentCid, targetPage);
+                            });
+                        })(i);
+                        $li.append($a);
+                        $pagination.append($li);
+                    }
+                }
+
+                $mode.on('change', function () {
+                    currentCid = $(this).val();
+                    setCidInUrl(currentCid);
+                    clearError();
+                    loadSchedule(currentCid);
+                    loadHistory(currentCid, 1);
+                });
+
+                $(function () {
+                    initCalendar();
+                    loadSchedule(currentCid);
+                    loadHistory(currentCid, 1);
+                });
+            })();
         </script>
     }
 </div>

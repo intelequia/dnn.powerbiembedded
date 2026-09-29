@@ -245,15 +245,19 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Components\Common.cs" />
+    <Compile Include="Components\AppInsightsPageViews.cs" />
     <Compile Include="Components\Culture.cs" />
     <Compile Include="Components\FeatureController.cs" />
     <Compile Include="Components\MenuController.cs" />
     <Compile Include="Components\RouteMapper.cs" />
     <Compile Include="Components\SubscriptionProcessor.cs" />
     <Compile Include="Controllers\CalendarViewController.cs" />
+    <Compile Include="Services\CalendarController.cs" />
     <Compile Include="Services\ExportsController.cs" />
     <Compile Include="Controllers\ContentViewController.cs" />
     <Compile Include="Controllers\ListViewController.cs" />
+    <Compile Include="Controllers\ReportCatalogController.cs" />
+    <Compile Include="Controllers\StatsViewController.cs" />
     <Compile Include="Controllers\SettingsController.cs" />
     <Compile Include="Data\Bookmarks\BookmarksRepository.cs" />
     <Compile Include="Data\Bookmarks\IBookmarksRepository.cs" />
@@ -276,6 +280,8 @@
     <Compile Include="Models\PowerBICalendarView.cs" />
     <Compile Include="Models\PowerBIListView.cs" />
     <Compile Include="Models\PowerBIListViewExtensions.cs" />
+    <Compile Include="Models\ReportCatalogView.cs" />
+    <Compile Include="Models\StatsViewModel.cs" />
     <Compile Include="Models\TileEmbedConfig.cs" />
     <Compile Include="Models\Workspace.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -287,6 +293,7 @@
     <Compile Include="Services\Models\PBIPermissions.cs" />
     <Compile Include="Services\Models\SavePowerBiObjectsPermissionsInput.cs" />
     <Compile Include="Services\PBIEmbeddedController.cs" />
+    <Compile Include="Services\StatsController.cs" />
     <Compile Include="Services\SubscriptionController.cs" />
     <Compile Include="Tasks\SubscribeTask.cs" />
   </ItemGroup>
@@ -310,7 +317,10 @@
     <Content Include="images\success.svg" />
     <Content Include="scripts\powerbi.js" />
     <Content Include="scripts\powerbi.js.map" />
-    <None Include="Views\emailtemplate.cshtml" />
+    <Content Include="Providers\DataProviders\SqlDataProvider\01.05.03.SqlDataProvider" />
+    <None Include="Views\Emails\emailtemplate.cshtml" />
+    <None Include="Views\Emails\es\emailtemplate.cshtml" />
+    <None Include="Views\Emails\de\emailtemplate.cshtml" />
     <Content Include="images\addbookmark.png" />
     <Content Include="images\addsubscription.png" />
     <Content Include="images\bookmark.png" />
@@ -360,8 +370,17 @@
     <Content Include="Views\_ViewStart.cshtml" />
     <Content Include="Views\Shared\_Layout.cshtml" />
     <Content Include="Views\Settings\Index.cshtml" />
+    <Content Include="Views\Settings\ReportCatalogSettings.cshtml" />
+    <Content Include="Views\Settings\StatSettings.cshtml" />
     <Content Include="Views\ListView\Index.cshtml" />
     <Content Include="Views\ContentView\Index.cshtml" />
+    <Content Include="Views\ReportCatalog\Index.cshtml" />
+    <Content Include="Views\StatsView\Index.cshtml" />
+    <Content Include="scripts\ReportCatalog.js" />
+    <Content Include="scripts\StatsView.js" />
+    <Content Include="images\report-generic.svg" />
+    <Content Include="images\search.svg" />
+    <Content Include="images\eye.svg" />
     <Content Include="Providers\DataProviders\SqlDataProvider\01.00.02.SqlDataProvider" />
     <Content Include="Providers\DataProviders\SqlDataProvider\01.00.04.SqlDataProvider" />
     <Content Include="Providers\DataProviders\SqlDataProvider\01.00.06.SqlDataProvider" />
@@ -378,10 +397,32 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="App_LocalResources\Settings.resx" />
+    <Content Include="App_LocalResources\Settings.resx">
+      <SubType>Designer</SubType>
+    </Content>
   </ItemGroup>
   <ItemGroup>
     <Content Include="App_LocalResources\ContentView.resx">
+      <SubType>Designer</SubType>
+    </Content>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="App_LocalResources\ReportCatalog.resx">
+      <SubType>Designer</SubType>
+    </Content>
+    <Content Include="App_LocalResources\ReportCatalog.es-es.resx">
+      <SubType>Designer</SubType>
+    </Content>
+    <Content Include="App_LocalResources\ReportCatalog.de-de.resx">
+      <SubType>Designer</SubType>
+    </Content>
+    <Content Include="App_LocalResources\StatsView.resx">
+      <SubType>Designer</SubType>
+    </Content>
+    <Content Include="App_LocalResources\StatsView.es-es.resx">
+      <SubType>Designer</SubType>
+    </Content>
+    <Content Include="App_LocalResources\StatsView.de-de.resx">
       <SubType>Designer</SubType>
     </Content>
   </ItemGroup>
@@ -396,10 +437,14 @@
     </Content>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="App_LocalResources\Settings.de-de.resx" />
+    <Content Include="App_LocalResources\Settings.de-de.resx">
+      <SubType>Designer</SubType>
+    </Content>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="App_LocalResources\Settings.es-es.resx" />
+    <Content Include="App_LocalResources\Settings.es-es.resx">
+      <SubType>Designer</SubType>
+    </Content>
   </ItemGroup>
   <ItemGroup>
     <Content Include="App_LocalResources\ContentView.es-es.resx">
@@ -488,6 +533,6 @@
   <Target Name="AfterBuild" DependsOnTargets="PackageModule">
   </Target>
   <PropertyGroup>
-    <PostBuildEvent>IF $(ConfigurationName)==DebugPersonaBar copy $(TargetDir)$(TargetName).* C:\Websites\tmh2-admin.dnndev.me\bin /Y</PostBuildEvent>
+    <PostBuildEvent>IF $(ConfigurationName)==DebugPersonaBar copy $(TargetDir)$(TargetName).* C:\Websites\portalbisimon.dnndev.me\bin /Y</PostBuildEvent>
   </PropertyGroup>
 </Project>

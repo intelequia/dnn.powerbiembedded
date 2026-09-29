@@ -93,6 +93,17 @@ namespace DotNetNuke.PowerBI.Services.Models
                             View = false,
                         });
                     }
+                    if (permission.PermissionID == 4)
+                    {
+                        rolePermission.Permissions.Add(new Dnn.PersonaBar.Library.Dto.Permission()
+                        {
+                            AllowAccess = permission.AllowAccess,
+                            FullControl = false,
+                            PermissionId = permission.PermissionID,
+                            PermissionName = "Export",
+                            View = false,
+                        });
+                    }
 
                 }
                 else
@@ -133,6 +144,19 @@ namespace DotNetNuke.PowerBI.Services.Models
                         {
                             PermissionID = permission.PermissionID,
                             PermissionName = "Download",
+                            AllowAccess = permission.AllowAccess,
+                            UserID = permission.UserID.Value,
+                            DisplayName = user.DisplayName,
+                            Username = user.Username,
+                        };
+                    }
+
+                    if (permission.PermissionID == 4)
+                    {
+                        permissionBase = new ModulePermissionInfo
+                        {
+                            PermissionID = permission.PermissionID,
+                            PermissionName = "Export",
                             AllowAccess = permission.AllowAccess,
                             UserID = permission.UserID.Value,
                             DisplayName = user.DisplayName,

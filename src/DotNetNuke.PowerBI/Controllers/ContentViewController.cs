@@ -5,6 +5,7 @@ using DotNetNuke.Framework.JavaScriptLibraries;
 using DotNetNuke.Instrumentation;
 using DotNetNuke.PowerBI.Components;
 using DotNetNuke.PowerBI.Data;
+using DotNetNuke.PowerBI.Data.Bookmarks;
 using DotNetNuke.PowerBI.Data.Models;
 using DotNetNuke.PowerBI.Data.SharedSettings;
 using DotNetNuke.PowerBI.Extensibility;
@@ -125,6 +126,7 @@ namespace DotNetNuke.PowerBI.Controllers
 
                 bool hasEditPermission = HasPermission(embedService.Settings, Request["reportId"] ?? itemId, 2);
                 bool hasDownloadPermission = HasPermission(embedService.Settings, Request["reportId"] ?? itemId, 3);
+                bool hasExportPermission = HasPermission(embedService.Settings, Request["reportId"] ?? itemId, 4);
 
 
                 if (!string.IsNullOrEmpty(Request["dashboardId"]))
@@ -163,7 +165,7 @@ namespace DotNetNuke.PowerBI.Controllers
                 ViewBag.ReportPages = reportPages;
                 ViewBag.CanEdit = hasEditPermission && bool.Parse(GetSetting("PowerBIEmbedded_EditVisible", "false"));
                 ViewBag.CanDownload = hasDownloadPermission && bool.Parse(GetSetting("PowerBIEmbedded_DownloadVisible", "false"));
-                ViewBag.CanExport = hasDownloadPermission && bool.Parse(GetSetting("PowerBIEmbedded_ExportVisible", "false"));
+                ViewBag.CanExport = hasExportPermission && bool.Parse(GetSetting("PowerBIEmbedded_ExportVisible", "false"));
                 ViewBag.Locale = System.Threading.Thread.CurrentThread.CurrentUICulture.Name.Substring(0, 2);
 
                 ViewBag.TimeZones = TimeZoneInfo.GetSystemTimeZones();
@@ -180,6 +182,19 @@ namespace DotNetNuke.PowerBI.Controllers
                 ViewBag.FullScreenVisible = bool.Parse(GetSetting("PowerBIEmbedded_FullScreenVisible", "false"));
                 ViewBag.HideVisualizationData = bool.Parse(GetSetting("PowerBIEmbedded_HideVisualizationData", "false"));
                 ViewBag.BookmarksVisible = bool.Parse(GetSetting("PowerBIEmbedded_BookmarksVisible", "false"));
+                ViewBag.RememberReportState = bool.Parse(GetSetting("PowerBIEmbedded_RememberReportState", "true")) && User.UserID > 0 && model.ContentType == "report";
+                string reportState = null;
+                if (ViewBag.RememberReportState)
+                {
+                    try
+                    {
+                        reportState = BookmarksRepository.Instance.GetReportState(ModuleContext.PortalId, model.Id, User.UserID)?.State;
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.Error(ex);
+                    }
+                }
                 ViewBag.ApplicationInsightsEnabled = bool.Parse(GetSetting("PowerBIEmbedded_ApplicationInsightsEnabled", "false"));
                 ViewBag.Height = GetSetting("PowerBIEmbedded_Height");
                 ViewBag.PageName = GetSetting("PowerBIEmbedded_PageName");
@@ -214,6 +229,8 @@ namespace DotNetNuke.PowerBI.Controllers
                     ViewBag.OverrideVisualHeaderVisibility,
                     ViewBag.OverrideFilterPaneVisibility,
                     ViewBag.ApplicationInsightsEnabled,
+                    ViewBag.RememberReportState,
+                    ReportState = reportState,
                     ViewBag.NavPaneVisible,
                     ViewBag.VisualHeaderVisible,
                     ViewBag.Locale,

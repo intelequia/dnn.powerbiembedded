@@ -182,4 +182,7 @@
 	<p>maintenance: refactored PowerBIClient initialization, role handling, and report export logic for improved clarity.</p>
 	<p>maintenance: enhanced error handling and logging for dataset and subscription email delivery.</p>
 	<p>maintenance: added subscription localization keys for German and Spanish.</p>
+
+	<b>Version 1.5.3</b>
+	<p>feat: optionally remember each user's last report state without displaying it in bookmarks.</p>
 </div>

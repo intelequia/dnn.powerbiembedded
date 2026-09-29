@@ -214,7 +214,9 @@ namespace DotNetNuke.PowerBI.Data
                 }
 
                 var permissions = GetObjectPermissions(powerBiObjectId, portalId != -1 ? portalId : PortalSettings.Current.PortalId);
-                if (permissions.Any(permission => permission.RoleID == -1))
+                if (permissions.Any(permission => permission.RoleID == -1
+                    && permission.PermissionID == permissionId
+                    && permission.AllowAccess))
                 {
                     return true;
                 }

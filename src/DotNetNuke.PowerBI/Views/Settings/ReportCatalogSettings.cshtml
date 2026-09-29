@@ -1,0 +1,56 @@
+@inherits DotNetNuke.Web.Mvc.Framework.DnnWebViewPage<DotNetNuke.PowerBI.Controllers.SettingsController.SettingsModel>
+@using System.Web.Mvc
+@using DotNetNuke.Web.Mvc.Helpers
+@using DotNetNuke.Web.Client.ClientResourceManagement
+@{
+    var pbiModuleVersion = typeof(DotNetNuke.PowerBI.Controllers.SettingsController).Assembly.GetName().Version.ToString();
+    ClientResourceManager.RegisterScript(Dnn.DnnPage, "~/DesktopModules/MVC/PowerBIEmbedded/scripts/module-settings.js?v=" + pbiModuleVersion, 25, "DnnPageHeaderProvider");
+    ClientResourceManager.RegisterStyleSheet(Dnn.DnnPage, "~/DesktopModules/MVC/PowerBIEmbedded/Css/module.css", 9, "DnnPageHeaderProvider");
+}
+@using DotNetNuke.UI.Utilities
+@using DotNetNuke.Common.Utilities
+
+<div id="PowerBISettings" class="dnnForm">
+    <div class="dnnFormExpandContent"><a href="">@Dnn.LocalizeString("ExpandAll")</a></div>
+    <h2 class="dnnFormSectionHead"><a href="#">Report Catalog Settings</a></h2>
+    <fieldset id="ReportCatalogGroupSettings">
+        <div class="dnnFormItem">
+            <div class="leftGroup">
+                <label>@Dnn.LocalizeString("StatsAppInsightsAppIdLabel")</label>
+                @Html.TextBoxFor(m => m.ReportCatalogAppInsightsAppId, new { placeholder = "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx" })
+                <div>@Dnn.LocalizeString("StatsAppInsightsAppIdHelp")</div>
+            </div>
+        </div>
+        <div class="dnnFormItem">
+            <div class="leftGroup">
+                <label>@Dnn.LocalizeString("StatsAppInsightsApiKeyLabel")</label>
+                @Html.TextBoxFor(m => m.ReportCatalogAppInsightsApiKey, new { type = "password", autocomplete = "off" })
+                <div>@Dnn.LocalizeString("StatsAppInsightsApiKeyHelp")</div>
+            </div>
+        </div>
+        <div class="dnnFormItem">
+            <div class="leftGroup">
+                <label>@Dnn.LocalizeString("StatsAppInsightsApiUrlLabel")</label>
+                @Html.TextBoxFor(m => m.ReportCatalogAppInsightsApiUrl)
+                <div>@Dnn.LocalizeString("StatsAppInsightsApiUrlHelp")</div>
+            </div>
+        </div>
+    </fieldset>
+
+</div>
+
+<script type="text/javascript">
+
+    jQuery(function ($) {
+        var setupModule = function () {
+            $('#PowerBISettings').dnnPanels();
+            $('#PowerBISettings .dnnFormExpandContent a').dnnExpandAll({
+                targetArea: '#PowerBISettings'
+            });
+        };
+        setupModule();
+        Sys.WebForms.PageRequestManager.getInstance().add_endRequest(function () {
+            setupModule();
+        });
+    });
+</script>

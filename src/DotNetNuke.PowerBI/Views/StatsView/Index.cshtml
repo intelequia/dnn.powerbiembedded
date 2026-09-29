@@ -1,0 +1,185 @@
+@inherits DotNetNuke.Web.Mvc.Framework.DnnWebViewPage
+@using DotNetNuke.Web.Client.ClientResourceManagement
+@{
+    ClientResourceManager.RegisterStyleSheet(Dnn.DnnPage, "~/DesktopModules/MVC/PowerBIEmbedded/Css/module.css", 10, "DnnPageHeaderProvider");
+    ClientResourceManager.RegisterScript(Dnn.DnnPage, "~/DesktopModules/MVC/PowerBIEmbedded/scripts/StatsView.js", 25);
+
+    var sfSiteRoot = DotNetNuke.Framework.ServicesFramework.GetServiceFrameworkRoot();
+    var sfTabId = Dnn.ActiveModule.TabID.ToString(System.Globalization.CultureInfo.InvariantCulture);
+    var defaultRange = ((string)ViewBag.DefaultRange ?? "14d").ToLowerInvariant();
+    var showPublishedReports = ViewBag.ShowPublishedReports != null ? (bool)ViewBag.ShowPublishedReports : true;
+    var showActiveUsers = ViewBag.ShowActiveUsers != null ? (bool)ViewBag.ShowActiveUsers : true;
+    var showDatasets = ViewBag.ShowDatasets != null ? (bool)ViewBag.ShowDatasets : true;
+    var showLastRefresh = ViewBag.ShowLastRefresh != null ? (bool)ViewBag.ShowLastRefresh : true;
+    var showReportViews = ViewBag.ShowReportViews != null ? (bool)ViewBag.ShowReportViews : true;
+    var showMostViewed = ViewBag.ShowMostViewed != null ? (bool)ViewBag.ShowMostViewed : true;
+    ClientResourceManager.RegisterScript(Dnn.DnnPage, "https://cdn.jsdelivr.net/npm/apexcharts/dist/apexcharts.min.js", 24, "DnnPageHeaderProvider");
+    if (!string.IsNullOrEmpty(sfSiteRoot))
+    {
+        DotNetNuke.UI.Utilities.ClientAPI.RegisterClientVariable(Dnn.DnnPage, "sf_siteRoot", sfSiteRoot, true);
+        DotNetNuke.UI.Utilities.ClientAPI.RegisterClientVariable(Dnn.DnnPage, "sf_tabId", sfTabId, true);
+    }
+}
+@if (!string.IsNullOrEmpty(sfSiteRoot))
+{
+    <text>
+    <script>
+        (function () {
+            var sfRoot = @Html.Raw(Json.Encode(sfSiteRoot));
+            var sfTab = @Html.Raw(Json.Encode(sfTabId));
+            function applySfVars() {
+                var d = window.dnn;
+                if (!d || typeof d.setVar !== 'function' || typeof d.getVar !== 'function') { return false; }
+                if (sfRoot && d.getVar('sf_siteRoot') == null) { d.setVar('sf_siteRoot', sfRoot); }
+                if (sfTab && d.getVar('sf_tabId') == null) { d.setVar('sf_tabId', sfTab); }
+                return true;
+            }
+            if (!applySfVars()) {
+                var tries = 0;
+                var timer = setInterval(function () {
+                    if (applySfVars() || ++tries > 200) { clearInterval(timer); }
+                }, 50);
+            }
+        })();
+    </script>
+    </text>
+}
+
+<div class="pbi-stats" id="pbiStats_@Dnn.ActiveModule.ModuleID">
+    <div class="pbi-stats-error" data-role="error" style="display:none;"></div>
+
+    <div class="pbi-stats-content" data-role="content">
+        <div class="pbi-stats-grid-kpi">
+            @if (showPublishedReports)
+            {
+            <div class="pbi-stats-kpi pbi-stats-kpi--reports">
+                <div class="pbi-stats-kpi-head">
+                    <span class="pbi-stats-icon pbi-stats-icon--primary"><i class="ti ti-report-analytics"></i></span>
+                    <div class="pbi-stats-kpi-title">@Dnn.LocalizeString("PublishedReports")</div>
+                </div>
+                <div class="pbi-stats-kpi-value pbi-stats-kpi-value--primary" data-field="publishedReports">0</div>
+                <div class="pbi-stats-kpi-sub pbi-stats-kpi-sub--trend" data-field="publishedReportsTrend"><i class="ti ti-trending-up"></i><span>+0</span></div>
+                <div class="pbi-stats-kpi-ph" aria-hidden="true">
+                    <span class="pbi-stats-ph-line pbi-stats-ph-line--title"></span>
+                    <span class="pbi-stats-ph-line pbi-stats-ph-line--value"></span>
+                    <span class="pbi-stats-ph-line pbi-stats-ph-line--sub"></span>
+                </div>
+            </div>
+            }
+            @if (showActiveUsers)
+            {
+            <div class="pbi-stats-kpi pbi-stats-kpi--users">
+                <div class="pbi-stats-kpi-head">
+                    <span class="pbi-stats-icon pbi-stats-icon--green"><i class="ti ti-users-group"></i></span>
+                    <div class="pbi-stats-kpi-title">@Dnn.LocalizeString("ActiveUsers24h")</div>
+                </div>
+                <div class="pbi-stats-kpi-value pbi-stats-kpi-value--green" data-field="activeUsers24h">0</div>
+                <div class="pbi-stats-kpi-sub pbi-stats-kpi-sub--trend" data-field="activeUsers24hTrend"><i class="ti ti-trending-up"></i><span>+0</span></div>
+                <div class="pbi-stats-kpi-ph" aria-hidden="true">
+                    <span class="pbi-stats-ph-line pbi-stats-ph-line--title"></span>
+                    <span class="pbi-stats-ph-line pbi-stats-ph-line--value"></span>
+                    <span class="pbi-stats-ph-line pbi-stats-ph-line--sub"></span>
+                </div>
+            </div>
+            }
+            @if (showDatasets)
+            {
+            <div class="pbi-stats-kpi pbi-stats-kpi--datasets">
+                <div class="pbi-stats-kpi-head">
+                    <span class="pbi-stats-icon pbi-stats-icon--azure"><i class="ti ti-database"></i></span>
+                    <div class="pbi-stats-kpi-title">@Dnn.LocalizeString("Datasets")</div>
+                </div>
+                <div class="pbi-stats-kpi-value pbi-stats-kpi-value--azure" data-field="datasetsTotal">0</div>
+                <div class="pbi-stats-kpi-sub"><i class="ti ti-refresh"></i><span data-field="datasetsAutoRefreshed">0</span></div>
+                <div class="pbi-stats-kpi-ph" aria-hidden="true">
+                    <span class="pbi-stats-ph-line pbi-stats-ph-line--title"></span>
+                    <span class="pbi-stats-ph-line pbi-stats-ph-line--value"></span>
+                    <span class="pbi-stats-ph-line pbi-stats-ph-line--sub"></span>
+                </div>
+            </div>
+            }
+            @if (showLastRefresh)
+            {
+            <div class="pbi-stats-kpi pbi-stats-kpi--refresh" data-role="lastRefreshTile">
+                <div class="pbi-stats-kpi-head">
+                    <span class="pbi-stats-icon pbi-stats-icon--orange"><i class="ti ti-clock-hour-4"></i></span>
+                    <div class="pbi-stats-kpi-title">@Dnn.LocalizeString("LastRefresh")</div>
+                </div>
+                <div class="pbi-stats-kpi-value pbi-stats-kpi-value--orange" data-field="lastRefresh">-</div>
+                <div class="pbi-stats-kpi-sub"><span class="pbi-stats-dot" data-field="lastRefreshDot"></span><span data-field="lastRefreshNote"></span></div>
+                <div class="pbi-stats-kpi-ph" aria-hidden="true">
+                    <span class="pbi-stats-ph-line pbi-stats-ph-line--title"></span>
+                    <span class="pbi-stats-ph-line pbi-stats-ph-line--value"></span>
+                    <span class="pbi-stats-ph-line pbi-stats-ph-line--sub"></span>
+                </div>
+            </div>
+            }
+        </div>
+
+        <div class="pbi-stats-grid-row2">
+            @if (showReportViews)
+            {
+            <div class="pbi-stats-card">
+                <div class="pbi-stats-card-head">
+                    <h3 class="pbi-stats-card-title"><i class="ti ti-chart-area-line pbi-stats-title-icon pbi-stats-title-icon--primary"></i>@Dnn.LocalizeString("ReportViews")</h3>
+                    <div class="pbi-stats-ranges" data-role="ranges">
+                        <button type="button" class="@(defaultRange == "30d" ? "active" : "")" data-range="30d">30d</button>
+                        <button type="button" class="@(defaultRange == "14d" ? "active" : "")" data-range="14d">14d</button>
+                        <button type="button" class="@(defaultRange == "7d" ? "active" : "")" data-range="7d">7d</button>
+                        <button type="button" class="@(defaultRange == "24h" ? "active" : "")" data-range="24h">24h</button>
+                    </div>
+                </div>
+                <div class="pbi-stats-chart" data-role="chart"></div>
+                <div class="pbi-stats-card-ph pbi-stats-card-ph--chart" aria-hidden="true">
+                    <span class="pbi-stats-ph-line pbi-stats-ph-line--chart"></span>
+                </div>
+            </div>
+            }
+
+            @if (showMostViewed)
+            {
+            <div class="pbi-stats-card">
+                <div class="pbi-stats-card-head">
+                    <h3 class="pbi-stats-card-title"><i class="ti ti-flame pbi-stats-title-icon pbi-stats-title-icon--orange"></i>@Dnn.LocalizeString("MostViewed")</h3>
+                </div>
+                <div class="pbi-stats-list" data-role="mostViewed"></div>
+                <div class="pbi-stats-card-ph pbi-stats-card-ph--list" aria-hidden="true">
+                    <span class="pbi-stats-ph-line pbi-stats-ph-line--list"></span>
+                    <span class="pbi-stats-ph-line pbi-stats-ph-line--list"></span>
+                    <span class="pbi-stats-ph-line pbi-stats-ph-line--list"></span>
+                    <span class="pbi-stats-ph-line pbi-stats-ph-line--list"></span>
+                </div>
+            </div>
+            }
+        </div>
+    </div>
+</div>
+
+<script>
+    (function () {
+        var moduleId = parseInt('@Dnn.ActiveModule.ModuleID', 10);
+        var context = {
+            PortalId: parseInt('@Dnn.ActiveModule.PortalID', 10),
+            ModuleId: moduleId,
+            TabId: parseInt('@Dnn.ActiveModule.TabID', 10)
+        };
+
+        var strings = {
+            loading: @Html.Raw(Json.Encode(Dnn.LocalizeString("Loading"))),
+            autoRefreshed: @Html.Raw(Json.Encode(Dnn.LocalizeString("AutoRefreshed"))),
+            noData: @Html.Raw(Json.Encode(Dnn.LocalizeString("NoData"))),
+            error: @Html.Raw(Json.Encode(Dnn.LocalizeString("Error"))),
+            notConfigured: @Html.Raw(Json.Encode(Dnn.LocalizeString("AppInsightsNotConfigured"))),
+            lastRefreshOk: @Html.Raw(Json.Encode(Dnn.LocalizeString("LastRefreshOk"))),
+            lastRefreshWarning: @Html.Raw(Json.Encode(Dnn.LocalizeString("LastRefreshWarning"))),
+            lastRefreshError: @Html.Raw(Json.Encode(Dnn.LocalizeString("LastRefreshError"))),
+            views: @Html.Raw(Json.Encode(Dnn.LocalizeString("Views")))
+        };
+
+        var defaultRange = @Html.Raw(Json.Encode(defaultRange));
+
+        if (window.app && typeof window.app.initStatsView === 'function') {
+            window.app.initStatsView(context, strings, defaultRange);
+        }
+    })();
+</script>

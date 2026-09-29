@@ -1,6 +1,6 @@
 <dotnetnuke type="Package" version="5.0">
   <packages>
-    <package name="PowerBIEmbeddedList" type="Module" version="01.05.02">
+    <package name="PowerBIEmbeddedList" type="Module" version="01.05.03">
       <friendlyName>PowerBI Embedded Content List</friendlyName>
       <description>A set of modules to embed PowerBI Embedded dashboards and reports into a DNN Platform installation.</description>
       <iconFile>~/DesktopModules/MVC/PowerBIEmbedded/images/msfabric.png</iconFile>
@@ -62,6 +62,11 @@
 				<name>01.05.02.SqlDataProvider</name>
 				<version>01.05.02</version>
 			</script>
+           <script type="Install">
+                <path>Providers\DataProviders\SqlDataProvider</path>
+                <name>01.05.03.SqlDataProvider</name>
+                <version>01.05.03</version>
+            </script>
 			<script type="UnInstall">
                 <path>Providers\DataProviders\SqlDataProvider</path>
                 <name>Uninstall.SqlDataProvider</name>
@@ -309,6 +314,116 @@
                     <supportsPartialRendering>False</supportsPartialRendering>
                     <controlTitle>PowerBI Content View</controlTitle>
                     <controlType>View</controlType>
+                    <iconFile />
+                    <helpUrl />
+                    <viewOrder>0</viewOrder>
+                  </moduleControl>
+                </moduleControls>
+              </moduleDefinition>
+            </moduleDefinitions>
+          </desktopModule>
+        </component>
+      </components>
+    </package>
+    <package name="PowerBIEmbeddedReportCatalog" type="Module" version="01.05.02">
+      <friendlyName>PowerBI Embedded Report Catalog</friendlyName>
+      <description>A set of modules to embed PowerBI Embedded dashboards and reports into a DNN Platform installation.</description>
+      <iconFile>~/DesktopModules/MVC/PowerBIEmbedded/images/msfabric.png</iconFile>
+      <owner>
+        <name>Intelequia</name>
+        <organization>Intelequia</organization>
+        <url>https://intelequia.com</url>
+        <email>support@intelequia.com</email>
+      </owner>
+      <license src="License.txt"></license>
+      <releaseNotes src="ReleaseNotes.txt"></releaseNotes>
+      <azureCompatible>true</azureCompatible>
+      <dependencies>
+        <dependency type="CoreVersion">10.01.02</dependency>
+      </dependencies>
+
+      <components>
+        <component type="Module">
+          <desktopModule>
+            <moduleName>DotNetNuke.PowerBI.ReportCatalog</moduleName>
+            <foldername>PowerBIEmbedded</foldername>
+            <businessControllerClass></businessControllerClass>
+            <moduleDefinitions>
+              <moduleDefinition>
+                <friendlyName>PowerBI Embedded Report Catalog</friendlyName>
+                <defaultCacheTime>0</defaultCacheTime>
+                <moduleControls>
+                  <moduleControl>
+                    <controlKey />
+                    <controlSrc>DotNetNuke.PowerBI.Controllers/ReportCatalog/Index.mvc</controlSrc>
+                    <supportsPartialRendering>False</supportsPartialRendering>
+                    <controlTitle>PowerBI Report Catalog</controlTitle>
+                    <controlType>View</controlType>
+                    <iconFile />
+                    <helpUrl />
+                    <viewOrder>0</viewOrder>
+                  </moduleControl>
+                  <moduleControl>
+                    <controlKey>Settings</controlKey>
+                    <controlSrc>DotNetNuke.PowerBI.Controllers/Settings/Index.mvc</controlSrc>
+                    <supportsPartialRendering>False</supportsPartialRendering>
+                    <controlTitle>PowerBI Embedded Settings</controlTitle>
+                    <controlType>Edit</controlType>
+                    <iconFile />
+                    <helpUrl />
+                    <viewOrder>0</viewOrder>
+                  </moduleControl>
+                </moduleControls>
+              </moduleDefinition>
+            </moduleDefinitions>
+          </desktopModule>
+        </component>
+      </components>
+    </package>
+    <package name="PowerBIEmbeddedStatsView" type="Module" version="01.05.02">
+      <friendlyName>PowerBI Embedded Stats View</friendlyName>
+      <description>A set of modules to embed PowerBI Embedded dashboards and reports into a DNN Platform installation.</description>
+      <iconFile>~/DesktopModules/MVC/PowerBIEmbedded/images/msfabric.png</iconFile>
+      <owner>
+        <name>Intelequia</name>
+        <organization>Intelequia</organization>
+        <url>https://intelequia.com</url>
+        <email>support@intelequia.com</email>
+      </owner>
+      <license src="License.txt"></license>
+      <releaseNotes src="ReleaseNotes.txt"></releaseNotes>
+      <azureCompatible>true</azureCompatible>
+      <dependencies>
+        <dependency type="CoreVersion">10.01.02</dependency>
+      </dependencies>
+
+      <components>
+        <component type="Module">
+          <desktopModule>
+            <moduleName>DotNetNuke.PowerBI.StatsView</moduleName>
+            <foldername>PowerBIEmbedded</foldername>
+            <businessControllerClass></businessControllerClass>
+            <moduleDefinitions>
+              <moduleDefinition>
+                <friendlyName>PowerBI Embedded Stats View</friendlyName>
+                <defaultCacheTime>0</defaultCacheTime>
+                <moduleControls>
+                  <moduleControl>
+                    <controlKey />
+                    <controlSrc>DotNetNuke.PowerBI.Controllers/StatsView/Index.mvc</controlSrc>
+                    <supportsPartialRendering>False</supportsPartialRendering>
+                    <controlTitle>PowerBI Stats View</controlTitle>
+                    <controlType>View</controlType>
+                    <iconFile />
+                    <helpUrl />
+                    <viewOrder>0</viewOrder>
+                  </moduleControl>
+                  <moduleControl>
+                    <controlKey>Settings</controlKey>
+                    <controlSrc>DotNetNuke.PowerBI.Controllers/Settings/Index.mvc</controlSrc>
+                    <supportsPartialRendering>False</supportsPartialRendering>
+                    <controlTitle>PowerBI Embedded Settings</controlTitle>
+                    <controlType>Edit</controlType>
                     <iconFile />
                     <helpUrl />
                     <viewOrder>0</viewOrder>
