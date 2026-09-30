@@ -188,4 +188,7 @@
 
 	<b>Version 1.5.4</b>
 	<p>feat: choose weekdays or month days (including the last day) for scheduled subscriptions.</p>
+
+	<b>Version 1.5.5</b>
+	<p>fix: capture the report state when saving or sending subscriptions with "Include My Changes" enabled, and reject sends without a saved state.</p>
 </div>

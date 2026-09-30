@@ -298,4 +298,5 @@
   <data name="SubscriptionMonthSpecificDays.Text" xml:space="preserve"><value>Days of the month</value></data>
   <data name="SubscriptionLastDayOfMonth.Text" xml:space="preserve"><value>Last day of the month</value></data>
   <data name="SubscriptionMonthDaysInvalid.Text" xml:space="preserve"><value>Enter days from 1 to 31, separated by commas (e.g. 1,27-30).</value></data>
+  <data name="SubscriptionMyChangesCaptureError.Text" xml:space="preserve"><value>Could not capture the current report state. Please try again before saving or sending.</value></data>
 </root>

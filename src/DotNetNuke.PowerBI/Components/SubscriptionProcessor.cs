@@ -68,6 +68,20 @@ namespace DotNetNuke.PowerBI.Components
                 return;
             }
 
+            string bookmarkState = null;
+            if (subscription.IncludeMyChanges)
+            {
+                bookmarkState = force ? subscription.MyChangesState : null;
+                if (string.IsNullOrEmpty(bookmarkState))
+                {
+                    bookmarkState = BookmarksRepository.Instance.GetBookmarkBySubscription(subscription.PortalId, subscription.Id)?.State;
+                }
+                if (string.IsNullOrEmpty(bookmarkState))
+                {
+                    throw new InvalidOperationException($"Subscription '{subscription.Name}' includes My Changes but has no saved report state.");
+                }
+            }
+
             var subject = subscription.EmailSubject;
 
             // Resolve the permission object (workspace when inheriting, otherwise the report) and
@@ -92,11 +106,11 @@ namespace DotNetNuke.PowerBI.Components
                         Note($"Skipped subscriber '{userInfo?.Email ?? subscriptionSubscriber.UserId.ToString()}' for '{subscription.Name}': no permission to the report.");
                         continue;
                     }
-                    await SendEmailAsync(setting, accessToken, subscription, userInfo, subject, portalSettings);
+                    await SendEmailAsync(setting, accessToken, subscription, userInfo, subject, portalSettings, bookmarkState);
                 }
                 else
                 {
-                    await ProcessRoleSubscribersAsync(setting, accessToken, subscription, portalSettings, subscriptionSubscriber, userIds, subject, objectPermissions);
+                    await ProcessRoleSubscribersAsync(setting, accessToken, subscription, portalSettings, subscriptionSubscriber, userIds, subject, objectPermissions, bookmarkState);
                 }
             }
 
@@ -262,7 +276,7 @@ namespace DotNetNuke.PowerBI.Components
             return portalSettings?.DefaultLanguage;
         }
 
-        private async Task SendEmailAsync(PowerBISettings setting, string accessToken, Subscription subscription, UserInfo userInfo, string subject, PortalSettings portalSettings)
+        private async Task SendEmailAsync(PowerBISettings setting, string accessToken, Subscription subscription, UserInfo userInfo, string subject, PortalSettings portalSettings, string bookmarkState)
         {
             // Build the email body in the recipient's language (falls back to English when no
             // localized template exists). The body is recipient-specific because the report name
@@ -278,12 +292,6 @@ namespace DotNetNuke.PowerBI.Components
             var roleList = roles.Select(role => role.RoleName).ToList();
             var rolesString = string.Join(",", roleList);
             const string reportName = "[[ReportName]]";
-
-            string bookmarkState = null;
-            if (subscription.IncludeMyChanges)
-            {
-                bookmarkState = BookmarksRepository.Instance.GetBookmarkBySubscription(subscription.PortalId, subscription.Id)?.State;
-            }
 
             var attachment = await _common.ExportPowerBIReport(Guid.Parse(subscription.ReportId), accessToken, setting, subscription.ReportPages, rolesString, username, portalSettings.DefaultLanguage.ToLower(), bookmarkState);
 
@@ -345,7 +353,8 @@ namespace DotNetNuke.PowerBI.Components
             SubscriptionSubscriber subscriptionSubscriber,
             IEnumerable<int> userIds,
             string subject,
-            IList<ObjectPermission> objectPermissions)
+            IList<ObjectPermission> objectPermissions,
+            string bookmarkState)
         {
             var roleController = new RoleController();
             var roleInfo = roleController.GetRoleById(portalSettings.PortalId, (int)subscriptionSubscriber.RoleId);
@@ -366,7 +375,7 @@ namespace DotNetNuke.PowerBI.Components
 
                 if (Mail.IsValidEmailAddress(user.Email, subscription.PortalId))
                 {
-                    await SendEmailAsync(setting, accessToken, subscription, user, subject, portalSettings);
+                    await SendEmailAsync(setting, accessToken, subscription, user, subject, portalSettings, bookmarkState);
                 }
             }
         }

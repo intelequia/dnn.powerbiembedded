@@ -346,6 +346,7 @@
                             <label class="inline" for="chkEditIncludeMyChanges">@Dnn.LocalizeString("SubscriptionMyChangesInclude")</label>
                             <input type="checkbox" id="chkEditIncludeMyChanges" data-bind="checked: includeMyChanges" />
                         </div>
+                        <span class="subscription-schedule-error" data-bind="visible: myChangesError() && includeMyChanges()">@Dnn.LocalizeString("SubscriptionMyChangesCaptureError")</span>
                         <div class="subscription-mychanges-state" data-bind="visible: myChangesUpdatedOn()">
                             <span>@Dnn.LocalizeString("SubscriptionMyChangesStateAsOf")</span>
                             <span data-bind="text: myChangesStateText"></span>

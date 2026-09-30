@@ -144,6 +144,10 @@ namespace DotNetNuke.PowerBI.Services
                 {
                     return Request.CreateResponse(HttpStatusCode.BadRequest, new { Success = false, Error = "InvalidSchedule" });
                 }
+                if (subscriptionViewModel.IncludeMyChanges && string.IsNullOrEmpty(subscriptionViewModel.MyChangesState))
+                {
+                    return Request.CreateResponse(HttpStatusCode.BadRequest, new { Success = false, Error = "MissingMyChangesState" });
+                }
                 int portalId = ActiveModule.PortalID;
                 bool hasInheritPermissions = SharedSettingsRepository.Instance.GetSettingsByGroupId(subscriptionViewModel.GroupId, portalId).InheritPermissions;
                 string comparison = hasInheritPermissions ? subscriptionViewModel.GroupId : subscriptionViewModel.ReportId;
@@ -254,6 +258,11 @@ namespace DotNetNuke.PowerBI.Services
                     return AddSubscription(subscriptionViewModel);
                 }
                 Subscription subscription = SubscriptionsRepository.Instance.GetSubscriptionById(subscriptionViewModel.Id);
+                if (subscriptionViewModel.IncludeMyChanges && string.IsNullOrEmpty(subscriptionViewModel.MyChangesState) &&
+                    BookmarksRepository.Instance.GetBookmarkBySubscription(portalId, subscription.Id) == null)
+                {
+                    return Request.CreateResponse(HttpStatusCode.BadRequest, new { Success = false, Error = "MissingMyChangesState" });
+                }
                 subscription.Name = subscriptionViewModel.Name;
                 subscription.StartDate = subscriptionViewModel.StartDate;
                 subscription.EndDate = subscriptionViewModel.EndDate;
@@ -381,7 +390,8 @@ namespace DotNetNuke.PowerBI.Services
                     Message = subscriptionViewModel.Message,
                     ReportPages = subscriptionViewModel.ReportPages,
                     Enabled = subscriptionViewModel.Enabled,
-                    IncludeMyChanges = subscriptionViewModel.IncludeMyChanges
+                    IncludeMyChanges = subscriptionViewModel.IncludeMyChanges,
+                    MyChangesState = subscriptionViewModel.MyChangesState
                 };
 
                 var subscribers = new List<SubscriptionSubscriber>();

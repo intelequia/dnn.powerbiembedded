@@ -93,6 +93,7 @@
         this.enabled = ko.observable(enabled)
         this.includeMyChanges = ko.observable(includeMyChanges || false);
         this.myChangesState = ko.observable(myChangesState || '');
+        this.myChangesError = ko.observable(false);
         this.myChangesUpdatedOn = ko.observable(myChangesUpdatedOn || null);
         this.myChangesStateText = ko.computed(function () {
             var value = that.myChangesUpdatedOn();
@@ -932,13 +933,41 @@
                 });
         };
 
-        this.saveEditedSubscription = function (subscription) {
+        this.captureSubscriptionState = function (subscription) {
+            if (!subscription.includeMyChanges()) { return Promise.resolve(); }
+            if (!that.report || !that.report.bookmarksManager) {
+                subscription.myChangesError(true);
+                return Promise.reject(new Error('Report bookmarks are unavailable'));
+            }
+            return that.report.bookmarksManager.capture().then(function (bookmark) {
+                if (!bookmark || !bookmark.state) {
+                    throw new Error('Report state is empty');
+                }
+                subscription.myChangesState(bookmark.state);
+                subscription.myChangesUpdatedOn(new Date().toISOString());
+                subscription.myChangesError(false);
+            }).catch(function (error) {
+                subscription.myChangesError(true);
+                throw error;
+            });
+        };
+
+        this.saveEditedSubscription = async function (subscription) {
 
             if (!subscription.validateSchedule()) { return; }
             if (subscription.editSubscriptionErrors().length > 0) {
                 subscription.editSubscriptionErrors.showAllMessages(true);
             }
             else {
+                if (that.savingSubscription) { return; }
+                that.savingSubscription = true;
+                try {
+                    await that.captureSubscriptionState(subscription);
+                } catch (error) {
+                    console.log(error);
+                    that.savingSubscription = false;
+                    return;
+                }
                 let serializedUsers = subscription.addedUsers().map(user => user.UserID).join(",");
                 let serializedRoles = subscription.addedRoles().map(role => role.RoleID).join(",");
                 let serializedReportPages = subscription.addedPages().map(page => page.name).join(",");
@@ -979,6 +1008,7 @@
                         console.log(error);
                     },
                     function () {
+                        that.savingSubscription = false;
                     });
             }
         };
@@ -1021,7 +1051,7 @@
             }, 3000); 
         };
 
-        this.runSubscriptionNow = function (subscription) {
+        this.runSubscriptionNow = async function (subscription) {
 
             if (subscription.editSubscriptionErrors().length > 0) {
                 subscription.editSubscriptionErrors.showAllMessages(true);
@@ -1030,6 +1060,15 @@
 
             var btn = $('#btnRunSubscriptionNow');
             if (btn.hasClass('disabled')) {
+                return;
+            }
+
+            btn.addClass('disabled');
+            try {
+                await that.captureSubscriptionState(subscription);
+            } catch (error) {
+                console.log(error);
+                btn.removeClass('disabled');
                 return;
             }
 
@@ -1061,7 +1100,6 @@
                 MyChangesState: subscription.myChangesState(),
             };
 
-            btn.addClass('disabled');
             that.runNowStatus('running');
             that.runNowElapsed(0);
             if (that.runNowTimer) { clearInterval(that.runNowTimer); }

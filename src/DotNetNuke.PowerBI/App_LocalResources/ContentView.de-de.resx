@@ -160,4 +160,5 @@
   <data name="SubscriptionMonthSpecificDays.Text" xml:space="preserve"><value>Monatstage</value></data>
   <data name="SubscriptionLastDayOfMonth.Text" xml:space="preserve"><value>Letzter Tag des Monats</value></data>
   <data name="SubscriptionMonthDaysInvalid.Text" xml:space="preserve"><value>Tage von 1 bis 31 eingeben, durch Kommas getrennt (z. B. 1,27-30).</value></data>
+  <data name="SubscriptionMyChangesCaptureError.Text" xml:space="preserve"><value>Der aktuelle Berichtszustand konnte nicht erfasst werden. Bitte vor dem Speichern oder Senden erneut versuchen.</value></data>
 </root>
