@@ -1,0 +1,18 @@
+IF COL_LENGTH('{databaseOwner}[{objectQualifier}PBI_Subscriptions]', 'WeeklyDays') IS NULL
+BEGIN
+    ALTER TABLE {databaseOwner}[{objectQualifier}PBI_Subscriptions] ADD [WeeklyDays] [nvarchar](32) NULL
+END
+GO
+
+IF COL_LENGTH('{databaseOwner}[{objectQualifier}PBI_Subscriptions]', 'MonthlyDays') IS NULL
+BEGIN
+    ALTER TABLE {databaseOwner}[{objectQualifier}PBI_Subscriptions] ADD [MonthlyDays] [nvarchar](100) NULL
+END
+GO
+
+IF COL_LENGTH('{databaseOwner}[{objectQualifier}PBI_Subscriptions]', 'LastDayOfMonth') IS NULL
+BEGIN
+    ALTER TABLE {databaseOwner}[{objectQualifier}PBI_Subscriptions]
+        ADD [LastDayOfMonth] [bit] NOT NULL CONSTRAINT [DF_{objectQualifier}PBI_Subscriptions_LastDayOfMonth] DEFAULT(0)
+END
+GO

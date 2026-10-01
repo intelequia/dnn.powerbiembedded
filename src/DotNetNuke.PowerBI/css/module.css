@@ -251,7 +251,6 @@
         .powerbiContentView .pbitoolbar .exportQueue span {
             height: 41px;
             display: inline-block;
-            padding-top: 12px;
         }
         .powerbiContentView .pbitoolbar .exportQueue p {
             margin: 5px;
@@ -979,6 +978,55 @@
 
     .lateral-tab .dnnFormItem .full-width {
         width: 100%;
+    }
+
+    .lateral-tab .subscription-weekdays {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 5px;
+    }
+
+    .lateral-tab .subscription-weekdays button {
+        padding: 5px 8px;
+        border: 1px solid #bbb;
+        background: #fff;
+        cursor: pointer;
+    }
+
+    .lateral-tab .subscription-weekdays button.selected {
+        background: #00796b;
+        border-color: #00796b;
+        color: #fff;
+    }
+
+    .lateral-tab .subscription-month-option {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin: 8px 0;
+    }
+
+    .lateral-tab .subscription-month-option label {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        margin: 0;
+        cursor: pointer;
+    }
+
+    .lateral-tab .subscription-month-option input[type="radio"] {
+        width: auto;
+        margin: 0;
+    }
+
+    .lateral-tab .subscription-month-option input[type="text"] {
+        width: 120px;
+        margin: 0;
+    }
+
+    .lateral-tab .subscription-schedule-error {
+        display: block;
+        color: #c32828;
     }
 
 .subscription-user-header, .subscription-role-header, .subscription-page-header {

@@ -285,4 +285,18 @@
   <data name="SubscriptionWeekly.Text" xml:space="preserve">
     <value>Weekly</value>
   </data>
+  <data name="SubscriptionWeekdays.Text" xml:space="preserve"><value>Send on</value></data>
+  <data name="SubscriptionSunday.Text" xml:space="preserve"><value>Sun</value></data>
+  <data name="SubscriptionMonday.Text" xml:space="preserve"><value>Mon</value></data>
+  <data name="SubscriptionTuesday.Text" xml:space="preserve"><value>Tue</value></data>
+  <data name="SubscriptionWednesday.Text" xml:space="preserve"><value>Wed</value></data>
+  <data name="SubscriptionThursday.Text" xml:space="preserve"><value>Thu</value></data>
+  <data name="SubscriptionFriday.Text" xml:space="preserve"><value>Fri</value></data>
+  <data name="SubscriptionSaturday.Text" xml:space="preserve"><value>Sat</value></data>
+  <data name="SubscriptionWeekdaysRequired.Text" xml:space="preserve"><value>Select at least one day.</value></data>
+  <data name="SubscriptionMonthDays.Text" xml:space="preserve"><value>Every month on</value></data>
+  <data name="SubscriptionMonthSpecificDays.Text" xml:space="preserve"><value>Days of the month</value></data>
+  <data name="SubscriptionLastDayOfMonth.Text" xml:space="preserve"><value>Last day of the month</value></data>
+  <data name="SubscriptionMonthDaysInvalid.Text" xml:space="preserve"><value>Enter days from 1 to 31, separated by commas (e.g. 1,27-30).</value></data>
+  <data name="SubscriptionMyChangesCaptureError.Text" xml:space="preserve"><value>Could not capture the current report state. Please try again before saving or sending.</value></data>
 </root>

@@ -41,6 +41,9 @@ namespace DotNetNuke.PowerBI.Services
             public DateTime StartDate { get; set; }
             public DateTime EndDate { get; set; }
             public string RepeatPeriod { get; set; }
+            public string WeeklyDays { get; set; }
+            public string MonthlyDays { get; set; }
+            public bool LastDayOfMonth { get; set; }
             public TimeSpan RepeatTime { get; set; }
             public string TimeZone { get; set; }
             public string EmailSubject { get; set; }
@@ -137,6 +140,14 @@ namespace DotNetNuke.PowerBI.Services
         {
             try
             {
+                if (!Components.SubscriptionProcessor.IsValidSchedule(subscriptionViewModel.RepeatPeriod, subscriptionViewModel.WeeklyDays, subscriptionViewModel.MonthlyDays, subscriptionViewModel.LastDayOfMonth))
+                {
+                    return Request.CreateResponse(HttpStatusCode.BadRequest, new { Success = false, Error = "InvalidSchedule" });
+                }
+                if (subscriptionViewModel.IncludeMyChanges && string.IsNullOrEmpty(subscriptionViewModel.MyChangesState))
+                {
+                    return Request.CreateResponse(HttpStatusCode.BadRequest, new { Success = false, Error = "MissingMyChangesState" });
+                }
                 int portalId = ActiveModule.PortalID;
                 bool hasInheritPermissions = SharedSettingsRepository.Instance.GetSettingsByGroupId(subscriptionViewModel.GroupId, portalId).InheritPermissions;
                 string comparison = hasInheritPermissions ? subscriptionViewModel.GroupId : subscriptionViewModel.ReportId;
@@ -151,6 +162,9 @@ namespace DotNetNuke.PowerBI.Services
                     StartDate = subscriptionViewModel.StartDate,
                     EndDate = subscriptionViewModel.EndDate,
                     RepeatPeriod = subscriptionViewModel.RepeatPeriod,
+                    WeeklyDays = subscriptionViewModel.WeeklyDays,
+                    MonthlyDays = subscriptionViewModel.MonthlyDays,
+                    LastDayOfMonth = subscriptionViewModel.LastDayOfMonth,
                     RepeatTime = subscriptionViewModel.RepeatTime,
                     TimeZone = subscriptionViewModel.TimeZone,
                     EmailSubject = subscriptionViewModel.EmailSubject,
@@ -224,6 +238,10 @@ namespace DotNetNuke.PowerBI.Services
         {
             try
             {
+                if (!Components.SubscriptionProcessor.IsValidSchedule(subscriptionViewModel.RepeatPeriod, subscriptionViewModel.WeeklyDays, subscriptionViewModel.MonthlyDays, subscriptionViewModel.LastDayOfMonth))
+                {
+                    return Request.CreateResponse(HttpStatusCode.BadRequest, new { Success = false, Error = "InvalidSchedule" });
+                }
                 int portalId = ActiveModule.PortalID;
                 bool hasInheritPermissions = SharedSettingsRepository.Instance.GetSettingsByGroupId(subscriptionViewModel.GroupId, portalId).InheritPermissions;
                 string comparison = hasInheritPermissions ? subscriptionViewModel.GroupId : subscriptionViewModel.ReportId;
@@ -240,10 +258,18 @@ namespace DotNetNuke.PowerBI.Services
                     return AddSubscription(subscriptionViewModel);
                 }
                 Subscription subscription = SubscriptionsRepository.Instance.GetSubscriptionById(subscriptionViewModel.Id);
+                if (subscriptionViewModel.IncludeMyChanges && string.IsNullOrEmpty(subscriptionViewModel.MyChangesState) &&
+                    BookmarksRepository.Instance.GetBookmarkBySubscription(portalId, subscription.Id) == null)
+                {
+                    return Request.CreateResponse(HttpStatusCode.BadRequest, new { Success = false, Error = "MissingMyChangesState" });
+                }
                 subscription.Name = subscriptionViewModel.Name;
                 subscription.StartDate = subscriptionViewModel.StartDate;
                 subscription.EndDate = subscriptionViewModel.EndDate;
                 subscription.RepeatPeriod = subscriptionViewModel.RepeatPeriod;
+                subscription.WeeklyDays = subscriptionViewModel.WeeklyDays;
+                subscription.MonthlyDays = subscriptionViewModel.MonthlyDays;
+                subscription.LastDayOfMonth = subscriptionViewModel.LastDayOfMonth;
                 subscription.RepeatTime = subscriptionViewModel.RepeatTime;
                 subscription.TimeZone = subscriptionViewModel.TimeZone;
                 subscription.EmailSubject = subscriptionViewModel.EmailSubject;
@@ -355,13 +381,17 @@ namespace DotNetNuke.PowerBI.Services
                     StartDate = subscriptionViewModel.StartDate,
                     EndDate = subscriptionViewModel.EndDate,
                     RepeatPeriod = subscriptionViewModel.RepeatPeriod,
+                    WeeklyDays = subscriptionViewModel.WeeklyDays,
+                    MonthlyDays = subscriptionViewModel.MonthlyDays,
+                    LastDayOfMonth = subscriptionViewModel.LastDayOfMonth,
                     RepeatTime = subscriptionViewModel.RepeatTime,
                     TimeZone = subscriptionViewModel.TimeZone,
                     EmailSubject = subscriptionViewModel.EmailSubject,
                     Message = subscriptionViewModel.Message,
                     ReportPages = subscriptionViewModel.ReportPages,
                     Enabled = subscriptionViewModel.Enabled,
-                    IncludeMyChanges = subscriptionViewModel.IncludeMyChanges
+                    IncludeMyChanges = subscriptionViewModel.IncludeMyChanges,
+                    MyChangesState = subscriptionViewModel.MyChangesState
                 };
 
                 var subscribers = new List<SubscriptionSubscriber>();

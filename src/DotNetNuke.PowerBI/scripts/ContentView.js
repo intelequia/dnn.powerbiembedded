@@ -39,7 +39,7 @@
         return ('0' + h).slice(-2) + ':' + minute + ':00';
     }
 
-    function SubscriptionModel(p, id, portalId, reportId, groupId, name, startDate, endDate, repeatPeriod, repeatTime, timeZone, emailSubject, message, reportPages, enabled, users, roles, moduleId, includeMyChanges, myChangesState, myChangesUpdatedOn) {
+    function SubscriptionModel(p, id, portalId, reportId, groupId, name, startDate, endDate, repeatPeriod, repeatTime, timeZone, emailSubject, message, reportPages, enabled, users, roles, moduleId, includeMyChanges, myChangesState, myChangesUpdatedOn, weeklyDays, monthlyDays, lastDayOfMonth) {
         var that = this;
         var parent = p;
         this.id = ko.observable(id);
@@ -51,6 +51,41 @@
         this.startDate = ko.observable(startDate).extend({ required: true });
         this.endDate = ko.observable(endDate).extend({ required: true });
         this.repeatPeriod = ko.observable(repeatPeriod).extend({ required: true });
+        this.weeklyDays = ko.observableArray(weeklyDays === null && id !== -1
+            ? [new Date(startDate).getUTCDay().toString()]
+            : (weeklyDays || '').split(',').filter(Boolean));
+        this.monthlyDays = ko.observable(monthlyDays === null && id !== -1
+            ? new Date(startDate).getUTCDate().toString() : (monthlyDays || ''));
+        this.monthlyMode = ko.observable(lastDayOfMonth || id === -1 ? 'last' : 'days');
+        this.scheduleError = ko.observable('');
+        this.toggleWeeklyDay = function (day) {
+            if (that.weeklyDays.indexOf(day) === -1) {
+                that.weeklyDays.push(day);
+            } else {
+                that.weeklyDays.remove(day);
+            }
+            that.scheduleError('');
+        };
+        this.monthlyMode.subscribe(function () { that.scheduleError(''); });
+        this.monthlyDays.subscribe(function () { that.scheduleError(''); });
+        this.validateSchedule = function () {
+            if (that.repeatPeriod() === 'Weekly' && !that.weeklyDays().length) {
+                that.scheduleError('Weekly');
+                return false;
+            }
+            if (that.repeatPeriod() === 'Monthly' && that.monthlyMode() === 'days') {
+                var parts = (that.monthlyDays() || '').split(',');
+                if (!parts.length || parts.some(function (part) {
+                    var match = /^([1-9]|[12][0-9]|3[01])(?:-([1-9]|[12][0-9]|3[01]))?$/.exec(part.trim());
+                    return !match || (match[2] && Number(match[1]) > Number(match[2]));
+                })) {
+                    that.scheduleError('Monthly');
+                    return false;
+                }
+            }
+            that.scheduleError('');
+            return true;
+        };
         this.repeatTime = ko.observable(repeatTime).extend({ required: true });
         this.timeZone = ko.observable(timeZone).extend({ required: true });
         this.emailSubject = ko.observable(emailSubject).extend({ required: true });
@@ -58,6 +93,7 @@
         this.enabled = ko.observable(enabled)
         this.includeMyChanges = ko.observable(includeMyChanges || false);
         this.myChangesState = ko.observable(myChangesState || '');
+        this.myChangesError = ko.observable(false);
         this.myChangesUpdatedOn = ko.observable(myChangesUpdatedOn || null);
         this.myChangesStateText = ko.computed(function () {
             var value = that.myChangesUpdatedOn();
@@ -239,6 +275,10 @@
             that.startDate(startDate);
             that.endDate(endDate);
             that.repeatPeriod(repeatPeriod);
+            that.weeklyDays(weeklyDays === null && id !== -1 ? [new Date(startDate).getUTCDay().toString()] : (weeklyDays || '').split(',').filter(Boolean));
+            that.monthlyDays(monthlyDays === null && id !== -1 ? new Date(startDate).getUTCDate().toString() : (monthlyDays || ''));
+            that.monthlyMode(lastDayOfMonth || id === -1 ? 'last' : 'days');
+            that.scheduleError('');
             var resetTime = parseRepeatTime(repeatTime);
             that.repeatHour(resetTime.hour);
             that.repeatMinute(resetTime.minute);
@@ -413,6 +453,9 @@
                                 subscription.IncludeMyChanges,
                                 subscription.MyChangesState,
                                 subscription.MyChangesUpdatedOn,
+                                subscription.WeeklyDays,
+                                subscription.MonthlyDays,
+                                subscription.LastDayOfMonth,
                             );
                             subscriptions.push(b);
                         });
@@ -534,36 +577,58 @@
         this.reportStateTimer = null;
         this.reportStateSaving = false;
         this.reportStateDirty = false;
+        this.reportStateSavePromise = Promise.resolve();
 
         this.saveReportState = function () {
-            if (that.reportStateSaving || !that.reportStateDirty) {
-                return;
+            if (that.reportStateSaving) {
+                return that.reportStateSavePromise;
+            }
+            if (!that.reportStateDirty) {
+                return Promise.resolve();
             }
             that.reportStateDirty = false;
             that.reportStateSaving = true;
-            that.report.bookmarksManager.capture().then(function (bookmark) {
-                Common.Call("POST", "SaveReportState", that.bookmarksService,
-                    { reportId: context.Id, state: bookmark.state },
-                    function (data) {
-                        if (!data.Success) { console.log("Could not save report state"); }
-                    },
-                    function (error) { console.log(error); },
-                    function () {
-                        that.reportStateSaving = false;
-                        if (that.reportStateDirty) { that.queueReportState(); }
-                    });
-            }).catch(function (error) {
+            that.reportStateSavePromise = that.report.bookmarksManager.capture().then(function (bookmark) {
+                if (!bookmark || !bookmark.state) {
+                    throw new Error('Could not capture report state');
+                }
+                return new Promise(function (resolve, reject) {
+                    Common.Call("POST", "SaveReportState", that.bookmarksService,
+                        { reportId: context.Id, state: bookmark.state },
+                        function (data) {
+                            if (data.Success) { resolve(); }
+                            else { reject(new Error('Could not save report state')); }
+                        },
+                        reject,
+                        function () {});
+                });
+            }).then(function () {
                 that.reportStateSaving = false;
-                console.log(error);
                 if (that.reportStateDirty) { that.queueReportState(); }
+            }, function (error) {
+                that.reportStateSaving = false;
+                if (that.reportStateDirty) { that.queueReportState(); }
+                throw error;
             });
+            return that.reportStateSavePromise;
         };
 
         this.queueReportState = function () {
             if (!that.rememberReportState || !that.reportStateReady) { return; }
             that.reportStateDirty = true;
             clearTimeout(that.reportStateTimer);
-            that.reportStateTimer = setTimeout(that.saveReportState, 750);
+            that.reportStateTimer = setTimeout(function () {
+                that.saveReportState().catch(function (error) { console.log(error); });
+            }, 750);
+        };
+
+        this.flushReportState = function () {
+            if (!that.rememberReportState || !that.reportStateReady) { return Promise.resolve(); }
+            clearTimeout(that.reportStateTimer);
+            return that.reportStateSavePromise.catch(function (error) { console.log(error); }).then(function () {
+                that.reportStateDirty = true;
+                return that.saveReportState();
+            });
         };
 
         this.applyDefaultBookmark = function () {
@@ -836,6 +901,9 @@
                 false,
                 "",
                 null,
+                '',
+                '',
+                true,
             );
             that.subscriptionsArray.push(b);
             b.editSubscription();
@@ -887,12 +955,41 @@
                 });
         };
 
-        this.saveEditedSubscription = function (subscription) {
+        this.captureSubscriptionState = function (subscription) {
+            if (!subscription.includeMyChanges()) { return Promise.resolve(); }
+            if (!that.report || !that.report.bookmarksManager) {
+                subscription.myChangesError(true);
+                return Promise.reject(new Error('Report bookmarks are unavailable'));
+            }
+            return that.report.bookmarksManager.capture().then(function (bookmark) {
+                if (!bookmark || !bookmark.state) {
+                    throw new Error('Report state is empty');
+                }
+                subscription.myChangesState(bookmark.state);
+                subscription.myChangesUpdatedOn(new Date().toISOString());
+                subscription.myChangesError(false);
+            }).catch(function (error) {
+                subscription.myChangesError(true);
+                throw error;
+            });
+        };
 
+        this.saveEditedSubscription = async function (subscription) {
+
+            if (!subscription.validateSchedule()) { return; }
             if (subscription.editSubscriptionErrors().length > 0) {
                 subscription.editSubscriptionErrors.showAllMessages(true);
             }
             else {
+                if (that.savingSubscription) { return; }
+                that.savingSubscription = true;
+                try {
+                    await that.captureSubscriptionState(subscription);
+                } catch (error) {
+                    console.log(error);
+                    that.savingSubscription = false;
+                    return;
+                }
                 let serializedUsers = subscription.addedUsers().map(user => user.UserID).join(",");
                 let serializedRoles = subscription.addedRoles().map(role => role.RoleID).join(",");
                 let serializedReportPages = subscription.addedPages().map(page => page.name).join(",");
@@ -906,6 +1003,9 @@
                     StartDate: subscription.startDate(),
                     EndDate: subscription.endDate(),
                     RepeatPeriod: subscription.repeatPeriod(),
+                WeeklyDays: subscription.weeklyDays().join(','),
+                MonthlyDays: subscription.monthlyDays(),
+                LastDayOfMonth: subscription.monthlyMode() === 'last',
                     RepeatTime: subscription.repeatTime(),
                     TimeZone: subscription.timeZone(),
                     EmailSubject: subscription.emailSubject(),
@@ -930,6 +1030,7 @@
                         console.log(error);
                     },
                     function () {
+                        that.savingSubscription = false;
                     });
             }
         };
@@ -972,7 +1073,7 @@
             }, 3000); 
         };
 
-        this.runSubscriptionNow = function (subscription) {
+        this.runSubscriptionNow = async function (subscription) {
 
             if (subscription.editSubscriptionErrors().length > 0) {
                 subscription.editSubscriptionErrors.showAllMessages(true);
@@ -981,6 +1082,15 @@
 
             var btn = $('#btnRunSubscriptionNow');
             if (btn.hasClass('disabled')) {
+                return;
+            }
+
+            btn.addClass('disabled');
+            try {
+                await that.captureSubscriptionState(subscription);
+            } catch (error) {
+                console.log(error);
+                btn.removeClass('disabled');
                 return;
             }
 
@@ -997,6 +1107,9 @@
                 StartDate: subscription.startDate(),
                 EndDate: subscription.endDate(),
                 RepeatPeriod: subscription.repeatPeriod(),
+                    WeeklyDays: subscription.weeklyDays().join(','),
+                    MonthlyDays: subscription.monthlyDays(),
+                    LastDayOfMonth: subscription.monthlyMode() === 'last',
                 RepeatTime: subscription.repeatTime(),
                 TimeZone: subscription.timeZone(),
                 EmailSubject: subscription.emailSubject(),
@@ -1009,7 +1122,6 @@
                 MyChangesState: subscription.myChangesState(),
             };
 
-            btn.addClass('disabled');
             that.runNowStatus('running');
             that.runNowElapsed(0);
             if (that.runNowTimer) { clearInterval(that.runNowTimer); }
@@ -1171,6 +1283,14 @@
             $(".powerbiContentView .mnuexport").hide();
             that.exportToFile('pdf');
         };
+        this.exportField = function (data, name) {
+            return data[name] !== undefined ? data[name] : data[name.charAt(0).toUpperCase() + name.slice(1)];
+        };
+        this.exportStatusValue = function (value) {
+            return typeof value === 'number'
+                ? ['Undefined', 'NotStarted', 'Running', 'Succeeded', 'Failed'][value]
+                : value;
+        };
         this.exportsQueue = ko.observableArray([]);
         this.exportsQueueStatus = ko.computed(function () {
             var status = "succeeded";
@@ -1186,7 +1306,7 @@
         });
         this.exportsQueue.subscribe(function () {
             that.exportsQueue().forEach(item => {
-                if (!item.interval && item.percentComplete() == 0) {
+                if (!item.interval && item.id() && item.status() !== 'Succeeded' && item.status() !== 'Failed') {
                     item.interval = setInterval(() => {
                         var options = {
                             method: 'GET',
@@ -1215,26 +1335,32 @@
                         Common.CallWithOptions("GET", "ExportStatus", that.exportsService, params, options,
                             function (data) {
                                 if (data) {
-
-                                    item.percentComplete(data.percentComplete);
-                                    item.status(data.status);
-                                    item.lastActionDateTime(data.lastActionDateTime);
-                                    item.resourceLocation(data.resourceLocation);
-                                    item.resourceFileExtension(data.ResourceFileExtension);
-                                    item.expirationTime(data.expirationTime);
-                                    if (item.percentComplete() >= 100) {
-                                        that.downloadExportedFile(item);
+                                    item.percentComplete(that.exportField(data, 'percentComplete'));
+                                    item.status(that.exportStatusValue(that.exportField(data, 'status')));
+                                    item.lastActionDateTime(that.exportField(data, 'lastActionDateTime'));
+                                    item.resourceLocation(that.exportField(data, 'resourceLocation'));
+                                    item.resourceFileExtension(that.exportField(data, 'resourceFileExtension') || item.resourceFileExtension());
+                                    item.expirationTime(that.exportField(data, 'expirationTime'));
+                                    if (item.status() === 'Succeeded' || item.status() === 'Failed') {
                                         clearInterval(item.interval);
                                         item.interval = null;
+                                        if (item.status() === 'Succeeded') {
+                                            that.downloadExportedFile(item);
+                                        }
                                     }
                                     that.exportsQueue.valueHasMutated();
                                 }
                                 else {
-                                    alert("There was an error exporting the file.");
+                                    clearInterval(item.interval);
+                                    item.interval = null;
+                                    item.status('Failed');
                                 }
                             },
                             function (error) {
                                 console.log(error);
+                                clearInterval(item.interval);
+                                item.interval = null;
+                                item.status('Failed');
                             },
                             function () {
                             }
@@ -1265,7 +1391,7 @@
                 }
             }
 
-            fetch(that.exportsService.baseUrl + '/' + that.exportsService.controller + '/GetExportedFile?sid=' + context.WorkspaceId + '&rid=' + context.Id + '&exportid=' + item.id() + '&resourceFileExtension=' + item.resourceFileExtension(), options)
+            fetch(that.exportsService.baseUrl + '/' + that.exportsService.controller + '/GetExportedFile?sid=' + context.WorkspaceId + '&rid=' + context.Id + '&exportid=' + encodeURIComponent(item.id()) + '&resourceFileExtension=' + encodeURIComponent(item.resourceFileExtension()), options)
                 .then(response => {
                     if (!response.ok) {
                         throw new Error('Error downloading the file');
@@ -1297,12 +1423,20 @@
                 })
                 .catch(error => {
                     console.error('Error downloading the file:', error);
+                    item.status('Failed');
                     alert('There was an error downloading the file.');
                 });
 
         }
 
-        this.exportToFile = function (format) {
+        this.exportToFile = async function (format) {
+            try {
+                await that.flushReportState();
+            } catch (error) {
+                console.log(error);
+                alert("There was an error exporting the file.");
+                return;
+            }
             var options = {
                 method: 'GET',
                 headers: {
@@ -1330,20 +1464,23 @@
 
             Common.CallWithOptions("GET", "Export", that.exportsService, params, options,
                 function (data) {
-                    if (data) {
-                        that.exportsQueue().push(new ExportItemModel(
-                            data.id,
-                            data.createdDateTime,
-                            data.lastActionDateTime,
-                            data.reportId,
-                            data.reportName,
-                            data.status,
-                            data.percentComplete,
-                            data.resourceLocation,
-                            data.ResourceFileExtension,
-                            data.expirationTime
-                        ));
-                        that.exportsQueue.valueHasMutated();
+                    if (data && that.exportField(data, 'id')) {
+                        var item = new ExportItemModel(
+                            that.exportField(data, 'id'),
+                            that.exportField(data, 'createdDateTime'),
+                            that.exportField(data, 'lastActionDateTime'),
+                            that.exportField(data, 'reportId'),
+                            that.exportField(data, 'reportName'),
+                            that.exportStatusValue(that.exportField(data, 'status')),
+                            that.exportField(data, 'percentComplete'),
+                            that.exportField(data, 'resourceLocation'),
+                            that.exportField(data, 'resourceFileExtension') || format,
+                            that.exportField(data, 'expirationTime')
+                        );
+                        that.exportsQueue.push(item);
+                        if (item.status() === 'Succeeded') {
+                            that.downloadExportedFile(item);
+                        }
                     }
                     else {
                         alert("There was an error exporting the file.");
