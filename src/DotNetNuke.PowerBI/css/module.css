@@ -251,7 +251,6 @@
         .powerbiContentView .pbitoolbar .exportQueue span {
             height: 41px;
             display: inline-block;
-            padding-top: 12px;
         }
         .powerbiContentView .pbitoolbar .exportQueue p {
             margin: 5px;

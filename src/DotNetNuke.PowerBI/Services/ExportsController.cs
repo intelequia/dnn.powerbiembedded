@@ -3,6 +3,7 @@ using DotNetNuke.Entities.Portals;
 using DotNetNuke.Entities.Users;
 using DotNetNuke.Instrumentation;
 using DotNetNuke.PowerBI.Data;
+using DotNetNuke.PowerBI.Data.Bookmarks;
 using DotNetNuke.PowerBI.Data.Models;
 using DotNetNuke.PowerBI.Extensibility;
 using DotNetNuke.PowerBI.Models;
@@ -195,19 +196,26 @@ namespace DotNetNuke.PowerBI.Services
                 }
                 var roles = string.Join(",", PortalSettings.UserInfo.Roles);
 
-                Export export = await embedService.ExportReportAsync(Guid.Parse(embedService.Settings.WorkspaceId), reportId, fileFormat, user, roles);
+                string bookmarkState = null;
+                var rememberReportState = moduleSettings["PowerBIEmbedded_RememberReportState"] as string ?? "true";
+                if (UserInfo.UserID > 0 && string.Equals(rememberReportState, "true", StringComparison.OrdinalIgnoreCase))
+                {
+                    bookmarkState = BookmarksRepository.Instance.GetReportState(PortalSettings.PortalId, reportId.ToString(), UserInfo.UserID)?.State;
+                }
+
+                Export export = await embedService.ExportReportAsync(Guid.Parse(embedService.Settings.WorkspaceId), reportId, fileFormat, user, roles, bookmarkState: bookmarkState);
                 var exportPayload = new
                 {
-                    export.Id,
-                    export.Status,
-                    export.PercentComplete,
-                    export.ResourceLocation,
-                    export.ResourceFileExtension,
-                    export.ExpirationTime,
-                    ReportName = string.IsNullOrEmpty(export.ReportName) ? $"{report.Name}.{format}" : export.ReportName,
-                    export.CreatedDateTime,
-                    export.LastActionDateTime,
-                    export.ReportId
+                    id = export.Id,
+                    status = export.Status.ToString(),
+                    percentComplete = export.PercentComplete,
+                    resourceLocation = export.ResourceLocation,
+                    resourceFileExtension = export.ResourceFileExtension,
+                    expirationTime = export.ExpirationTime,
+                    reportName = string.IsNullOrEmpty(export.ReportName) ? $"{report.Name}.{format}" : export.ReportName,
+                    createdDateTime = export.CreatedDateTime,
+                    lastActionDateTime = export.LastActionDateTime,
+                    reportId = export.ReportId
                 };
 
                 return Request.CreateResponse(HttpStatusCode.OK, exportPayload);
@@ -277,7 +285,19 @@ namespace DotNetNuke.PowerBI.Services
                 }
                 Export export = await embedService.GetExportStatusAsync(Guid.Parse(embedService.Settings.WorkspaceId), reportId, exportId);
 
-                return Request.CreateResponse(HttpStatusCode.OK, export);
+                return Request.CreateResponse(HttpStatusCode.OK, new
+                {
+                    id = export.Id,
+                    status = export.Status.ToString(),
+                    percentComplete = export.PercentComplete,
+                    resourceLocation = export.ResourceLocation,
+                    resourceFileExtension = export.ResourceFileExtension,
+                    expirationTime = export.ExpirationTime,
+                    reportName = export.ReportName,
+                    createdDateTime = export.CreatedDateTime,
+                    lastActionDateTime = export.LastActionDateTime,
+                    reportId = export.ReportId
+                });
 
             }
             catch (RequestFailedException httpEx)

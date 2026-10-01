@@ -466,7 +466,8 @@ namespace DotNetNuke.PowerBI.Services
                 string user,
                 string roles,
                 IList<string> pageNames = null, /* Get the page names from the GetPages REST API */
-                string urlFilter = null)
+                string urlFilter = null,
+                string bookmarkState = null)
         {
             // Get token credentials for user
             var getCredentialsResult = await GetTokenCredentials();
@@ -552,6 +553,10 @@ namespace DotNetNuke.PowerBI.Services
             {
                 var filter = new ExportFilter { Filter = urlFilter };
                 powerBIReportExportConfiguration.ReportLevelFilters.Add(filter);
+            }
+            if (!string.IsNullOrEmpty(bookmarkState))
+            {
+                powerBIReportExportConfiguration.DefaultBookmark = new PageBookmark { State = bookmarkState };
             }
             if (identities != null)
             {

@@ -577,36 +577,58 @@
         this.reportStateTimer = null;
         this.reportStateSaving = false;
         this.reportStateDirty = false;
+        this.reportStateSavePromise = Promise.resolve();
 
         this.saveReportState = function () {
-            if (that.reportStateSaving || !that.reportStateDirty) {
-                return;
+            if (that.reportStateSaving) {
+                return that.reportStateSavePromise;
+            }
+            if (!that.reportStateDirty) {
+                return Promise.resolve();
             }
             that.reportStateDirty = false;
             that.reportStateSaving = true;
-            that.report.bookmarksManager.capture().then(function (bookmark) {
-                Common.Call("POST", "SaveReportState", that.bookmarksService,
-                    { reportId: context.Id, state: bookmark.state },
-                    function (data) {
-                        if (!data.Success) { console.log("Could not save report state"); }
-                    },
-                    function (error) { console.log(error); },
-                    function () {
-                        that.reportStateSaving = false;
-                        if (that.reportStateDirty) { that.queueReportState(); }
-                    });
-            }).catch(function (error) {
+            that.reportStateSavePromise = that.report.bookmarksManager.capture().then(function (bookmark) {
+                if (!bookmark || !bookmark.state) {
+                    throw new Error('Could not capture report state');
+                }
+                return new Promise(function (resolve, reject) {
+                    Common.Call("POST", "SaveReportState", that.bookmarksService,
+                        { reportId: context.Id, state: bookmark.state },
+                        function (data) {
+                            if (data.Success) { resolve(); }
+                            else { reject(new Error('Could not save report state')); }
+                        },
+                        reject,
+                        function () {});
+                });
+            }).then(function () {
                 that.reportStateSaving = false;
-                console.log(error);
                 if (that.reportStateDirty) { that.queueReportState(); }
+            }, function (error) {
+                that.reportStateSaving = false;
+                if (that.reportStateDirty) { that.queueReportState(); }
+                throw error;
             });
+            return that.reportStateSavePromise;
         };
 
         this.queueReportState = function () {
             if (!that.rememberReportState || !that.reportStateReady) { return; }
             that.reportStateDirty = true;
             clearTimeout(that.reportStateTimer);
-            that.reportStateTimer = setTimeout(that.saveReportState, 750);
+            that.reportStateTimer = setTimeout(function () {
+                that.saveReportState().catch(function (error) { console.log(error); });
+            }, 750);
+        };
+
+        this.flushReportState = function () {
+            if (!that.rememberReportState || !that.reportStateReady) { return Promise.resolve(); }
+            clearTimeout(that.reportStateTimer);
+            return that.reportStateSavePromise.catch(function (error) { console.log(error); }).then(function () {
+                that.reportStateDirty = true;
+                return that.saveReportState();
+            });
         };
 
         this.applyDefaultBookmark = function () {
@@ -1261,6 +1283,14 @@
             $(".powerbiContentView .mnuexport").hide();
             that.exportToFile('pdf');
         };
+        this.exportField = function (data, name) {
+            return data[name] !== undefined ? data[name] : data[name.charAt(0).toUpperCase() + name.slice(1)];
+        };
+        this.exportStatusValue = function (value) {
+            return typeof value === 'number'
+                ? ['Undefined', 'NotStarted', 'Running', 'Succeeded', 'Failed'][value]
+                : value;
+        };
         this.exportsQueue = ko.observableArray([]);
         this.exportsQueueStatus = ko.computed(function () {
             var status = "succeeded";
@@ -1276,7 +1306,7 @@
         });
         this.exportsQueue.subscribe(function () {
             that.exportsQueue().forEach(item => {
-                if (!item.interval && item.percentComplete() == 0) {
+                if (!item.interval && item.id() && item.status() !== 'Succeeded' && item.status() !== 'Failed') {
                     item.interval = setInterval(() => {
                         var options = {
                             method: 'GET',
@@ -1305,26 +1335,32 @@
                         Common.CallWithOptions("GET", "ExportStatus", that.exportsService, params, options,
                             function (data) {
                                 if (data) {
-
-                                    item.percentComplete(data.percentComplete);
-                                    item.status(data.status);
-                                    item.lastActionDateTime(data.lastActionDateTime);
-                                    item.resourceLocation(data.resourceLocation);
-                                    item.resourceFileExtension(data.ResourceFileExtension);
-                                    item.expirationTime(data.expirationTime);
-                                    if (item.percentComplete() >= 100) {
-                                        that.downloadExportedFile(item);
+                                    item.percentComplete(that.exportField(data, 'percentComplete'));
+                                    item.status(that.exportStatusValue(that.exportField(data, 'status')));
+                                    item.lastActionDateTime(that.exportField(data, 'lastActionDateTime'));
+                                    item.resourceLocation(that.exportField(data, 'resourceLocation'));
+                                    item.resourceFileExtension(that.exportField(data, 'resourceFileExtension') || item.resourceFileExtension());
+                                    item.expirationTime(that.exportField(data, 'expirationTime'));
+                                    if (item.status() === 'Succeeded' || item.status() === 'Failed') {
                                         clearInterval(item.interval);
                                         item.interval = null;
+                                        if (item.status() === 'Succeeded') {
+                                            that.downloadExportedFile(item);
+                                        }
                                     }
                                     that.exportsQueue.valueHasMutated();
                                 }
                                 else {
-                                    alert("There was an error exporting the file.");
+                                    clearInterval(item.interval);
+                                    item.interval = null;
+                                    item.status('Failed');
                                 }
                             },
                             function (error) {
                                 console.log(error);
+                                clearInterval(item.interval);
+                                item.interval = null;
+                                item.status('Failed');
                             },
                             function () {
                             }
@@ -1355,7 +1391,7 @@
                 }
             }
 
-            fetch(that.exportsService.baseUrl + '/' + that.exportsService.controller + '/GetExportedFile?sid=' + context.WorkspaceId + '&rid=' + context.Id + '&exportid=' + item.id() + '&resourceFileExtension=' + item.resourceFileExtension(), options)
+            fetch(that.exportsService.baseUrl + '/' + that.exportsService.controller + '/GetExportedFile?sid=' + context.WorkspaceId + '&rid=' + context.Id + '&exportid=' + encodeURIComponent(item.id()) + '&resourceFileExtension=' + encodeURIComponent(item.resourceFileExtension()), options)
                 .then(response => {
                     if (!response.ok) {
                         throw new Error('Error downloading the file');
@@ -1387,12 +1423,20 @@
                 })
                 .catch(error => {
                     console.error('Error downloading the file:', error);
+                    item.status('Failed');
                     alert('There was an error downloading the file.');
                 });
 
         }
 
-        this.exportToFile = function (format) {
+        this.exportToFile = async function (format) {
+            try {
+                await that.flushReportState();
+            } catch (error) {
+                console.log(error);
+                alert("There was an error exporting the file.");
+                return;
+            }
             var options = {
                 method: 'GET',
                 headers: {
@@ -1420,20 +1464,23 @@
 
             Common.CallWithOptions("GET", "Export", that.exportsService, params, options,
                 function (data) {
-                    if (data) {
-                        that.exportsQueue().push(new ExportItemModel(
-                            data.id,
-                            data.createdDateTime,
-                            data.lastActionDateTime,
-                            data.reportId,
-                            data.reportName,
-                            data.status,
-                            data.percentComplete,
-                            data.resourceLocation,
-                            data.ResourceFileExtension,
-                            data.expirationTime
-                        ));
-                        that.exportsQueue.valueHasMutated();
+                    if (data && that.exportField(data, 'id')) {
+                        var item = new ExportItemModel(
+                            that.exportField(data, 'id'),
+                            that.exportField(data, 'createdDateTime'),
+                            that.exportField(data, 'lastActionDateTime'),
+                            that.exportField(data, 'reportId'),
+                            that.exportField(data, 'reportName'),
+                            that.exportStatusValue(that.exportField(data, 'status')),
+                            that.exportField(data, 'percentComplete'),
+                            that.exportField(data, 'resourceLocation'),
+                            that.exportField(data, 'resourceFileExtension') || format,
+                            that.exportField(data, 'expirationTime')
+                        );
+                        that.exportsQueue.push(item);
+                        if (item.status() === 'Succeeded') {
+                            that.downloadExportedFile(item);
+                        }
                     }
                     else {
                         alert("There was an error exporting the file.");

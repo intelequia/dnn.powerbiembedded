@@ -191,4 +191,7 @@
 
 	<b>Version 1.5.5</b>
 	<p>fix: capture the report state when saving or sending subscriptions with "Include My Changes" enabled, and reject sends without a saved state.</p>
+
+	<b>Version 1.5.6</b>
+	<p>fix: normalize PDF export responses and poll until completion instead of showing an undefined export.</p>
 </div>
