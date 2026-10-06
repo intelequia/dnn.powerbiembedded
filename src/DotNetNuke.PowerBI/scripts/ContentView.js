@@ -578,6 +578,7 @@
         this.reportStateSaving = false;
         this.reportStateDirty = false;
         this.reportStateSavePromise = Promise.resolve();
+        this.resettingReportState = false;
 
         this.saveReportState = function () {
             if (that.reportStateSaving) {
@@ -614,7 +615,7 @@
         };
 
         this.queueReportState = function () {
-            if (!that.rememberReportState || !that.reportStateReady) { return; }
+            if (!that.rememberReportState || !that.reportStateReady || that.resettingReportState) { return; }
             that.reportStateDirty = true;
             clearTimeout(that.reportStateTimer);
             that.reportStateTimer = setTimeout(function () {
@@ -685,12 +686,15 @@
             }
         }
 
-        this.report.allowedEvents.forEach(e => {
-            that.report.off(e);
-            that.report.on(e, function (event) {
-                that.trackEvent(e, event.detail);
+        this.registerTelemetryEvents = function () {
+            that.report.allowedEvents.forEach(e => {
+                that.report.off(e);
+                that.report.on(e, function (event) {
+                    that.trackEvent(e, event.detail);
+                });
             });
-        });
+        };
+        this.registerTelemetryEvents();
 
         this.registerReportStateEvents = function () {
             if (!that.rememberReportState) { return; }
@@ -700,7 +704,20 @@
             that.report.on("rendered", function () {
                 if (!that.reportStateReady) {
                     that.reportStateReady = true;
-                    that.applyDefaultBookmark();
+                    if (that.resettingReportState) {
+                        that.resettingReportState = false;
+                        that.reportStateDirty = true;
+                        that.saveReportState().catch(function (error) { console.log(error); });
+                    } else {
+                        that.applyDefaultBookmark();
+                    }
+                }
+            });
+            that.report.on("error", function (event) {
+                if (that.resettingReportState) {
+                    that.resettingReportState = false;
+                    that.reportStateReady = true;
+                    console.log(event.detail);
                 }
             });
         };
@@ -1495,8 +1512,35 @@
         }
 
 
-        this.pbireload = function () {
-            that.report.reload();
+        this.pbireload = async function () {
+            if (that.isDashboard) {
+                that.report.reload();
+                return;
+            }
+            if (that.resettingReportState) { return; }
+
+            that.resettingReportState = true;
+            clearTimeout(that.reportStateTimer);
+            that.reportStateDirty = false;
+            try {
+                await that.reportStateSavePromise.catch(function (error) { console.log(error); });
+                clearTimeout(that.reportStateTimer);
+                that.reportStateDirty = false;
+                that.reportStateReady = false;
+                that.reportStateRestored = false;
+                that.defaultBookmarkApplied = true;
+                delete that.config.bookmark;
+
+                powerbi.reset(that.reportContainer);
+                that.report = powerbi.embed(that.reportContainer, that.config);
+                that.registerTelemetryEvents();
+                that.registerReportStateEvents();
+                if (!that.rememberReportState) { that.resettingReportState = false; }
+            } catch (error) {
+                that.resettingReportState = false;
+                that.reportStateReady = true;
+                console.log(error);
+            }
         }
 
         this.pbiprint = function () {
