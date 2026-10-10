@@ -24,7 +24,7 @@
     }
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "node --test ../../tests/ContentView.TokenRenewal.test.js",
     "build": "",
     "watch": "concurrently \"yarn:watch-*\"",
     "watch-js": "node BuildScripts/watch.js"

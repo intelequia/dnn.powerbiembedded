@@ -19,6 +19,9 @@ Practical examples and code samples for implementing custom RLS extensions. This
 - Deployment and testing guidance
 - Best practices for performance and security
 
+### [Embed Token Renewal](Token-Renewal.md)
+Guide to App Owns Data token renewal, including expiration handling, security, deployment, and testing.
+
 ## Quick Start
 
 1. **Basic Setup**: Start with the [RLS Configuration Guide](RLS-Configuration.md) to understand the available options

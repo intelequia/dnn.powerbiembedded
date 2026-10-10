@@ -578,10 +578,15 @@ namespace DotNetNuke.PowerBI.Services
             }
         }
 
-        public async Task<EmbedConfig> GetReportEmbedConfigAsync(int userId, string username, string roles, string reportId, bool hasEditPermission)
+        public Task<EmbedConfig> GetReportEmbedConfigAsync(int userId, string username, string roles, string reportId, bool hasEditPermission)
+        {
+            return GetReportEmbedConfigAsync(userId, username, roles, reportId, hasEditPermission, false);
+        }
+
+        public async Task<EmbedConfig> GetReportEmbedConfigAsync(int userId, string username, string roles, string reportId, bool hasEditPermission, bool forceRefresh)
         {
             var model = (EmbedConfig)CachingProvider.Instance().GetItem($"PBI_{Settings.PortalId}_{Settings.SettingsId}_{userId}_{username}_{roles}_{Thread.CurrentThread.CurrentUICulture.Name}_Report_{reportId}");
-            if (model != null)
+            if (model != null && !forceRefresh)
                 return model;
 
             model = new EmbedConfig();
@@ -1000,12 +1005,17 @@ namespace DotNetNuke.PowerBI.Services
             }
         }
 
-        public async Task<EmbedConfig> GetDashboardEmbedConfigAsync(int userId, string username, string roles, string dashboardId, bool hasEditPermission)
+        public Task<EmbedConfig> GetDashboardEmbedConfigAsync(int userId, string username, string roles, string dashboardId, bool hasEditPermission)
+        {
+            return GetDashboardEmbedConfigAsync(userId, username, roles, dashboardId, hasEditPermission, false);
+        }
+
+        public async Task<EmbedConfig> GetDashboardEmbedConfigAsync(int userId, string username, string roles, string dashboardId, bool hasEditPermission, bool forceRefresh)
         {
             string permission = "view"; // Dashboards only support "view" access level for now. Edit access level is not supported and will be ignored by the service.
 
             var model = (EmbedConfig)CachingProvider.Instance().GetItem($"PBI_{Settings.PortalId}_{Settings.SettingsId}_{userId}_{username}_{roles}_{Thread.CurrentThread.CurrentUICulture.Name}_Dashboard_{dashboardId}");
-            if (model != null)
+            if (model != null && !forceRefresh)
                 return model;
 
             model = new EmbedConfig();
@@ -1307,7 +1317,7 @@ namespace DotNetNuke.PowerBI.Services
             AuthenticationResult authenticationResult = null;
             if (Settings.AuthenticationType.Equals("MasterUser"))
             {
-                var authenticationContext = new AuthenticationContext(Settings.AuthorityUrl);
+                var authenticationContext = new AuthenticationContext(Settings.AuthorityUrl, new TokenCache());
 
                 // Authentication using master user credentials
                 var credential = new UserPasswordCredential(Settings.Username, Settings.Password);
@@ -1317,7 +1327,7 @@ namespace DotNetNuke.PowerBI.Services
             {
                 // For app only authentication, we need the specific tenant id in the authority url
                 var tenantSpecificURL = Settings.AuthorityUrl.Replace("common", Settings.ServicePrincipalTenant);
-                var authenticationContext = new AuthenticationContext(tenantSpecificURL);
+                var authenticationContext = new AuthenticationContext(tenantSpecificURL, new TokenCache());
 
                 // Authentication using app credentials
                 var credential = new ClientCredential(Settings.ServicePrincipalApplicationId, Settings.ServicePrincipalApplicationSecret);
@@ -1370,7 +1380,11 @@ namespace DotNetNuke.PowerBI.Services
             }
 
             accessToken = authenticationResult.AccessToken;
-            CachingProvider.Instance().Insert($"PBI_{Settings.PortalId}_{Settings.SettingsId}_TokenCredentials", accessToken, null, authenticationResult.ExpiresOn.AddMinutes(-2).UtcDateTime, TimeSpan.Zero);
+            var cacheExpiration = authenticationResult.ExpiresOn.AddMinutes(-10).UtcDateTime;
+            if (cacheExpiration > DateTime.UtcNow)
+            {
+                CachingProvider.Instance().Insert($"PBI_{Settings.PortalId}_{Settings.SettingsId}_TokenCredentials", accessToken, null, cacheExpiration, TimeSpan.Zero);
+            }
             return true;
         }
 
