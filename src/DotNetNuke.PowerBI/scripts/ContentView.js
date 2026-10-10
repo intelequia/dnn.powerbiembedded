@@ -44,9 +44,9 @@
 
         function failed(error) {
             renewing = false;
-            if (error && (error.status === 401 || error.status === 403)) {
+            if (error && error.status >= 400 && error.status < 500 && error.status !== 408 && error.status !== 429) {
                 stop();
-                console.error("Power BI token renewal is no longer authorized");
+                console.error("Power BI token renewal request is no longer valid");
                 return;
             }
             console.error("Power BI token renewal failed; retrying");
