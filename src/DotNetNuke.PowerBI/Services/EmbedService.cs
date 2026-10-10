@@ -503,34 +503,10 @@ namespace DotNetNuke.PowerBI.Services
                     {
                         throw new ApplicationException(model.ErrorMessage);
                     }
-                    // Check if the dataset has effective identity required
-                    // var dataset = await client.Datasets.GetDatasetAsync(report.DatasetId).ConfigureAwait(false);
-                    // The line above returns an unauthorization exception when using "Service Principal" credentials. Seems a bug in the PowerBI API.
-                    var reportWorkspaceId = Guid.Parse(Settings.WorkspaceId);
-                    var datasetWorkspaceId = await GetReportDatasetWorkspaceIdAsync(reportWorkspaceId, report.Id).ConfigureAwait(false)
-                                             ?? reportWorkspaceId;
-                    Dataset dataset = null;
-                    try
+                    var reportContext = await ResolveReportIdentityAsync(client, workspaceId, report, user, roles).ConfigureAwait(false);
+                    if (reportContext.Identity != null)
                     {
-                        dataset = client.Datasets.GetDatasetInGroup(datasetWorkspaceId, report.DatasetId).Value;
-                    }
-                    catch (Exception ex)
-                    {
-                        Logger.Warn($"Couldn't find dataset '{report.DatasetId}' in workspace '{datasetWorkspaceId}'", ex);
-                        dataset = client.Datasets.GetDatasetsInGroup(datasetWorkspaceId).Value.Value.FirstOrDefault(x => x.Id == report.DatasetId);
-                    }
-
-                    if (dataset != null
-                        && (dataset.IsEffectiveIdentityRequired.GetValueOrDefault(false) || dataset.IsEffectiveIdentityRolesRequired.GetValueOrDefault(false)))
-                    //&& !dataset.IsOnPremGatewayRequired.GetValueOrDefault(false))
-                    {
-                        var rls = new EffectiveIdentity { Username = user };
-                        rls.Datasets.Add(report.DatasetId);
-                        if (!string.IsNullOrWhiteSpace(roles) && dataset.IsEffectiveIdentityRolesRequired.GetValueOrDefault(false))
-                        {
-                            AppendEffectiveRoles(rls, roles);
-                        }
-                        identities = new List<EffectiveIdentity> { rls };
+                        identities = new List<EffectiveIdentity> { reportContext.Identity };
                     }
                 }
             }
@@ -574,7 +550,21 @@ namespace DotNetNuke.PowerBI.Services
             // Create a Power BI Client object. It will be used to call Power BI APIs.
             {
                 var client = new PowerBIClient(accessToken, new Uri(Settings.ApiUrl));
-                return (await client.Reports.ExportToFileInGroupAsync(workspaceId, reportId, exportRequest).ConfigureAwait(false)).Value;
+                try
+                {
+                    return (await client.Reports.ExportToFileInGroupAsync(workspaceId, reportId, exportRequest).ConfigureAwait(false)).Value;
+                }
+                catch (RequestFailedException ex)
+                {
+                    Logger.Error(
+                        $"PowerBI export failed. WorkspaceId='{workspaceId}', ReportId='{reportId}', " +
+                        $"Format='{format}', Status={ex.Status}, ErrorCode='{ex.ErrorCode}', " +
+                        $"HasBookmark={!string.IsNullOrEmpty(bookmarkState)}, " +
+                        $"PagesCount={pageNames?.Count ?? 0}, IdentityCount={identities?.Count ?? 0}, " +
+                        $"RolesCount={identities?.Sum(identity => identity.Roles.Count) ?? 0}, " +
+                        $"IdentityDatasets='{string.Join(",", identities?.SelectMany(identity => identity.Datasets) ?? Enumerable.Empty<string>())}'.", ex);
+                    throw;
+                }
             }
         }
 
@@ -635,78 +625,82 @@ namespace DotNetNuke.PowerBI.Services
             return model;
         }
 
+        private async Task<ReportIdentityContext> ResolveReportIdentityAsync(PowerBIClient client, Guid reportWorkspaceId, Report report, string username, string roles)
+        {
+            var datasetWorkspaceId = await GetReportDatasetWorkspaceIdAsync(reportWorkspaceId, report.Id).ConfigureAwait(false)
+                                     ?? reportWorkspaceId;
+            var chainedDatasets = await GetChainedDatasetsAsync(client, datasetWorkspaceId, report.DatasetId).ConfigureAwait(false);
+            EffectiveIdentity identity = null;
+
+            if (!string.IsNullOrWhiteSpace(username))
+            {
+                Dataset dataset = null;
+                try
+                {
+                    dataset = (await client.Datasets.GetDatasetInGroupAsync(datasetWorkspaceId, report.DatasetId).ConfigureAwait(false)).Value;
+                }
+                catch (Exception ex)
+                {
+                    Logger.Warn($"Couldn't find dataset '{report.DatasetId}' in workspace '{datasetWorkspaceId}'", ex);
+                    dataset = (await client.Datasets.GetDatasetsInGroupAsync(datasetWorkspaceId).ConfigureAwait(false)).Value.Value.FirstOrDefault(x => x.Id == report.DatasetId);
+                }
+
+                bool chainedNeedsIdentity = chainedDatasets.Any(chained => chained.IsEffectiveIdentityRequired || chained.IsEffectiveIdentityRolesRequired);
+                bool primaryNeedsIdentity = dataset != null
+                    && (dataset.IsEffectiveIdentityRequired.GetValueOrDefault(false) || dataset.IsEffectiveIdentityRolesRequired.GetValueOrDefault(false));
+
+                if (primaryNeedsIdentity || chainedNeedsIdentity)
+                {
+                    identity = new EffectiveIdentity { Username = username };
+                    if (primaryNeedsIdentity)
+                    {
+                        identity.Datasets.Add(report.DatasetId);
+                    }
+                    foreach (var chained in chainedDatasets)
+                    {
+                        if ((chained.IsEffectiveIdentityRequired || chained.IsEffectiveIdentityRolesRequired)
+                            && !identity.Datasets.Contains(chained.DatasetId))
+                        {
+                            identity.Datasets.Add(chained.DatasetId);
+                        }
+                    }
+                    bool rolesRequiredAnywhere = (dataset != null && dataset.IsEffectiveIdentityRolesRequired.GetValueOrDefault(false))
+                                                 || chainedDatasets.Any(chained => chained.IsEffectiveIdentityRolesRequired);
+                    if (!string.IsNullOrWhiteSpace(roles) && rolesRequiredAnywhere)
+                    {
+                        AppendEffectiveRoles(identity, roles);
+                    }
+                }
+            }
+
+            return new ReportIdentityContext
+            {
+                DatasetWorkspaceId = datasetWorkspaceId,
+                ChainedDatasets = chainedDatasets,
+                Identity = identity
+            };
+        }
+
+        private class ReportIdentityContext
+        {
+            public Guid DatasetWorkspaceId { get; set; }
+            public List<ChainedDatasetInfo> ChainedDatasets { get; set; }
+            public EffectiveIdentity Identity { get; set; }
+        }
+
         private async Task<EmbedToken> GenerateTokenAsync(string username, string roles, PowerBIClient client, Report report, bool hasEditPermission)
         {
 
             try
             {
                 var reportWorkspaceId = Guid.Parse(Settings.WorkspaceId);
-
-                // If the report uses a shared dataset that lives in a different workspace,
-                // the dataset must be looked up in its own workspace. The SDK Report model in
-                // Microsoft.PowerBI.Api 5.x does not surface DatasetWorkspaceId, so fetch it via REST.
-                var datasetWorkspaceId = await GetReportDatasetWorkspaceIdAsync(reportWorkspaceId, report.Id).ConfigureAwait(false)
-                                         ?? reportWorkspaceId;
-
-                // Discover chained datasets (composite models / DirectQuery to Power BI dataset).
-                // If the report's primary dataset depends on other Power BI datasets in different
-                // workspaces, all of them must be declared in the embed token.
-                var chainedDatasets = await GetChainedDatasetsAsync(client, datasetWorkspaceId, report.DatasetId).ConfigureAwait(false);
-
+                var reportContext = await ResolveReportIdentityAsync(client, reportWorkspaceId, report, username, roles).ConfigureAwait(false);
+                var datasetWorkspaceId = reportContext.DatasetWorkspaceId;
+                var chainedDatasets = reportContext.ChainedDatasets;
                 bool isCrossWorkspaceDataset = datasetWorkspaceId != reportWorkspaceId;
                 bool useV2 = isCrossWorkspaceDataset || chainedDatasets.Count > 0;
-
-                EffectiveIdentity rls = null;
+                var rls = reportContext.Identity;
                 string permission = hasEditPermission ? "edit" : "view";
-                if (!string.IsNullOrWhiteSpace(username))
-                {
-                    // Check if the dataset has effective identity required
-                    // var dataset = await client.Datasets.GetDatasetAsync(report.DatasetId).ConfigureAwait(false);
-                    // The line above returns an unauthorization exception when using "Service Principal" credentials. Seems a bug in the PowerBI API.
-                    Dataset dataset = null;
-                    try
-                    {
-                        dataset = client.Datasets.GetDatasetInGroup(datasetWorkspaceId, report.DatasetId).Value;
-                    }
-                    catch (Exception ex)
-                    {
-                        Logger.Warn($"Couldn't find dataset '{report.DatasetId}' in workspace '{datasetWorkspaceId}'", ex);
-                        dataset = client.Datasets.GetDatasetsInGroup(datasetWorkspaceId).Value.Value.FirstOrDefault(x => x.Id == report.DatasetId);
-                    }
-
-                    // RLS may be required either by the primary dataset or by any chained (remote) dataset.
-                    bool chainedNeedsIdentity = chainedDatasets.Any(c => c.IsEffectiveIdentityRequired || c.IsEffectiveIdentityRolesRequired);
-                    bool primaryNeedsIdentity = dataset != null
-                        && (dataset.IsEffectiveIdentityRequired.GetValueOrDefault(false) || dataset.IsEffectiveIdentityRolesRequired.GetValueOrDefault(false));
-
-                    if (primaryNeedsIdentity || chainedNeedsIdentity)
-                    //&& !dataset.IsOnPremGatewayRequired.GetValueOrDefault(false))
-                    {
-                        rls = new EffectiveIdentity { Username = username };
-                        // Only attach the identity to the datasets that actually require it.
-                        // Listing datasets without RLS here makes Power BI try to resolve the
-                        // identity against them via MSOLAP and fail with errors such as
-                        // "Failed to open the MSOLAP connection".
-                        if (primaryNeedsIdentity)
-                        {
-                            rls.Datasets.Add(report.DatasetId);
-                        }
-                        foreach (var chained in chainedDatasets)
-                        {
-                            if ((chained.IsEffectiveIdentityRequired || chained.IsEffectiveIdentityRolesRequired)
-                                && !rls.Datasets.Contains(chained.DatasetId))
-                            {
-                                rls.Datasets.Add(chained.DatasetId);
-                            }
-                        }
-                        bool rolesRequiredAnywhere = (dataset != null && dataset.IsEffectiveIdentityRolesRequired.GetValueOrDefault(false))
-                                                     || chainedDatasets.Any(c => c.IsEffectiveIdentityRolesRequired);
-                        if (!string.IsNullOrWhiteSpace(roles) && rolesRequiredAnywhere)
-                        {
-                            AppendEffectiveRoles(rls, roles);
-                        }
-                    }
-                }
 
                 EmbedToken tokenResponse;
                 if (useV2)
