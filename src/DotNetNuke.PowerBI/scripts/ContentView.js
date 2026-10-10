@@ -9,6 +9,127 @@
         }
     }
 
+    function createTokenRenewal(context, getReport, config) {
+        var framework = $.ServicesFramework(context.ModuleId);
+        var service = {
+            controller: "EmbedToken",
+            framework: framework,
+            baseUrl: framework.getServiceRoot("PowerBI/Services")
+        };
+        var timer = null;
+        var renewing = false;
+        var stopped = false;
+        var paused = false;
+        var retryDelay = 10000;
+        var renewalAt = 0;
+
+        function schedule(delay) {
+            clearTimeout(timer);
+            if (!stopped && !paused) {
+                timer = setTimeout(check, Math.max(1000, delay));
+            }
+        }
+
+        function setExpiration(expiration) {
+            var expiresAt = Date.parse(expiration);
+            if (!isFinite(expiresAt)) {
+                stop();
+                console.error("Power BI token expiration is invalid");
+                return;
+            }
+            var remaining = Math.max(0, expiresAt - Date.now());
+            renewalAt = expiresAt - Math.min(5 * 60 * 1000, remaining / 2);
+            schedule(renewalAt - Date.now());
+        }
+
+        function failed(error) {
+            renewing = false;
+            if (error && error.status >= 400 && error.status < 500 && error.status !== 408 && error.status !== 429) {
+                stop();
+                console.error("Power BI token renewal request is no longer valid");
+                return;
+            }
+            console.error("Power BI token renewal failed; retrying");
+            schedule(retryDelay);
+            retryDelay = Math.min(retryDelay * 2, 60000);
+        }
+
+        function check() {
+            if (stopped || paused || renewing) { return; }
+            if (!document.documentElement.contains(getReport().element)) {
+                stop();
+                return;
+            }
+            if (Date.now() < renewalAt) {
+                schedule(renewalAt - Date.now());
+                return;
+            }
+            renewing = true;
+            clearTimeout(timer);
+            $.ajax({
+                url: service.baseUrl + service.controller + "/Renew",
+                type: "POST",
+                beforeSend: framework.setModuleHeaders,
+                timeout: 30000,
+                dataType: "json",
+                contentType: "application/json; charset=UTF-8",
+                data: JSON.stringify({
+                    SettingsGroupId: context.SettingsGroupId,
+                    Id: context.Id,
+                    ContentType: context.ContentType
+                })
+            }).done(function (data) {
+                if (stopped) { renewing = false; return; }
+                if (!data || !data.token || !isFinite(Date.parse(data.expiration)) || Date.parse(data.expiration) <= Date.now()) {
+                    failed();
+                    return;
+                }
+                var report = getReport();
+                Promise.resolve().then(function () {
+                    return report.setAccessToken(data.token);
+                }).then(function () {
+                    if (getReport() !== report) {
+                        return getReport().setAccessToken(data.token);
+                    }
+                }).then(function () {
+                    config.accessToken = data.token;
+                    context.Token = data.token;
+                    context.Expiration = data.expiration;
+                    renewing = false;
+                    retryDelay = 10000;
+                    setExpiration(data.expiration);
+                }).catch(failed);
+            }).fail(failed);
+        }
+
+        function visible() {
+            if (!document.hidden) { check(); }
+        }
+
+        function pause() {
+            paused = true;
+            clearTimeout(timer);
+        }
+
+        function resume() {
+            paused = false;
+            check();
+        }
+
+        function stop() {
+            stopped = true;
+            clearTimeout(timer);
+            document.removeEventListener("visibilitychange", visible);
+            window.removeEventListener("pagehide", pause);
+            window.removeEventListener("pageshow", resume);
+        }
+
+        document.addEventListener("visibilitychange", visible);
+        window.addEventListener("pagehide", pause);
+        window.addEventListener("pageshow", resume);
+        setExpiration(context.Expiration);
+    }
+
     function parseRepeatTime(time) {
         var hours = 0, minutes = 0;
         if (time && time.length >= 5) {
@@ -578,6 +699,7 @@
         this.reportStateSaving = false;
         this.reportStateDirty = false;
         this.reportStateSavePromise = Promise.resolve();
+        this.resettingReportState = false;
 
         this.saveReportState = function () {
             if (that.reportStateSaving) {
@@ -614,7 +736,7 @@
         };
 
         this.queueReportState = function () {
-            if (!that.rememberReportState || !that.reportStateReady) { return; }
+            if (!that.rememberReportState || !that.reportStateReady || that.resettingReportState) { return; }
             that.reportStateDirty = true;
             clearTimeout(that.reportStateTimer);
             that.reportStateTimer = setTimeout(function () {
@@ -644,6 +766,8 @@
         this.report = that.isDashboard
             ? powerbi.embed(that.reportContainer, that.config)
             : powerbi.load(that.reportContainer, that.config);
+
+        createTokenRenewal(context, function () { return that.report; }, that.config);
 
         if (!that.isDashboard) {
             //Getreport bookmarks
@@ -685,12 +809,15 @@
             }
         }
 
-        this.report.allowedEvents.forEach(e => {
-            that.report.off(e);
-            that.report.on(e, function (event) {
-                that.trackEvent(e, event.detail);
+        this.registerTelemetryEvents = function () {
+            that.report.allowedEvents.forEach(e => {
+                that.report.off(e);
+                that.report.on(e, function (event) {
+                    that.trackEvent(e, event.detail);
+                });
             });
-        });
+        };
+        this.registerTelemetryEvents();
 
         this.registerReportStateEvents = function () {
             if (!that.rememberReportState) { return; }
@@ -700,7 +827,20 @@
             that.report.on("rendered", function () {
                 if (!that.reportStateReady) {
                     that.reportStateReady = true;
-                    that.applyDefaultBookmark();
+                    if (that.resettingReportState) {
+                        that.resettingReportState = false;
+                        that.reportStateDirty = true;
+                        that.saveReportState().catch(function (error) { console.log(error); });
+                    } else {
+                        that.applyDefaultBookmark();
+                    }
+                }
+            });
+            that.report.on("error", function (event) {
+                if (that.resettingReportState) {
+                    that.resettingReportState = false;
+                    that.reportStateReady = true;
+                    console.log(event.detail);
                 }
             });
         };
@@ -1495,8 +1635,35 @@
         }
 
 
-        this.pbireload = function () {
-            that.report.reload();
+        this.pbireload = async function () {
+            if (that.isDashboard) {
+                that.report.reload();
+                return;
+            }
+            if (that.resettingReportState) { return; }
+
+            that.resettingReportState = true;
+            clearTimeout(that.reportStateTimer);
+            that.reportStateDirty = false;
+            try {
+                await that.reportStateSavePromise.catch(function (error) { console.log(error); });
+                clearTimeout(that.reportStateTimer);
+                that.reportStateDirty = false;
+                that.reportStateReady = false;
+                that.reportStateRestored = false;
+                that.defaultBookmarkApplied = true;
+                delete that.config.bookmark;
+
+                powerbi.reset(that.reportContainer);
+                that.report = powerbi.embed(that.reportContainer, that.config);
+                that.registerTelemetryEvents();
+                that.registerReportStateEvents();
+                if (!that.rememberReportState) { that.resettingReportState = false; }
+            } catch (error) {
+                that.resettingReportState = false;
+                that.reportStateReady = true;
+                console.log(error);
+            }
         }
 
         this.pbiprint = function () {

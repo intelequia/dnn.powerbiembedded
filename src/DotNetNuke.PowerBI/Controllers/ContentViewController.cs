@@ -67,60 +67,7 @@ namespace DotNetNuke.PowerBI.Controllers
                 var embedService = new EmbedService(ModuleContext.PortalId, ModuleContext.TabModuleId, settingsGroupId);
 
 
-                var user = ModuleContext.PortalSettings.UserInfo.Username;
-                var userPropertySetting = (string)ModuleContext.Settings["PowerBIEmbedded_UserProperty"];
-                if (userPropertySetting?.ToLowerInvariant() == "email")
-                {
-                    user = ModuleContext.PortalSettings.UserInfo.Email;
-                }
-                else if (userPropertySetting == "PowerBiGroup")
-                {
-                    var userProperty = PortalSettings.UserInfo.Profile.GetProperty("PowerBiGroup");
-                    if (userProperty?.PropertyValue != null)
-                    {
-                        user = userProperty.PropertyValue;
-                    }
-                }
-                else if (userPropertySetting == "Custom" || userPropertySetting == "Custom User Profile Property")
-                {
-                    var customProperties = (string)ModuleContext.Settings["PowerBIEmbedded_CustomUserProperty"];
-                    var matches = Regex.Matches(customProperties, @"\[PROFILE:(?<PROPERTY>[A-z]*)]");
-
-                    foreach (Match match in matches)
-                    {
-                        var userProperty = PortalSettings.UserInfo.Profile.GetProperty(match.Groups["PROPERTY"].Value);
-                        if (userProperty?.PropertyValue != null)
-                        {
-                            customProperties = customProperties.Replace(match.Value, userProperty.PropertyValue);
-                        }
-                    }
-
-                    user = customProperties;
-                }
-                else if (userPropertySetting == "Custom Extension Library")
-                {
-                    var customExtensionLibrary = (string)ModuleContext.Settings["PowerBIEmbedded_CustomExtensionLibrary"];
-                    if (!string.IsNullOrEmpty(customExtensionLibrary))
-                    {
-                        try
-                        {
-                            var type = Type.GetType(customExtensionLibrary, true);
-                            if (type.GetInterfaces().Contains(typeof(IRlsCustomExtension)))
-                            {
-                                IRlsCustomExtension extensionInstance = (IRlsCustomExtension)Activator.CreateInstance(type);
-                                user = extensionInstance.GetRlsValue(System.Web.HttpContext.Current);
-                            }
-                            else
-                            {
-                                throw new Exception($"Library '{customExtensionLibrary}' does not implement IRlsCustomExtension");
-                            }
-                        }
-                        catch (Exception cex)
-                        {
-                            Logger.Error($"Error instancing custom extension library '{customExtensionLibrary}'", cex);
-                        }
-                    }
-                }
+                var user = ResolveRlsUsername(ModuleContext.PortalSettings.UserInfo, key => GetSetting(key));
                 var contentItemId = GetSetting("PowerBIEmbedded_ContentItemId");
                 string itemId = contentItemId.Length > 2 ? contentItemId.Substring(2) : ""; 
 
@@ -153,7 +100,6 @@ namespace DotNetNuke.PowerBI.Controllers
                     }
                 }
 
-                var permissionsRepo = ObjectPermissionsRepository.Instance;
                 if (!string.IsNullOrEmpty(model.Id) && !PowerBIListViewExtensions.UserHasPermissionsToWorkspace(embedService.Settings.InheritPermissions ?
                     embedService.Settings.SettingsGroupId : model.Id, User))
                 {
@@ -248,6 +194,8 @@ namespace DotNetNuke.PowerBI.Controllers
                     ViewBag.ReportPages,
                     model.ContentType,
                     Token = model.EmbedToken?.Token,
+                    Expiration = model.EmbedToken?.Expiration.ToUniversalTime().ToString("o"),
+                    embedService.Settings.SettingsGroupId,
                     model.EmbedUrl,
                     model.Id,
                     embedService.Settings.WorkspaceId,
@@ -267,6 +215,53 @@ namespace DotNetNuke.PowerBI.Controllers
                 model.ErrorMessage = LocalizeString("Error");
                 return View(model);
             }
+        }
+
+        internal static string ResolveRlsUsername(UserInfo userInfo, Func<string, string> getSetting)
+        {
+            var user = userInfo.Username;
+            var userPropertySetting = getSetting("PowerBIEmbedded_UserProperty");
+            if (userPropertySetting?.ToLowerInvariant() == "email")
+            {
+                user = userInfo.Email;
+            }
+            else if (userPropertySetting == "PowerBiGroup")
+            {
+                var userProperty = userInfo.Profile.GetProperty("PowerBiGroup");
+                if (userProperty?.PropertyValue != null)
+                {
+                    user = userProperty.PropertyValue;
+                }
+            }
+            else if (userPropertySetting == "Custom" || userPropertySetting == "Custom User Profile Property")
+            {
+                var customProperties = getSetting("PowerBIEmbedded_CustomUserProperty");
+                var matches = Regex.Matches(customProperties, @"\[PROFILE:(?<PROPERTY>[A-z]*)]");
+                foreach (Match match in matches)
+                {
+                    var userProperty = userInfo.Profile.GetProperty(match.Groups["PROPERTY"].Value);
+                    if (userProperty?.PropertyValue != null)
+                    {
+                        customProperties = customProperties.Replace(match.Value, userProperty.PropertyValue);
+                    }
+                }
+                user = customProperties;
+            }
+            else if (userPropertySetting == "Custom Extension Library")
+            {
+                var customExtensionLibrary = getSetting("PowerBIEmbedded_CustomExtensionLibrary");
+                if (!string.IsNullOrEmpty(customExtensionLibrary))
+                {
+                    var type = Type.GetType(customExtensionLibrary, true);
+                    if (!type.GetInterfaces().Contains(typeof(IRlsCustomExtension)))
+                    {
+                        throw new ApplicationException($"Library '{customExtensionLibrary}' does not implement IRlsCustomExtension");
+                    }
+                    var extensionInstance = (IRlsCustomExtension)Activator.CreateInstance(type);
+                    user = extensionInstance.GetRlsValue(System.Web.HttpContext.Current);
+                }
+            }
+            return user;
         }
 
         private string GetSetting(string key, string defaultValue = "")
