@@ -8,7 +8,7 @@ The module-scoped `POST EmbedToken/Renew` WebAPI endpoint requires DNN module au
 
 ## Failure Handling
 
-Temporary failures are retried after 10 seconds with exponential backoff capped at 60 seconds. Each HTTP request has a 30-second timeout. Applying the token through the SDK also has a 30-second timeout, including application to a replacement report instance. An SDK call that never settles no longer blocks all subsequent renewals; late completion cannot overwrite the renewal state. HTTP 401/403 stops renewal; the user must restore their session or permissions and reload the page.
+Temporary failures are retried after 10 seconds with exponential backoff capped at 60 seconds. Each HTTP request has a 30-second timeout. Applying the token through the SDK also has a 30-second timeout, including application to a replacement report instance. An SDK call that never settles no longer blocks all subsequent renewals; if it later completes after a newer token was accepted, the newer token is reapplied. HTTP 401/403 stops renewal; the user must restore their session or permissions and reload the page.
 
 Browsers can suspend background pages or the entire device, preventing JavaScript from running before expiration. Renewal checks resume when the page becomes visible, but this cannot guarantee that Power BI never displays an expiration error during suspension. Embed-token renewal does not restore an expired DNN login session.
 

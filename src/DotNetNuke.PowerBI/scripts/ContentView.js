@@ -18,6 +18,7 @@
         };
         var timer = null;
         var applicationTimer = null;
+        var acceptedToken = config.accessToken;
         var renewing = false;
         var stopped = false;
         var paused = false;
@@ -56,6 +57,17 @@
             retryDelay = Math.min(retryDelay * 2, 60000);
         }
 
+        function restoreAcceptedToken() {
+            var token = acceptedToken;
+            return Promise.resolve().then(function () {
+                return getReport().setAccessToken(token);
+            }).then(function () {
+                if (!stopped && token !== acceptedToken) {
+                    return restoreAcceptedToken();
+                }
+            });
+        }
+
         function applyToken(token) {
             return new Promise(function (resolve, reject) {
                 var pending = true;
@@ -77,6 +89,11 @@
                         return getReport().setAccessToken(token);
                     }
                 }).then(function () {
+                    if (pending) {
+                        acceptedToken = token;
+                    } else if (!stopped && token !== acceptedToken) {
+                        return restoreAcceptedToken();
+                    }
                     finish();
                 }).catch(function (error) {
                     finish(error || new Error("Power BI token update failed"));

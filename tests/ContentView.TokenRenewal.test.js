@@ -15,6 +15,11 @@ function harness(minutes = 60) {
     const windowEvents = new Map();
     const requests = [];
     const tokens = [];
+    const sdkState = {
+        configurationToken: 'initial',
+        elementAttribute: 'initial',
+        sharedServiceToken: 'initial'
+    };
     const config = { accessToken: 'initial' };
     const context = {
         ModuleId: 42,
@@ -25,7 +30,13 @@ function harness(minutes = 60) {
     };
     const report = {
         element: {},
-        setAccessToken: token => { tokens.push(token); return Promise.resolve(); }
+        setAccessToken: token => {
+            tokens.push(token);
+            sdkState.configurationToken = token;
+            sdkState.elementAttribute = token;
+            sdkState.sharedServiceToken = token;
+            return Promise.resolve();
+        }
     };
     const document = {
         hidden: false,
@@ -81,7 +92,7 @@ function harness(minutes = 60) {
     }
 
     return {
-        context, config, report, requests, tokens, timers, document, documentEvents, windowEvents,
+        context, config, report, requests, tokens, sdkState, timers, document, documentEvents, windowEvents,
         advance,
         expiration: minutesFromNow => new Date(now + minutesFromNow * 60000).toISOString(),
         startAnother: (anotherContext, anotherReport, anotherConfig) => sandbox.createTokenRenewal(anotherContext, () => anotherReport, anotherConfig),
@@ -134,10 +145,18 @@ test('retries temporary failures and SDK rejection', async () => {
     assert.equal(state.requests.length, 3);
 });
 
-test('retries when the SDK never acknowledges a token and ignores its late completion', async () => {
+test('retries when the SDK never acknowledges a token and restores the latest token after late completion', async () => {
     const state = harness();
     let completeStalledUpdate;
-    state.report.setAccessToken = () => new Promise(resolve => { completeStalledUpdate = resolve; });
+    state.report.setAccessToken = token => new Promise(resolve => {
+        completeStalledUpdate = () => {
+            state.tokens.push(token);
+            state.sdkState.configurationToken = token;
+            state.sdkState.elementAttribute = token;
+            state.sdkState.sharedServiceToken = token;
+            resolve();
+        };
+    });
     state.advance(55 * 60000);
     state.requests[0].success({ token: 'stalled', expiration: state.expiration(60) });
     await state.flush();
@@ -145,7 +164,13 @@ test('retries when the SDK never acknowledges a token and ignores its late compl
     await state.flush();
     state.advance(10000);
     assert.equal(state.requests.length, 2);
-    state.report.setAccessToken = token => { state.tokens.push(token); return Promise.resolve(); };
+    state.report.setAccessToken = token => {
+        state.tokens.push(token);
+        state.sdkState.configurationToken = token;
+        state.sdkState.elementAttribute = token;
+        state.sdkState.sharedServiceToken = token;
+        return Promise.resolve();
+    };
     state.requests[1].success({ token: 'recovered', expiration: state.expiration(60) });
     await state.flush();
     completeStalledUpdate();
@@ -153,6 +178,11 @@ test('retries when the SDK never acknowledges a token and ignores its late compl
     assert.equal(state.config.accessToken, 'recovered');
     assert.equal(state.context.Token, 'recovered');
     assert.equal(state.timers.size, 1);
+    assert.deepEqual(state.sdkState, {
+        configurationToken: 'recovered',
+        elementAttribute: 'recovered',
+        sharedServiceToken: 'recovered'
+    });
 });
 
 test('stops on authorization failures', () => {
