@@ -134,6 +134,27 @@ test('retries temporary failures and SDK rejection', async () => {
     assert.equal(state.requests.length, 3);
 });
 
+test('retries when the SDK never acknowledges a token and ignores its late completion', async () => {
+    const state = harness();
+    let completeStalledUpdate;
+    state.report.setAccessToken = () => new Promise(resolve => { completeStalledUpdate = resolve; });
+    state.advance(55 * 60000);
+    state.requests[0].success({ token: 'stalled', expiration: state.expiration(60) });
+    await state.flush();
+    state.advance(30000);
+    await state.flush();
+    state.advance(10000);
+    assert.equal(state.requests.length, 2);
+    state.report.setAccessToken = token => { state.tokens.push(token); return Promise.resolve(); };
+    state.requests[1].success({ token: 'recovered', expiration: state.expiration(60) });
+    await state.flush();
+    completeStalledUpdate();
+    await state.flush();
+    assert.equal(state.config.accessToken, 'recovered');
+    assert.equal(state.context.Token, 'recovered');
+    assert.equal(state.timers.size, 1);
+});
+
 test('stops on authorization failures', () => {
     for (const status of [401, 403]) {
         const state = harness();

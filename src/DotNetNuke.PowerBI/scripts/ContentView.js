@@ -17,6 +17,7 @@
             baseUrl: framework.getServiceRoot("PowerBI/Services")
         };
         var timer = null;
+        var applicationTimer = null;
         var renewing = false;
         var stopped = false;
         var paused = false;
@@ -44,6 +45,7 @@
 
         function failed(error) {
             renewing = false;
+            if (stopped) { return; }
             if (error && error.status >= 400 && error.status < 500 && error.status !== 408 && error.status !== 429) {
                 stop();
                 console.error("Power BI token renewal request is no longer valid");
@@ -52,6 +54,34 @@
             console.error("Power BI token renewal failed; retrying");
             schedule(retryDelay);
             retryDelay = Math.min(retryDelay * 2, 60000);
+        }
+
+        function applyToken(token) {
+            return new Promise(function (resolve, reject) {
+                var pending = true;
+                var report = getReport();
+                function finish(error) {
+                    if (!pending) { return; }
+                    pending = false;
+                    clearTimeout(applicationTimer);
+                    applicationTimer = null;
+                    if (error) { reject(error); } else { resolve(); }
+                }
+                applicationTimer = setTimeout(function () {
+                    finish(new Error("Power BI token update timed out"));
+                }, 30000);
+                Promise.resolve().then(function () {
+                    return report.setAccessToken(token);
+                }).then(function () {
+                    if (pending && !stopped && getReport() !== report) {
+                        return getReport().setAccessToken(token);
+                    }
+                }).then(function () {
+                    finish();
+                }).catch(function (error) {
+                    finish(error || new Error("Power BI token update failed"));
+                });
+            });
         }
 
         function check() {
@@ -84,14 +114,8 @@
                     failed();
                     return;
                 }
-                var report = getReport();
-                Promise.resolve().then(function () {
-                    return report.setAccessToken(data.token);
-                }).then(function () {
-                    if (getReport() !== report) {
-                        return getReport().setAccessToken(data.token);
-                    }
-                }).then(function () {
+                applyToken(data.token).then(function () {
+                    if (stopped) { return; }
                     config.accessToken = data.token;
                     context.Token = data.token;
                     context.Expiration = data.expiration;
@@ -119,6 +143,7 @@
         function stop() {
             stopped = true;
             clearTimeout(timer);
+            clearTimeout(applicationTimer);
             document.removeEventListener("visibilitychange", visible);
             window.removeEventListener("pagehide", pause);
             window.removeEventListener("pageshow", resume);
