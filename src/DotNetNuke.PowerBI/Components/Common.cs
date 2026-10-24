@@ -394,27 +394,9 @@ namespace DotNetNuke.PowerBI.Components
                     throw new ApplicationException($"No report with ID '{reportId}' was found in workspace '{setting.WorkspaceId}'");
                 }
 
-                // The dataset may live in a different workspace (shared/golden dataset). Resolve its workspace first.
                 var reportWorkspaceId = Guid.Parse(setting.WorkspaceId);
-                var datasetWorkspaceId = await GetReportDatasetWorkspaceIdAsync(reportWorkspaceId, report.Id, accessToken, setting).ConfigureAwait(false)
-                                         ?? reportWorkspaceId;
-                Dataset dataset = null;
-                try
-                {
-                    dataset = (await client.Datasets.GetDatasetInGroupAsync(datasetWorkspaceId, report.DatasetId).ConfigureAwait(false)).Value;
-                }
-                catch (Exception ex)
-                {
-                    Logger.Warn($"Couldn't find dataset '{report.DatasetId}' in workspace '{datasetWorkspaceId}'", ex);
-                    try
-                    {
-                        dataset = (await client.Datasets.GetDatasetsInGroupAsync(datasetWorkspaceId).ConfigureAwait(false)).Value.Value.FirstOrDefault(x => x.Id == report.DatasetId);
-                    }
-                    catch (Exception ex2)
-                    {
-                        Logger.Warn($"Couldn't list datasets in workspace '{datasetWorkspaceId}'", ex2);
-                    }
-                }
+                var embedService = new Services.EmbedService(setting, accessToken);
+                var identity = await embedService.ResolveSubscriptionIdentityAsync(client, reportWorkspaceId, report, username, rolesString).ConfigureAwait(false);
                 var powerBIReportExportConfiguration = new PowerBIReportExportConfiguration
                 {
                     Settings = new ExportReportSettings
@@ -441,31 +423,9 @@ namespace DotNetNuke.PowerBI.Components
                     powerBIReportExportConfiguration.DefaultBookmark = new PageBookmark { State = bookmarkState };
                 }
 
-                // Let's check if RLS is required
-                if (dataset != null
-                    && (dataset.IsEffectiveIdentityRequired.GetValueOrDefault(false) || dataset.IsEffectiveIdentityRolesRequired.GetValueOrDefault(false)))
+                if (identity != null)
                 {
-                    var rls = new EffectiveIdentity { Username = username };
-                    rls.Datasets.Add(report.DatasetId);
-                    if (!string.IsNullOrWhiteSpace(rolesString) && dataset.IsEffectiveIdentityRolesRequired.GetValueOrDefault(false))
-                    {
-                        foreach (var role in ResolveEffectiveRoles(rolesString, setting.PortalId))
-                        {
-                            rls.Roles.Add(role);
-                        }
-                    }
-
-                    // When the dataset enforces RLS roles, Power BI rejects an identity that has no
-                    // role with a generic "400 InvalidRequest". Fail early with an actionable message
-                    // instead so the cause (user has no applicable RLS role) is obvious in the logs.
-                    if (dataset.IsEffectiveIdentityRolesRequired.GetValueOrDefault(false) && rls.Roles.Count == 0)
-                    {
-                        throw new ApplicationException(
-                            $"The dataset '{report.DatasetId}' requires RLS roles but no role could be resolved for user '{username}'. " +
-                            "Check the user's roles and the 'RLS.RoleGroupName' appSetting filter.");
-                    }
-
-                    powerBIReportExportConfiguration.Identities.Add(rls);
+                    powerBIReportExportConfiguration.Identities.Add(identity);
                 }
 
                 var exportRequest = new ExportReportRequest(format)
@@ -478,7 +438,6 @@ namespace DotNetNuke.PowerBI.Components
                 // JSON serialization also exposes any remaining invisible characters as \uXXXX escapes.
                 try
                 {
-                    var identity = powerBIReportExportConfiguration.Identities?.FirstOrDefault();
                     var diag = new
                     {
                         WorkspaceId = setting.WorkspaceId,
@@ -488,8 +447,6 @@ namespace DotNetNuke.PowerBI.Components
                         Pages = powerBIReportExportConfiguration.Pages?.Select(p => p.PageName).ToList(),
                         HasBookmark = powerBIReportExportConfiguration.DefaultBookmark != null,
                         ReportLevelFilters = powerBIReportExportConfiguration.ReportLevelFilters?.Select(f => f.Filter).ToList(),
-                        IsEffectiveIdentityRequired = dataset?.IsEffectiveIdentityRequired,
-                        IsEffectiveIdentityRolesRequired = dataset?.IsEffectiveIdentityRolesRequired,
                         Identity = identity == null ? null : new
                         {
                             identity.Username,

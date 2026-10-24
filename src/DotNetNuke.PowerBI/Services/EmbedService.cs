@@ -32,6 +32,12 @@ namespace DotNetNuke.PowerBI.Services
         private string accessToken;
 
 
+        internal EmbedService(PowerBISettings settings, string token)
+        {
+            powerBISettings = settings;
+            accessToken = token;
+        }
+
         public EmbedConfig EmbedConfig
         {
             get { return embedConfig; }
@@ -631,6 +637,7 @@ namespace DotNetNuke.PowerBI.Services
                                      ?? reportWorkspaceId;
             var chainedDatasets = await GetChainedDatasetsAsync(client, datasetWorkspaceId, report.DatasetId).ConfigureAwait(false);
             EffectiveIdentity identity = null;
+            bool rolesRequiredAnywhere = false;
 
             if (!string.IsNullOrWhiteSpace(username))
             {
@@ -664,8 +671,8 @@ namespace DotNetNuke.PowerBI.Services
                             identity.Datasets.Add(chained.DatasetId);
                         }
                     }
-                    bool rolesRequiredAnywhere = (dataset != null && dataset.IsEffectiveIdentityRolesRequired.GetValueOrDefault(false))
-                                                 || chainedDatasets.Any(chained => chained.IsEffectiveIdentityRolesRequired);
+                    rolesRequiredAnywhere = (dataset != null && dataset.IsEffectiveIdentityRolesRequired.GetValueOrDefault(false))
+                                            || chainedDatasets.Any(chained => chained.IsEffectiveIdentityRolesRequired);
                     if (!string.IsNullOrWhiteSpace(roles) && rolesRequiredAnywhere)
                     {
                         AppendEffectiveRoles(identity, roles);
@@ -677,7 +684,8 @@ namespace DotNetNuke.PowerBI.Services
             {
                 DatasetWorkspaceId = datasetWorkspaceId,
                 ChainedDatasets = chainedDatasets,
-                Identity = identity
+                Identity = identity,
+                RolesRequired = rolesRequiredAnywhere
             };
         }
 
@@ -686,6 +694,19 @@ namespace DotNetNuke.PowerBI.Services
             public Guid DatasetWorkspaceId { get; set; }
             public List<ChainedDatasetInfo> ChainedDatasets { get; set; }
             public EffectiveIdentity Identity { get; set; }
+            public bool RolesRequired { get; set; }
+        }
+
+        internal async Task<EffectiveIdentity> ResolveSubscriptionIdentityAsync(PowerBIClient client, Guid reportWorkspaceId, Report report, string username, string roles)
+        {
+            var context = await ResolveReportIdentityAsync(client, reportWorkspaceId, report, username, roles).ConfigureAwait(false);
+            if (context.RolesRequired && context.Identity.Roles.Count == 0)
+            {
+                throw new ApplicationException(
+                    $"The report '{report.Id}' requires RLS roles but no role could be resolved for user '{username}'. " +
+                    "Check the user's roles and the 'RLS.RoleGroupName' appSetting filter.");
+            }
+            return context.Identity;
         }
 
         private async Task<EmbedToken> GenerateTokenAsync(string username, string roles, PowerBIClient client, Report report, bool hasEditPermission)
