@@ -202,7 +202,7 @@
         return ('0' + h).slice(-2) + ':' + minute + ':00';
     }
 
-    function SubscriptionModel(p, id, portalId, reportId, groupId, name, startDate, endDate, repeatPeriod, repeatTime, timeZone, emailSubject, message, reportPages, enabled, users, roles, moduleId, includeMyChanges, myChangesState, myChangesUpdatedOn, weeklyDays, monthlyDays, lastDayOfMonth) {
+    function SubscriptionModel(p, id, portalId, reportId, groupId, name, startDate, endDate, repeatPeriod, repeatTime, timeZone, emailSubject, message, reportPages, enabled, users, roles, moduleId, includeMyChanges, myChangesState, myChangesUpdatedOn, weeklyDays, monthlyDays, lastDayOfMonth, ownerDisplayName) {
         var that = this;
         var parent = p;
         this.id = ko.observable(id);
@@ -211,6 +211,7 @@
         this.groupId = ko.observable(groupId);
         this.moduleId = ko.observable(moduleId);
         this.name = ko.observable(name).extend({ required: true });
+        this.ownerDisplayName = ko.observable(ownerDisplayName || '');
         this.startDate = ko.observable(startDate).extend({ required: true });
         this.endDate = ko.observable(endDate).extend({ required: true });
         this.repeatPeriod = ko.observable(repeatPeriod).extend({ required: true });
@@ -619,6 +620,7 @@
                                 subscription.WeeklyDays,
                                 subscription.MonthlyDays,
                                 subscription.LastDayOfMonth,
+                                subscription.OwnerDisplayName,
                             );
                             subscriptions.push(b);
                         });

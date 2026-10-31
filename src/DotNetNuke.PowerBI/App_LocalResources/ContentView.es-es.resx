@@ -216,6 +216,12 @@
   <data name="SubscriptionName.Text" xml:space="preserve">
     <value>Nombre *</value>
   </data>
+  <data name="SubscriptionOwner.Text" xml:space="preserve">
+    <value>Propietario:</value>
+  </data>
+  <data name="SubscriptionOwnerUnavailable.Text" xml:space="preserve">
+    <value>Usuario ya no disponible</value>
+  </data>
   <data name="SubscriptionNoPages.Text" xml:space="preserve">
     <value>Sin Páginas</value>
   </data>

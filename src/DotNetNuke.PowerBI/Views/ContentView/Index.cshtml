@@ -170,6 +170,11 @@
                     <a class="deleteSubscription" data-bind="click: deleteSubscription">@Dnn.LocalizeString("btnDeleteSubscription")</a>
                     <a class="editSubscription" data-bind="click: editSubscription">@Dnn.LocalizeString("btnEditSubscription")</a>
                     <span class="subscriptionName" data-bind="text: name, click: editSubscription"></span>
+                    <div class="subscriptionOwner">
+                        <span>@Dnn.LocalizeString("SubscriptionOwner")</span>
+                        <span data-bind="text: ownerDisplayName, visible: ownerDisplayName"></span>
+                        <span data-bind="visible: !ownerDisplayName()">@Dnn.LocalizeString("SubscriptionOwnerUnavailable")</span>
+                    </div>
                 </li>
             </ul>
         </div>
@@ -179,6 +184,11 @@
             <div class="editorTitle">@Dnn.LocalizeString("EditSubscriptionDetails")</div>
             <div class="dnnForm">
                 <fieldset class="dnnClear">
+                    <div class="dnnFormItem" data-bind="visible: id() > 0">
+                        <label>@Dnn.LocalizeString("SubscriptionOwner")</label>
+                        <span data-bind="text: ownerDisplayName, visible: ownerDisplayName"></span>
+                        <span data-bind="visible: !ownerDisplayName()">@Dnn.LocalizeString("SubscriptionOwnerUnavailable")</span>
+                    </div>
                     <div class="dnnFormItem">
                         <label for="txtEditSubscriptionName">@Dnn.LocalizeString("SubscriptionName")</label>
                         <input type="text" id="txtEditSubscriptionName" class="full-width" data-bind="value: name">
@@ -384,4 +394,3 @@
         <div id="embedContainer_@Dnn.ActiveModule.ModuleID" class="mobile-view active"></div>
     }
 </div>
-

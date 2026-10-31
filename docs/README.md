@@ -29,6 +29,14 @@ Guide to App Owns Data token renewal, including expiration handling, security, d
 3. **Advanced Implementation**: Use Custom Profile Properties or Custom Extension Library for complex business logic
 4. **Development**: Refer to [RLS Examples](RLS-Examples.md) for code samples and patterns
 
+## Subscription management
+
+Users with subscription permissions can only list and manage subscriptions they created.
+Portal administrators and superusers can manage all subscriptions in the portal, subject to the existing report/workspace permissions.
+The subscription list and edit form display the creator's display name as the owner.
+Editing a subscription does not transfer ownership. If the creator is no longer available, the UI explicitly indicates this.
+Ownership is enforced server-side for editing, deleting, saving report changes and running saved subscriptions immediately.
+
 ## Getting Help
 
 - Check the [main project README](../README.md) for general information

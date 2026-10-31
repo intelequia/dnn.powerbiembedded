@@ -38,6 +38,9 @@ namespace DotNetNuke.PowerBI.Data.Subscriptions.Models
         public DateTime? LastProcessedOn { get; set; }
 
         [IgnoreColumn]
+        public string OwnerDisplayName { get; set; }
+
+        [IgnoreColumn]
         public string Users { get; set; }
 
         [IgnoreColumn]
