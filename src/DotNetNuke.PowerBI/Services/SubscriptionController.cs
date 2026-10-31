@@ -82,11 +82,15 @@ namespace DotNetNuke.PowerBI.Services
                     return Request.CreateResponse(HttpStatusCode.Unauthorized, new { Success = false });
                 }
 
-                var userId = UserController.Instance.GetCurrentUserInfo().UserID;
+                var currentUser = UserController.Instance.GetCurrentUserInfo();
                 var portalId = PortalSettings.PortalId;
-                var subscriptions = SubscriptionsRepository.Instance.GetSubscriptionsByReportId(reportId, portalId);
+                var subscriptions = SubscriptionsRepository.Instance.GetSubscriptionsByReportId(reportId, portalId)
+                    .Where(subscription => subscription.GroupId == workspaceId &&
+                        (UserCanManageAllSubscriptions(currentUser) || subscription.CreatedBy == currentUser.UserID))
+                    .ToList();
                 foreach (var subscription in subscriptions)
                 {
+                    subscription.OwnerDisplayName = UserController.Instance.GetUserById(portalId, subscription.CreatedBy)?.DisplayName;
                     var subscriptionSubscribers = SubscriptionsSubscribersRepository.Instance.GetSubscribersBySubscription(subscription.Id);
                     var users = new List<UserViewModel>();
                     var roles = new List<RoleViewModel>();
@@ -154,7 +158,7 @@ namespace DotNetNuke.PowerBI.Services
                 var serializer = new JavaScriptSerializer();
                 Subscription subscription = new Subscription
                 {
-                    PortalId = subscriptionViewModel.PortalId,
+                    PortalId = portalId,
                     ReportId = subscriptionViewModel.ReportId,
                     GroupId = subscriptionViewModel.GroupId,
                     ModuleId = subscriptionViewModel.ModuleId,
@@ -258,6 +262,10 @@ namespace DotNetNuke.PowerBI.Services
                     return AddSubscription(subscriptionViewModel);
                 }
                 Subscription subscription = SubscriptionsRepository.Instance.GetSubscriptionById(subscriptionViewModel.Id);
+                if (!UserCanManageSubscription(subscription, subscriptionViewModel))
+                {
+                    return Request.CreateResponse(HttpStatusCode.Unauthorized, new { Success = false });
+                }
                 if (subscriptionViewModel.IncludeMyChanges && string.IsNullOrEmpty(subscriptionViewModel.MyChangesState) &&
                     BookmarksRepository.Instance.GetBookmarkBySubscription(portalId, subscription.Id) == null)
                 {
@@ -347,6 +355,8 @@ namespace DotNetNuke.PowerBI.Services
 
         private class RunNowJob
         {
+            public int PortalId { get; set; }
+            public int UserId { get; set; }
             public string Status { get; set; }
             public string Error { get; set; }
             public DateTime StartedOn { get; set; }
@@ -358,6 +368,11 @@ namespace DotNetNuke.PowerBI.Services
             try
             {
                 int portalId = ActiveModule.PortalID;
+                if (subscriptionViewModel.Id != -1 &&
+                    !UserCanManageSubscription(SubscriptionsRepository.Instance.GetSubscriptionById(subscriptionViewModel.Id), subscriptionViewModel))
+                {
+                    return Request.CreateResponse(HttpStatusCode.Unauthorized, new { Success = false });
+                }
                 var settings = SharedSettingsRepository.Instance.GetSettingsByGroupId(subscriptionViewModel.GroupId, portalId);
                 string comparison = settings.InheritPermissions ? subscriptionViewModel.GroupId : subscriptionViewModel.ReportId;
                 if (!UserHasPermission(comparison))
@@ -426,7 +441,13 @@ namespace DotNetNuke.PowerBI.Services
                 }
 
                 var jobId = Guid.NewGuid().ToString("N");
-                var job = new RunNowJob { Status = "Running", StartedOn = DateTime.UtcNow };
+                var job = new RunNowJob
+                {
+                    PortalId = portalId,
+                    UserId = UserController.Instance.GetCurrentUserInfo().UserID,
+                    Status = "Running",
+                    StartedOn = DateTime.UtcNow
+                };
                 RunNowJobs[jobId] = job;
 
                 // Capture the current request context so it can be restored on the background
@@ -479,6 +500,12 @@ namespace DotNetNuke.PowerBI.Services
         {
             if (!string.IsNullOrEmpty(jobId) && RunNowJobs.TryGetValue(jobId, out var job))
             {
+                var currentUser = UserController.Instance.GetCurrentUserInfo();
+                if (job.PortalId != ActiveModule.PortalID ||
+                    (!UserCanManageAllSubscriptions(currentUser) && job.UserId != currentUser.UserID))
+                {
+                    return Request.CreateResponse(HttpStatusCode.Unauthorized, new { Success = false });
+                }
                 // Drop the job once a terminal state has been read to avoid leaking memory.
                 if (job.Status != "Running")
                 {
@@ -503,6 +530,11 @@ namespace DotNetNuke.PowerBI.Services
         {
             try
             {
+                var subscription = SubscriptionsRepository.Instance.GetSubscriptionById(subscriptionViewModel.Id);
+                if (!UserCanManageSubscription(subscription, subscriptionViewModel))
+                {
+                    return Request.CreateResponse(HttpStatusCode.Unauthorized, new { Success = false });
+                }
                 int portalId = ActiveModule.PortalID;
                 bool hasInheritPermissions = SharedSettingsRepository.Instance.GetSettingsByGroupId(subscriptionViewModel.GroupId, portalId).InheritPermissions;
                 string comparison = hasInheritPermissions ? subscriptionViewModel.GroupId : subscriptionViewModel.ReportId;
@@ -559,7 +591,13 @@ namespace DotNetNuke.PowerBI.Services
                     return Request.CreateResponse(HttpStatusCode.OK, new { Success = false, Error = "NotSaved" });
                 }
 
-                SaveMyChangesBookmark(portalId, subscriptionViewModel.Id, subscriptionViewModel.ReportId, subscriptionViewModel.MyChangesState);
+                var subscription = SubscriptionsRepository.Instance.GetSubscriptionById(subscriptionViewModel.Id);
+                if (!UserCanManageSubscription(subscription, subscriptionViewModel))
+                {
+                    return Request.CreateResponse(HttpStatusCode.Unauthorized, new { Success = false });
+                }
+
+                SaveMyChangesBookmark(portalId, subscription.Id, subscription.ReportId, subscriptionViewModel.MyChangesState);
                 var bookmark = BookmarksRepository.Instance.GetBookmarkBySubscription(portalId, subscriptionViewModel.Id);
                 return Request.CreateResponse(HttpStatusCode.OK, new
                 {
@@ -772,6 +810,21 @@ namespace DotNetNuke.PowerBI.Services
                     Error = ex
                 });
             }
+        }
+
+        private static bool UserCanManageAllSubscriptions(UserInfo user)
+        {
+            return user != null && (user.IsSuperUser || user.IsInRole("Administrators"));
+        }
+
+        private bool UserCanManageSubscription(Subscription subscription, SubscriptionViewModel request)
+        {
+            var currentUser = UserController.Instance.GetCurrentUserInfo();
+            return subscription != null && subscription.PortalId == ActiveModule.PortalID &&
+                subscription.GroupId == request.GroupId && subscription.ReportId == request.ReportId &&
+                currentUser != null && currentUser.UserID >= 0 &&
+                (UserCanManageAllSubscriptions(currentUser) || subscription.CreatedBy == currentUser.UserID) &&
+                UserHasPermission(WorkspaceOrReport(subscription.GroupId, subscription.ReportId));
         }
 
         private bool UserHasPermission(string workspaceOrReport)

@@ -8,7 +8,9 @@ The module-scoped `POST EmbedToken/Renew` WebAPI endpoint requires DNN module au
 
 ## Failure Handling
 
-Temporary failures are retried after 10 seconds with exponential backoff capped at 60 seconds. Each HTTP request has a 30-second timeout. HTTP 401/403 stops renewal; the user must restore their session or permissions and reload the page.
+Temporary failures are retried after 10 seconds with exponential backoff capped at 60 seconds. Each HTTP request has a 30-second timeout. Applying the token through the SDK also has a 30-second timeout, including application to a replacement report instance. An SDK call that never settles no longer blocks all subsequent renewals; if it later completes after a newer token was accepted, the newer token is reapplied. HTTP 401/403 stops renewal; the user must restore their session or permissions and reload the page.
+
+Browsers can suspend background pages or the entire device, preventing JavaScript from running before expiration. Renewal checks resume when the page becomes visible, but this cannot guarantee that Power BI never displays an expiration error during suspension. Embed-token renewal does not restore an expired DNN login session.
 
 ## Token Lifetime
 
@@ -17,6 +19,8 @@ The backend stops caching Microsoft Entra credentials ten minutes before their e
 ## Deployment
 
 Deploy both the rebuilt module DLL and `scripts/ContentView.js`, then reload existing pages to initialize renewal. No database migration or new module setting is required. Verify in browser Network tools that `EmbedToken/Renew` returns a new token and expiration while the report retains its current filters and page.
+
+When investigating a recurrence, confirm that the browser loaded the deployed renewal code, enable Preserve log in Network tools, and record whether `EmbedToken/Renew` was sent, its HTTP status, and its returned expiration. Check the console for renewal failures and the Power BI error code. Do not share token values or authentication headers. Test inactivity beyond the initial token lifetime, a background tab, and device sleep/resume separately; passing simulated tests does not confirm a customer incident is resolved.
 
 ## Testing
 

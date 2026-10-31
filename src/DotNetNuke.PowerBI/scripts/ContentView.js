@@ -17,6 +17,8 @@
             baseUrl: framework.getServiceRoot("PowerBI/Services")
         };
         var timer = null;
+        var applicationTimer = null;
+        var acceptedToken = config.accessToken;
         var renewing = false;
         var stopped = false;
         var paused = false;
@@ -44,6 +46,7 @@
 
         function failed(error) {
             renewing = false;
+            if (stopped) { return; }
             if (error && error.status >= 400 && error.status < 500 && error.status !== 408 && error.status !== 429) {
                 stop();
                 console.error("Power BI token renewal request is no longer valid");
@@ -52,6 +55,50 @@
             console.error("Power BI token renewal failed; retrying");
             schedule(retryDelay);
             retryDelay = Math.min(retryDelay * 2, 60000);
+        }
+
+        function restoreAcceptedToken() {
+            var token = acceptedToken;
+            return Promise.resolve().then(function () {
+                return getReport().setAccessToken(token);
+            }).then(function () {
+                if (!stopped && token !== acceptedToken) {
+                    return restoreAcceptedToken();
+                }
+            });
+        }
+
+        function applyToken(token) {
+            return new Promise(function (resolve, reject) {
+                var pending = true;
+                var report = getReport();
+                function finish(error) {
+                    if (!pending) { return; }
+                    pending = false;
+                    clearTimeout(applicationTimer);
+                    applicationTimer = null;
+                    if (error) { reject(error); } else { resolve(); }
+                }
+                applicationTimer = setTimeout(function () {
+                    finish(new Error("Power BI token update timed out"));
+                }, 30000);
+                Promise.resolve().then(function () {
+                    return report.setAccessToken(token);
+                }).then(function () {
+                    if (pending && !stopped && getReport() !== report) {
+                        return getReport().setAccessToken(token);
+                    }
+                }).then(function () {
+                    if (pending) {
+                        acceptedToken = token;
+                    } else if (!stopped && token !== acceptedToken) {
+                        return restoreAcceptedToken();
+                    }
+                    finish();
+                }).catch(function (error) {
+                    finish(error || new Error("Power BI token update failed"));
+                });
+            });
         }
 
         function check() {
@@ -84,14 +131,8 @@
                     failed();
                     return;
                 }
-                var report = getReport();
-                Promise.resolve().then(function () {
-                    return report.setAccessToken(data.token);
-                }).then(function () {
-                    if (getReport() !== report) {
-                        return getReport().setAccessToken(data.token);
-                    }
-                }).then(function () {
+                applyToken(data.token).then(function () {
+                    if (stopped) { return; }
                     config.accessToken = data.token;
                     context.Token = data.token;
                     context.Expiration = data.expiration;
@@ -119,6 +160,7 @@
         function stop() {
             stopped = true;
             clearTimeout(timer);
+            clearTimeout(applicationTimer);
             document.removeEventListener("visibilitychange", visible);
             window.removeEventListener("pagehide", pause);
             window.removeEventListener("pageshow", resume);
@@ -160,7 +202,7 @@
         return ('0' + h).slice(-2) + ':' + minute + ':00';
     }
 
-    function SubscriptionModel(p, id, portalId, reportId, groupId, name, startDate, endDate, repeatPeriod, repeatTime, timeZone, emailSubject, message, reportPages, enabled, users, roles, moduleId, includeMyChanges, myChangesState, myChangesUpdatedOn, weeklyDays, monthlyDays, lastDayOfMonth) {
+    function SubscriptionModel(p, id, portalId, reportId, groupId, name, startDate, endDate, repeatPeriod, repeatTime, timeZone, emailSubject, message, reportPages, enabled, users, roles, moduleId, includeMyChanges, myChangesState, myChangesUpdatedOn, weeklyDays, monthlyDays, lastDayOfMonth, ownerDisplayName) {
         var that = this;
         var parent = p;
         this.id = ko.observable(id);
@@ -169,6 +211,7 @@
         this.groupId = ko.observable(groupId);
         this.moduleId = ko.observable(moduleId);
         this.name = ko.observable(name).extend({ required: true });
+        this.ownerDisplayName = ko.observable(ownerDisplayName || '');
         this.startDate = ko.observable(startDate).extend({ required: true });
         this.endDate = ko.observable(endDate).extend({ required: true });
         this.repeatPeriod = ko.observable(repeatPeriod).extend({ required: true });
@@ -577,6 +620,7 @@
                                 subscription.WeeklyDays,
                                 subscription.MonthlyDays,
                                 subscription.LastDayOfMonth,
+                                subscription.OwnerDisplayName,
                             );
                             subscriptions.push(b);
                         });
