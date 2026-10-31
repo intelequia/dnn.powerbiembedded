@@ -1,3 +1,4 @@
+using Azure;
 using DotNetNuke.Common;
 using DotNetNuke.Entities.Tabs;
 using DotNetNuke.Entities.Users;
@@ -182,6 +183,11 @@ namespace DotNetNuke.PowerBI.Services
 
                     foreach (var dataset in datasets)
                     {
+                        if (dataset.IsRefreshable == false)
+                        {
+                            continue;
+                        }
+
                         try
                         {
                             var history = (await client.Datasets.GetRefreshHistoryInGroupAsync(workspaceId, dataset.Id, 1).ConfigureAwait(false)).Value.Value;
@@ -213,6 +219,13 @@ namespace DotNetNuke.PowerBI.Services
                             {
                                 result.Health = "yellow";
                             }
+                        }
+                        catch (RequestFailedException ex) when (
+                            ex.Status == (int)HttpStatusCode.UnsupportedMediaType
+                            && string.Equals(ex.ErrorCode, "InvalidRequest", StringComparison.OrdinalIgnoreCase)
+                            && ex.Message.IndexOf("This API can only be called on a Model-based dataset", StringComparison.OrdinalIgnoreCase) >= 0)
+                        {
+                            Logger.Debug($"Refresh history is not supported for dataset {dataset.Id} in workspace {setting.WorkspaceId}");
                         }
                         catch (Exception ex)
                         {

@@ -37,6 +37,16 @@ The subscription list and edit form display the creator's display name as the ow
 Editing a subscription does not transfer ownership. If the creator is no longer available, the UI explicitly indicates this.
 Ownership is enforced server-side for editing, deleting, saving report changes and running saved subscriptions immediately.
 
+## Dataset refresh statistics
+
+The statistics view counts all workspace datasets except usage metrics models.
+Datasets explicitly marked as non-refreshable are excluded from refresh history queries.
+If refreshability metadata is missing, the query is still attempted. The specific HTTP 415
+`InvalidRequest` response indicating that the API requires a model-based dataset is treated
+as not applicable and logged only at debug level, without degrading refresh health.
+Other query failures still produce warnings. If no refresh history is available, the
+existing no-data indication is preserved.
+
 ## Getting Help
 
 - Check the [main project README](../README.md) for general information
