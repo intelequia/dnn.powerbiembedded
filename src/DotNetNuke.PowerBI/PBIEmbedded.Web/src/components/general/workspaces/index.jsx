@@ -173,6 +173,8 @@ class Workspaces extends Component {
                                 contentPageUrl={item.ContentPageUrl}
                                 disabledCapacityMessage={item.DisabledCapacityMessage}
                                 inheritPermissions={item.InheritPermissions}
+                                refreshMaxRetries={item.RefreshMaxRetries}
+                                refreshRetryDelayMinutes={item.RefreshRetryDelayMinutes}
                                 Collapse={this.collapse.bind(this)}
                                 onUpdate={this.onUpdateWorkspaceSetting.bind(this)}
                                 onValidate={this.onValidateWorkspaceSetting.bind(this)}

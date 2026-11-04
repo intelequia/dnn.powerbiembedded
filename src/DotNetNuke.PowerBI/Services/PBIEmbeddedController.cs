@@ -83,6 +83,15 @@ namespace DotNetNuke.PowerBI.Services
         {
             try
             {
+                if (parameters?.workspaceSettingsDetail == null ||
+                    parameters.workspaceSettingsDetail.RefreshMaxRetries < 0 ||
+                    parameters.workspaceSettingsDetail.RefreshMaxRetries > 10 ||
+                    parameters.workspaceSettingsDetail.RefreshRetryDelayMinutes < 0 ||
+                    parameters.workspaceSettingsDetail.RefreshRetryDelayMinutes > 10080 ||
+                    (parameters.workspaceSettingsDetail.RefreshMaxRetries > 0 &&
+                     parameters.workspaceSettingsDetail.RefreshRetryDelayMinutes < 1))
+                    return Request.CreateErrorResponse(HttpStatusCode.BadRequest, "Invalid dataset refresh retry policy.");
+
                 parameters.workspaceSettingsDetail.SettingsGroupId = parameters.workspaceSettingsDetail.WorkspaceId;
                 if (parameters.workspaceSettingsDetail.SettingsId == 0)
                 {

@@ -96,11 +96,17 @@ namespace DotNetNuke.PowerBI.Services
                         endTime = h.EndTime.HasValue ? h.EndTime.Value.ToString("g") : string.Empty,
                         refreshType = h.RefreshType.HasValue ? h.RefreshType.Value.ToString() : string.Empty,
                         status = h.Status,
-                        errorDetails = ExtractRefreshError(h.ServiceExceptionJson)
+                        errorDetails = ExtractRefreshError(h.ServiceExceptionJson),
+                        retryStatus = h.RetryStatus,
+                        retryAttempts = h.RetryAttempts,
+                        nextRetryUtc = h.NextRetryUtc
                     })
                     .ToList();
 
-                return Request.CreateResponse(HttpStatusCode.OK, new { history, currentPage = page, totalPages, count });
+                return Request.CreateResponse(HttpStatusCode.OK, new {
+                    history, currentPage = page, totalPages, count,
+                    finalFailures = model.History.Count(h => h.RetryStatus == "FinalFailure")
+                });
             }
             catch (Exception ex)
             {
@@ -112,7 +118,7 @@ namespace DotNetNuke.PowerBI.Services
         /// <summary>
         /// Resolves the settings group and loads the calendar model, mirroring the
         /// resolution that the MVC controller used to do server-side. The underlying
-        /// EmbedService caches the result for 15 minutes, so calling this from both
+        /// EmbedService briefly caches the result, so calling this from both
         /// endpoints (schedule + history) is cheap.
         /// </summary>
         private PowerBICalendarView GetCalendarModel(string cid)

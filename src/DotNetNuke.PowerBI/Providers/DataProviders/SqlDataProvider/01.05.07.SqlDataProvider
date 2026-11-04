@@ -1,0 +1,13 @@
+IF COL_LENGTH('{databaseOwner}[{objectQualifier}PBI_Settings]', 'RefreshMaxRetries') IS NULL
+BEGIN
+    ALTER TABLE {databaseOwner}[{objectQualifier}PBI_Settings]
+        ADD [RefreshMaxRetries] [int] NOT NULL CONSTRAINT [DF_{objectQualifier}PBI_Settings_RefreshMaxRetries] DEFAULT(0)
+END
+GO
+
+IF COL_LENGTH('{databaseOwner}[{objectQualifier}PBI_Settings]', 'RefreshRetryDelayMinutes') IS NULL
+BEGIN
+    ALTER TABLE {databaseOwner}[{objectQualifier}PBI_Settings]
+        ADD [RefreshRetryDelayMinutes] [int] NOT NULL CONSTRAINT [DF_{objectQualifier}PBI_Settings_RefreshRetryDelayMinutes] DEFAULT(15)
+END
+GO

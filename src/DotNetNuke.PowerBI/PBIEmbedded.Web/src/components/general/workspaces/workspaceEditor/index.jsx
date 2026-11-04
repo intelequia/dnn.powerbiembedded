@@ -26,7 +26,9 @@ class WorkspaceEditor extends Component {
                 ServicePrincipalTenant: "",
                 ContentPageUrl: "",
                 DisabledCapacityMessage: "",
-                InheritPermissions: false
+                InheritPermissions: false,
+                RefreshMaxRetries: 0,
+                RefreshRetryDelayMinutes: 15
             },
             error: {
                 SettingsGroupName: false,
@@ -62,6 +64,8 @@ class WorkspaceEditor extends Component {
         state.workspaceDetail["ContentPageUrl"] = props.contentPageUrl || "";
         state.workspaceDetail["DisabledCapacityMessage"] = props.disabledCapacityMessage || "";
         state.workspaceDetail["InheritPermissions"] = props.inheritPermissions;
+        state.workspaceDetail["RefreshMaxRetries"] = props.refreshMaxRetries || 0;
+        state.workspaceDetail["RefreshRetryDelayMinutes"] = props.refreshRetryDelayMinutes || 15;
 
         state.error["SettingsGroupName"] = (props.settingsGroupName === null);
         state.error["AuthenticationType"] = (props.authenticationType === null);
@@ -175,9 +179,16 @@ class WorkspaceEditor extends Component {
 
     onSave() {
         const {props, state} = this;
+        const retries = Number(state.workspaceDetail.RefreshMaxRetries);
+        const delay = Number(state.workspaceDetail.RefreshRetryDelayMinutes);
         this.setState({
             triedToSubmit: true
         });
+        if (!Number.isInteger(retries) || retries < 0 || retries > 10 ||
+            !Number.isInteger(delay) || delay < 0 || delay > 10080 ||
+            (retries > 0 && delay < 1)) {
+            return;
+        }
         if (state.error.SettingsGroupName 
             || state.error.AuthenticationType
             || (state.error.AuthenticationType === "MasterUser" 
@@ -353,7 +364,28 @@ class WorkspaceEditor extends Component {
                         errorMessage={resx.get("lblDisabledCapacityMessage.Error")}
                         value={this.state.workspaceDetail.DisabledCapacityMessage}
                         onChange={this.onSettingChange.bind(this, "DisabledCapacityMessage")}
-                    />                                    
+                    />
+                    <SingleLineInputWithError
+                        withLabel={true}
+                        label="Maximum dataset refresh retries (0 disables retries)"
+                        value={this.state.workspaceDetail.RefreshMaxRetries}
+                        error={this.state.triedToSubmit && (!Number.isInteger(Number(this.state.workspaceDetail.RefreshMaxRetries)) ||
+                            Number(this.state.workspaceDetail.RefreshMaxRetries) < 0 || Number(this.state.workspaceDetail.RefreshMaxRetries) > 10)}
+                        errorMessage="Enter a whole number between 0 and 10."
+                        onChange={this.onSettingChange.bind(this, "RefreshMaxRetries")}
+                    />
+                    <SingleLineInputWithError
+                        withLabel={true}
+                        label="Minutes between refresh retries"
+                        value={this.state.workspaceDetail.RefreshRetryDelayMinutes}
+                        error={this.state.triedToSubmit && (!Number.isInteger(Number(this.state.workspaceDetail.RefreshRetryDelayMinutes)) ||
+                            Number(this.state.workspaceDetail.RefreshRetryDelayMinutes) < 0 ||
+                            (Number(this.state.workspaceDetail.RefreshMaxRetries) > 0 &&
+                                Number(this.state.workspaceDetail.RefreshRetryDelayMinutes) < 1) ||
+                            Number(this.state.workspaceDetail.RefreshRetryDelayMinutes) > 10080)}
+                        errorMessage="Enter a whole number between 1 and 10080 (or 0 when retries are disabled)."
+                        onChange={this.onSettingChange.bind(this, "RefreshRetryDelayMinutes")}
+                    />
 
                 </InputGroup>
             </div>;
@@ -395,6 +427,8 @@ WorkspaceEditor.propTypes = {
     contentPageUrl: PropTypes.string,
     disabledCapacityMessage: PropTypes.string,
     inheritPermissions: PropTypes.bool,
+    refreshMaxRetries: PropTypes.number,
+    refreshRetryDelayMinutes: PropTypes.number,
     Collapse: PropTypes.func,
     onUpdate: PropTypes.func,
     id: PropTypes.string,

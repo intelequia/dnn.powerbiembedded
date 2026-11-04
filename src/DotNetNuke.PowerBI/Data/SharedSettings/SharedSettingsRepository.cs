@@ -109,6 +109,8 @@ namespace DotNetNuke.PowerBI.Data.SharedSettings
                 current.ModifiedOn = DateTime.Now;
                 current.ModifiedBy = Components.Common.CurrentUser.UserID;
                 current.InheritPermissions = settings.InheritPermissions;
+                current.RefreshMaxRetries = settings.RefreshMaxRetries;
+                current.RefreshRetryDelayMinutes = settings.RefreshRetryDelayMinutes;
                 repo.Update(current);
             }
 
