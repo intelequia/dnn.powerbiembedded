@@ -260,8 +260,8 @@ namespace DotNetNuke.PowerBI.Services
                                     ServiceExceptionJson = refresh.ServiceExceptionJson,
                                     Status = refresh.Status,
                                     RetryStatus = refresh == latestRefresh ? retry?.Status : null,
-                                    RetryAttempts = retry?.Attempts ?? 0,
-                                    NextRetryUtc = retry?.NextAttemptUtc
+                                    RetryAttempts = refresh == latestRefresh ? retry?.Attempts ?? 0 : 0,
+                                    NextRetryUtc = refresh == latestRefresh ? retry?.NextAttemptUtc : null
                                 });
                             }
                         }

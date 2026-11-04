@@ -185,7 +185,8 @@ class WorkspaceEditor extends Component {
             triedToSubmit: true
         });
         if (!Number.isInteger(retries) || retries < 0 || retries > 10 ||
-            !Number.isInteger(delay) || delay < 1 || delay > 10080) {
+            !Number.isInteger(delay) || delay < 0 || delay > 10080 ||
+            (retries > 0 && delay < 1)) {
             return;
         }
         if (state.error.SettingsGroupName 
@@ -378,9 +379,11 @@ class WorkspaceEditor extends Component {
                         label="Minutes between refresh retries"
                         value={this.state.workspaceDetail.RefreshRetryDelayMinutes}
                         error={this.state.triedToSubmit && (!Number.isInteger(Number(this.state.workspaceDetail.RefreshRetryDelayMinutes)) ||
-                            Number(this.state.workspaceDetail.RefreshRetryDelayMinutes) < 1 ||
+                            Number(this.state.workspaceDetail.RefreshRetryDelayMinutes) < 0 ||
+                            (Number(this.state.workspaceDetail.RefreshMaxRetries) > 0 &&
+                                Number(this.state.workspaceDetail.RefreshRetryDelayMinutes) < 1) ||
                             Number(this.state.workspaceDetail.RefreshRetryDelayMinutes) > 10080)}
-                        errorMessage="Enter a whole number between 1 and 10080."
+                        errorMessage="Enter a whole number between 1 and 10080 (or 0 when retries are disabled)."
                         onChange={this.onSettingChange.bind(this, "RefreshRetryDelayMinutes")}
                     />
 
