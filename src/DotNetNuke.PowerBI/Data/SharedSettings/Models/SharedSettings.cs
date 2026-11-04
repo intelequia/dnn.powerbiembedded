@@ -44,6 +44,8 @@ namespace DotNetNuke.PowerBI.Data.Models
         public DateTime ModifiedOn { get; set; }
         public bool InheritPermissions { get; set; }
         public string DisabledCapacityMessage { get; set; }
+        public int RefreshMaxRetries { get; set; }
+        public int RefreshRetryDelayMinutes { get; set; }
 
         public PowerBISettings()
         {
@@ -86,6 +88,8 @@ namespace DotNetNuke.PowerBI.Data.Models
                 settings.SettingsGroupName = sharedSettings.SettingsGroupName;
                 settings.InheritPermissions = sharedSettings.InheritPermissions;
                 settings.DisabledCapacityMessage = sharedSettings.DisabledCapacityMessage;
+                settings.RefreshMaxRetries = sharedSettings.RefreshMaxRetries;
+                settings.RefreshRetryDelayMinutes = sharedSettings.RefreshRetryDelayMinutes;
             }
             return settings;
         }

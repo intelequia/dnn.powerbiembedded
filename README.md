@@ -22,6 +22,11 @@ The DNN Power BI Embedded module allows you to embed Power BI reports and dashbo
 * **Documentation**: for the full project documentation, please refer the [Wiki](https://github.com/intelequia/dnn.powerbiembedded/wiki)
 * **RLS Configuration**: For detailed information about configuring Role Level Security, see the [RLS Configuration Guide](docs/RLS-Configuration.md)
 
+## Dataset refresh retries
+In the Persona Bar workspace editor, set **Maximum dataset refresh retries** (0–10; default 0, disabled) and **Minutes between refresh retries** (default 15). The DNN scheduler checks eligible scheduled refresh failures every five minutes and submits a retry only after the configured delay. Only recognized transient errors (such as timeouts, throttling or service unavailability) are retried; credential and other unrecognized errors require attention. Existing Power BI refresh schedules and manually initiated refreshes are not changed.
+
+The Calendar View refresh history displays each attempt, its timestamps and Power BI error details, and distinguishes pending retries, active refreshes and final failures. A final-failure alert appears above the calendar history. Ensure the DNN scheduler is enabled for automatic retries.
+
 ## Architecture
 Reference architecture of a DNN portal deployed on Azure, using App Service and SQL Database under platform as a service. The module is compatible with the use of [Azure AD](https://github.com/davidjrh/dnn.azureadprovider), [Azure AD B2C](https://github.com/intelequia/dnn.azureadb2cprovider) or other authentication providers. Report usage information is sent to Application Insights if the [DNN Application Insights module](https://github.com/davidjrh/dnn.appinsights) is also installed. 
 

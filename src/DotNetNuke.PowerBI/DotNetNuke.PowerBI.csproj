@@ -251,6 +251,7 @@
     <Compile Include="Components\MenuController.cs" />
     <Compile Include="Components\RouteMapper.cs" />
     <Compile Include="Components\SubscriptionProcessor.cs" />
+    <Compile Include="Components\DatasetRefreshRetry.cs" />
     <Compile Include="Controllers\CalendarViewController.cs" />
     <Compile Include="Services\CalendarController.cs" />
     <Compile Include="Services\ExportsController.cs" />
@@ -297,6 +298,7 @@
     <Compile Include="Services\StatsController.cs" />
     <Compile Include="Services\SubscriptionController.cs" />
     <Compile Include="Tasks\SubscribeTask.cs" />
+    <Compile Include="Tasks\DatasetRefreshRetryTask.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="admin\personaBar\css\PBIEmbedded.css" />
@@ -320,6 +322,7 @@
     <Content Include="scripts\powerbi.js.map" />
     <Content Include="Providers\DataProviders\SqlDataProvider\01.05.03.SqlDataProvider" />
     <Content Include="Providers\DataProviders\SqlDataProvider\01.05.04.SqlDataProvider" />
+    <Content Include="Providers\DataProviders\SqlDataProvider\01.05.07.SqlDataProvider" />
     <None Include="Views\Emails\emailtemplate.cshtml" />
     <None Include="Views\Emails\es\emailtemplate.cshtml" />
     <None Include="Views\Emails\de\emailtemplate.cshtml" />

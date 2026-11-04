@@ -63,5 +63,8 @@ namespace DotNetNuke.PowerBI.Models
         public string RequestId { get; set; }
         public string ServiceExceptionJson { get; set; }
         public string Status { get; set; }
+        public string RetryStatus { get; set; }
+        public int RetryAttempts { get; set; }
+        public DateTimeOffset? NextRetryUtc { get; set; }
     }
 }

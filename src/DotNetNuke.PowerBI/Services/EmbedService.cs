@@ -194,6 +194,10 @@ namespace DotNetNuke.PowerBI.Services
 
                 var groups = client.Groups.GetGroupsAsync().GetAwaiter().GetResult().Value.Value;
                 var capacities = client.Capacities.GetCapacitiesAsync().GetAwaiter().GetResult().Value.Value;
+                var retrySettings = SharedSettingsRepository.Instance.GetSettings(Settings.PortalId)
+                    .Where(s => !string.IsNullOrEmpty(s.WorkspaceId))
+                    .GroupBy(s => s.WorkspaceId, StringComparer.OrdinalIgnoreCase)
+                    .ToDictionary(g => g.Key, g => g.First(), StringComparer.OrdinalIgnoreCase);
 
 
                 foreach (var workspace in model.Workspaces)
@@ -235,6 +239,12 @@ namespace DotNetNuke.PowerBI.Services
                         {
                             //Get refreshes history
                             var history = client.Datasets.GetRefreshHistoryInGroupAsync(Guid.Parse(workspace), dataset.Id, 100).GetAwaiter().GetResult().Value.Value.ToList();
+                            var latestRefresh = history.OrderByDescending(h => h.StartTime).FirstOrDefault();
+                            Data.Models.PowerBISettings policy;
+                            Components.DatasetRefreshRetry retry = null;
+                            if (retrySettings.TryGetValue(workspace, out policy))
+                                retry = Components.DatasetRefreshRetry.Evaluate(history, policy.RefreshMaxRetries,
+                                    policy.RefreshRetryDelayMinutes, DateTimeOffset.UtcNow);
 
                             foreach (var refresh in history)
                             {
@@ -248,7 +258,10 @@ namespace DotNetNuke.PowerBI.Services
                                     RefreshType = refresh.RefreshType,
                                     RequestId = refresh.RequestId,
                                     ServiceExceptionJson = refresh.ServiceExceptionJson,
-                                    Status = refresh.Status
+                                    Status = refresh.Status,
+                                    RetryStatus = refresh == latestRefresh ? retry?.Status : null,
+                                    RetryAttempts = retry?.Attempts ?? 0,
+                                    NextRetryUtc = retry?.NextAttemptUtc
                                 });
                             }
                         }
@@ -325,7 +338,7 @@ namespace DotNetNuke.PowerBI.Services
                     .OrderByDescending(dataset => dataset.StartTime)
                     .ToList();
 
-                CachingProvider.Instance().Insert($"PBI_{Settings.PortalId}_{Settings.SettingsId}_{Thread.CurrentThread.CurrentUICulture.Name}_CalendarDataSet_{mode}", model, null, DateTime.Now.AddMinutes(15), TimeSpan.Zero);
+                CachingProvider.Instance().Insert($"PBI_{Settings.PortalId}_{Settings.SettingsId}_{Thread.CurrentThread.CurrentUICulture.Name}_CalendarDataSet_{mode}", model, null, DateTime.Now.AddMinutes(1), TimeSpan.Zero);
             }
             return model;
         }

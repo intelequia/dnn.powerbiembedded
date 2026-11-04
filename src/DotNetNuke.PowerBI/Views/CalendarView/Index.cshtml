@@ -83,6 +83,7 @@
     else
     {
         <div id="pbiCalendarError_@Dnn.ActiveModule.ModuleID" class="pbi-calendar-error" style="display:none;"></div>
+        <div id="pbiRefreshFailure_@Dnn.ActiveModule.ModuleID" class="pbi-calendar-error" role="alert" style="display:none;"></div>
         <div id="calendar_@Dnn.ActiveModule.ModuleID" class="fc fc-unthemed fc-ltr"></div>
         <div class="history">
             <h1>Refresh history</h1>
@@ -123,6 +124,7 @@
                 var $historyBody = $('#pbiHistoryBody_' + moduleId);
                 var $pagination = $('#pbiHistoryPagination_' + moduleId);
                 var $error = $('#pbiCalendarError_' + moduleId);
+                var $refreshFailure = $('#pbiRefreshFailure_' + moduleId);
 
                 var sf = $.ServicesFramework(moduleId);
                 var serviceRoot = sf.getServiceRoot('PowerBI/Services') + 'Calendar/';
@@ -253,10 +255,11 @@
                     if (s === 'completed' || s === 'success' || s === 'succeeded') {
                         return { cls: 'pbi-status--success', icon: 'ti ti-circle-check' };
                     }
-                    if (s === 'failed' || s === 'error' || s === 'disabled') {
+                    if (s === 'failed' || s === 'error' || s === 'disabled' || s === 'final failure') {
                         return { cls: 'pbi-status--failed', icon: 'ti ti-alert-circle' };
                     }
-                    if (s === 'unknown' || s === 'inprogress' || s === 'in progress' || s === 'notstarted') {
+                    if (s === 'unknown' || s === 'inprogress' || s === 'in progress' ||
+                        s === 'notstarted' || s.indexOf('retry pending') === 0 || s === 'refresh in progress') {
                         return { cls: 'pbi-status--progress', icon: 'ti ti-loader' };
                     }
                     return { cls: 'pbi-status--neutral', icon: '' };
@@ -264,13 +267,29 @@
 
                 function renderHistory(data) {
                     var history = (data && (data.history || data.History)) || [];
+                    var finalFailures = (data && (data.finalFailures || data.FinalFailures)) || 0;
+                    $refreshFailure.text(finalFailures + ' dataset refresh' + (finalFailures === 1 ? '' : 'es') +
+                        ' failed after retries or require attention. Review the refresh history below.')
+                        .toggle(finalFailures > 0);
                     var currentPage = (data && (data.currentPage || data.CurrentPage)) || 1;
                     var totalPages = (data && (data.totalPages || data.TotalPages)) || 0;
 
                     $historyBody.empty();
                     $.each(history, function (i, h) {
                         var status = h.status || h.Status || '';
+                        var retryStatus = h.retryStatus || h.RetryStatus || '';
+                        if (retryStatus === 'Pending' || retryStatus === 'Due') {
+                            status = 'Retry pending (' + (h.retryAttempts || 0) + ' attempted)';
+                        } else if (retryStatus === 'Active') {
+                            status = 'Refresh in progress';
+                        } else if (retryStatus === 'FinalFailure') {
+                            status = 'Final failure';
+                        }
                         var errorDetails = h.errorDetails || h.ErrorDetails || '';
+                        var nextRetry = h.nextRetryUtc || h.NextRetryUtc;
+                        if (nextRetry && (retryStatus === 'Pending' || retryStatus === 'Due')) {
+                            errorDetails += (errorDetails ? '\n' : '') + 'Next retry: ' + new Date(nextRetry).toLocaleString();
+                        }
                         var info = statusInfo(status);
 
                         var $tr = $('<tr>', { 'class': 'pbi-history-row' });
@@ -348,6 +367,7 @@
                     initCalendar();
                     loadSchedule(currentCid);
                     loadHistory(currentCid, 1);
+                    setInterval(function () { loadHistory(currentCid, 1); }, 60000);
                 });
             })();
         </script>

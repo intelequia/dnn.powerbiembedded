@@ -255,6 +255,12 @@ namespace DotNetNuke.PowerBI
                         retainHistoryNum, attachToEvent, catchUpEnabled, enabled, objectDependencies, servers,
                         friendlyName, startTime);
                 }
+                var refreshTaskName = "DotNetNuke.PowerBI.Tasks.DatasetRefreshRetryTask, DotNetNuke.PowerBI";
+                if (!SchedulingController.GetSchedule().Any(x => x.TypeFullName == refreshTaskName))
+                {
+                    SchedulingController.AddSchedule(refreshTaskName, 5, "m", 5, "m", 0, "",
+                        false, true, "", "", "Power BI dataset refresh retries", DateTime.Now);
+                }
                 return "success";
 
                 /*switch (version)
